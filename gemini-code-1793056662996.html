@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- 1. Viewport configuration: lock zoom and prevent user scale -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  
+  <!-- 2. Apple PWA Meta Tags: tells iOS to launch fullscreen -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MeteorDodge">
+
+  <title>Meteor Dodge</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0d1117;
+      touch-action: none; /* Disables pinch, double-tap zoom, and pull-to-refresh */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    #gameCanvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+    #uiOverlay {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 700;
+      pointer-events: none;
+    }
+    #adRewardBanner {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #238636;
+      color: #ffffff;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      display: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="uiOverlay">Score: <span id="scoreDisplay">0</span></div>
+  <div id="adRewardBanner" onclick="triggerRewardAd()">+ Watch Ad to Revive</div>
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreDisplay = document.getElementById("scoreDisplay");
+    const adBanner = document.getElementById("adRewardBanner");
+
+    // Dynamic resolution adjustment
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    // Game state
+    let isGameOver = false;
+    let score = 0;
+    let obstacles = [];
+    let frame = 0;
+
+    // Player object
+    const player = {
+      x: canvas.width / 2,
+      y: canvas.height - 120,
+      radius: 20,
+      targetX: canvas.width / 2
+    };
+
+    // Touch input handling
+    function setTarget(e) {
+      if (isGameOver) {
+        if (!adBanner.contains(e.target)) restartGame();
+        return;
+      }
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      player.targetX = clientX;
+    }
+
+    window.addEventListener("touchstart", setTarget, { passive: false });
+    window.addEventListener("touchmove", setTarget, { passive: false });
+    window.addEventListener("mousedown", setTarget);
+
+    function spawnObstacle() {
+      const radius = Math.random() * 15 + 10;
+      obstacles.push({
+        x: Math.random() * (canvas.width - radius * 2) + radius,
+        y: -radius,
+        radius: radius,
+        speed: Math.random() * 3 + 3 + (score * 0.05)
+      });
+    }
+
+    function update() {
+      if (isGameOver) return;
+
+      frame++;
+      score++;
+      scoreDisplay.innerText = Math.floor(score / 10);
+
+      // Smooth horizontal interpolation towards finger position
+      player.x += (player.targetX - player.x) * 0.2;
+
+      // Spawn meteors
+      if (frame % 30 === 0) spawnObstacle();
+
+      // Update meteors and collision
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obs = obstacles[i];
+        obs.y += obs.speed;
+
+        // Circle-to-circle collision detection
+        const dx = player.x - obs.x;
+        const dy = player.y - obs.y;
+        const distance = Math.hypot(dx, dy);
+
+        if (distance < player.radius + obs.radius) {
+          gameOver();
+          return;
+        }
+
+        // Clean up out-of-bounds obstacles
+        if (obs.y - obs.radius > canvas.height) {
+          obstacles.splice(i, 1);
+        }
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw Player
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+      ctx.fillStyle = "#58a6ff";
+      ctx.fill();
+      ctx.closePath();
+
+      // Draw Obstacles
+      ctx.fillStyle = "#f85149";
+      obstacles.forEach(obs => {
+        ctx.beginPath();
+        ctx.arc(obs.x, obs.y, obs.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+      });
+
+      // Game Over Screen
+      if (isGameOver) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.font = "bold 28px -apple-system, sans-serif";
+        ctx.fillText("Game Over", canvas.width / 2, canvas.height / 2 - 40);
+        ctx.font = "16px -apple-system, sans-serif";
+        ctx.fillText("Tap screen to restart", canvas.width / 2, canvas.height / 2);
+      }
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+    function gameOver() {
+      isGameOver = true;
+      adBanner.style.display = "block"; // Show the monetization prompt
+    }
+
+    function restartGame() {
+      obstacles = [];
+      score = 0;
+      frame = 0;
+      player.x = canvas.width / 2;
+      player.targetX = canvas.width / 2;
+      isGameOver = false;
+      adBanner.style.display = "none";
+    }
+
+    // Ad Callback Hook (Where you plug in your web ad network SDK)
+    function triggerRewardAd() {
+      alert("Ad network script plays here. Once finished, player is revived.");
+      isGameOver = false;
+      obstacles = []; // Clear current hazards
+      adBanner.style.display = "none";
+    }
+  </script>
+</body>
+</html>
