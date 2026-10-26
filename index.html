@@ -2,13 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- 1. Viewport configuration: lock zoom and prevent user scale -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  
-  <!-- 2. Apple PWA Meta Tags: tells iOS to launch fullscreen -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="MeteorDodge">
+  <meta name="apple-mobile-web-app-title" content="Meteor Dodge">
+  <link rel="manifest" href="manifest.json">
+  <link id="appleIcon" rel="apple-touch-icon" href="">
 
   <title>Meteor Dodge</title>
   <style>
@@ -24,8 +23,8 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background-color: #0d1117;
-      touch-action: none; /* Disables pinch, double-tap zoom, and pull-to-refresh */
+      background-color: #0b0f19;
+      touch-action: none;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     #gameCanvas {
@@ -33,45 +32,72 @@
       width: 100vw;
       height: 100vh;
     }
-    #uiOverlay {
+    #hud {
       position: absolute;
-      top: 16px;
-      left: 16px;
+      top: max(20px, env(safe-area-inset-top));
+      left: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
       color: #ffffff;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 700;
       pointer-events: none;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
     }
     #adRewardBanner {
       position: absolute;
-      bottom: 24px;
+      bottom: 60px;
       left: 50%;
       transform: translateX(-50%);
-      background: #238636;
+      background: linear-gradient(135deg, #2ea043, #238636);
       color: #ffffff;
-      padding: 10px 20px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 600;
+      padding: 14px 28px;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 700;
       display: none;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      box-shadow: 0 6px 20px rgba(46, 160, 67, 0.4);
+      white-space: nowrap;
     }
   </style>
 </head>
 <body>
 
-  <div id="uiOverlay">Score: <span id="scoreDisplay">0</span></div>
-  <div id="adRewardBanner" onclick="triggerRewardAd()">+ Watch Ad to Revive</div>
+  <div id="hud">
+    <div>Score: <span id="scoreDisplay">0</span></div>
+    <div>Best: <span id="highScoreDisplay">0</span></div>
+  </div>
+  <div id="adRewardBanner" onclick="triggerRewardAd()">▶ Watch Ad to Revive</div>
   <canvas id="gameCanvas"></canvas>
 
   <script>
+    // 1. Auto-generate iPhone Home Screen Icon
+    (function generateAppIcon() {
+      const iconCanvas = document.createElement("canvas");
+      iconCanvas.width = 512;
+      iconCanvas.height = 512;
+      const ictx = iconCanvas.getContext("2d");
+      ictx.fillStyle = "#0b0f19";
+      ictx.fillRect(0, 0, 512, 512);
+      ictx.fillStyle = "#f85149";
+      ictx.beginPath();
+      ictx.arc(340, 170, 90, 0, Math.PI * 2);
+      ictx.fill();
+      ictx.fillStyle = "#58a6ff";
+      ictx.beginPath();
+      ictx.arc(200, 360, 70, 0, Math.PI * 2);
+      ictx.fill();
+      document.getElementById("appleIcon").href = iconCanvas.toDataURL("image/png");
+    })();
+
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     const scoreDisplay = document.getElementById("scoreDisplay");
+    const highScoreDisplay = document.getElementById("highScoreDisplay");
     const adBanner = document.getElementById("adRewardBanner");
 
-    // Dynamic resolution adjustment
     function resizeCanvas() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
@@ -79,13 +105,42 @@
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
-    // Game state
+    // 2. Built-in Sound Effects (Web Audio API)
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function playSound(freq, type, duration) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    // 3. Game State & High Score
     let isGameOver = false;
+    let isAdPlaying = false;
     let score = 0;
+    let highScore = parseInt(localStorage.getItem("meteorHighScore")) || 0;
+    highScoreDisplay.innerText = highScore;
+
     let obstacles = [];
+    let coins = [];
+    let particles = [];
+    let stars = Array.from({ length: 40 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 2 + 1,
+      speed: Math.random() * 1.5 + 0.5
+    }));
     let frame = 0;
 
-    // Player object
     const player = {
       x: canvas.width / 2,
       y: canvas.height - 120,
@@ -93,74 +148,136 @@
       targetX: canvas.width / 2
     };
 
-    // Touch input handling
     function setTarget(e) {
+      if (!audioCtx) audioCtx = new AudioCtx();
+      if (isAdPlaying) return;
       if (isGameOver) {
         if (!adBanner.contains(e.target)) restartGame();
         return;
       }
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      player.targetX = clientX;
+      player.targetX = Math.max(player.radius, Math.min(canvas.width - player.radius, clientX));
     }
 
     window.addEventListener("touchstart", setTarget, { passive: false });
     window.addEventListener("touchmove", setTarget, { passive: false });
     window.addEventListener("mousedown", setTarget);
 
-    function spawnObstacle() {
-      const radius = Math.random() * 15 + 10;
-      obstacles.push({
-        x: Math.random() * (canvas.width - radius * 2) + radius,
-        y: -radius,
-        radius: radius,
-        speed: Math.random() * 3 + 3 + (score * 0.05)
-      });
+    function createParticles(x, y, color) {
+      for (let i = 0; i < 15; i++) {
+        particles.push({
+          x, y,
+          vx: (Math.random() - 0.5) * 8,
+          vy: (Math.random() - 0.5) * 8,
+          alpha: 1,
+          color
+        });
+      }
     }
 
     function update() {
-      if (isGameOver) return;
+      if (isGameOver || isAdPlaying) return;
 
       frame++;
-      score++;
-      scoreDisplay.innerText = Math.floor(score / 10);
+      if (frame % 10 === 0) {
+        score++;
+        scoreDisplay.innerText = score;
+      }
 
-      // Smooth horizontal interpolation towards finger position
-      player.x += (player.targetX - player.x) * 0.2;
+      player.y = canvas.height - 120;
+      player.x += (player.targetX - player.x) * 0.22;
 
-      // Spawn meteors
-      if (frame % 30 === 0) spawnObstacle();
+      // Spawn Obstacles
+      if (frame % Math.max(12, 32 - Math.floor(score / 15)) === 0) {
+        const radius = Math.random() * 16 + 12;
+        obstacles.push({
+          x: Math.random() * (canvas.width - radius * 2) + radius,
+          y: -radius,
+          radius,
+          speed: Math.random() * 3 + 3.5 + (score * 0.04)
+        });
+      }
 
-      // Update meteors and collision
+      // Spawn Gold Coins
+      if (frame % 110 === 0) {
+        coins.push({
+          x: Math.random() * (canvas.width - 40) + 20,
+          y: -20,
+          radius: 12,
+          speed: 4
+        });
+      }
+
+      // Update Stars
+      stars.forEach(s => {
+        s.y += s.speed;
+        if (s.y > canvas.height) {
+          s.y = 0;
+          s.x = Math.random() * canvas.width;
+        }
+      });
+
+      // Update Coins
+      for (let i = coins.length - 1; i >= 0; i--) {
+        const c = coins[i];
+        c.y += c.speed;
+        if (Math.hypot(player.x - c.x, player.y - c.y) < player.radius + c.radius) {
+          score += 5;
+          scoreDisplay.innerText = score;
+          playSound(880, "sine", 0.15);
+          createParticles(c.x, c.y, "#ffd700");
+          coins.splice(i, 1);
+          continue;
+        }
+        if (c.y > canvas.height + 20) coins.splice(i, 1);
+      }
+
+      // Update Obstacles
       for (let i = obstacles.length - 1; i >= 0; i--) {
         const obs = obstacles[i];
         obs.y += obs.speed;
-
-        // Circle-to-circle collision detection
-        const dx = player.x - obs.x;
-        const dy = player.y - obs.y;
-        const distance = Math.hypot(dx, dy);
-
-        if (distance < player.radius + obs.radius) {
+        if (Math.hypot(player.x - obs.x, player.y - obs.y) < player.radius + obs.radius) {
+          playSound(150, "sawtooth", 0.4);
+          createParticles(player.x, player.y, "#f85149");
           gameOver();
           return;
         }
+        if (obs.y - obs.radius > canvas.height) obstacles.splice(i, 1);
+      }
 
-        // Clean up out-of-bounds obstacles
-        if (obs.y - obs.radius > canvas.height) {
-          obstacles.splice(i, 1);
-        }
+      // Update Particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= 0.03;
+        if (p.alpha <= 0) particles.splice(i, 1);
       }
     }
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      // Draw Stars
+      ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+      stars.forEach(s => ctx.fillRect(s.x, s.y, s.size, s.size));
+
       // Draw Player
       ctx.beginPath();
       ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
       ctx.fillStyle = "#58a6ff";
+      ctx.shadowColor = "#58a6ff";
+      ctx.shadowBlur = 15;
       ctx.fill();
-      ctx.closePath();
+      ctx.shadowBlur = 0;
+
+      // Draw Coins
+      ctx.fillStyle = "#ffd700";
+      coins.forEach(c => {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
 
       // Draw Obstacles
       ctx.fillStyle = "#f85149";
@@ -168,20 +285,29 @@
         ctx.beginPath();
         ctx.arc(obs.x, obs.y, obs.radius, 0, Math.PI * 2);
         ctx.fill();
-        ctx.closePath();
       });
 
-      // Game Over Screen
+      // Draw Particles
+      particles.forEach(p => {
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+
       if (isGameOver) {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+        ctx.fillStyle = "rgba(11, 15, 25, 0.82)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         ctx.fillStyle = "#ffffff";
         ctx.textAlign = "center";
-        ctx.font = "bold 28px -apple-system, sans-serif";
+        ctx.font = "bold 32px -apple-system, sans-serif";
         ctx.fillText("Game Over", canvas.width / 2, canvas.height / 2 - 40);
-        ctx.font = "16px -apple-system, sans-serif";
-        ctx.fillText("Tap screen to restart", canvas.width / 2, canvas.height / 2);
+        ctx.font = "18px -apple-system, sans-serif";
+        ctx.fillStyle = "#8b949e";
+        ctx.fillText("Tap anywhere to restart", canvas.width / 2, canvas.height / 2 + 5);
       }
     }
 
@@ -194,25 +320,40 @@
 
     function gameOver() {
       isGameOver = true;
-      adBanner.style.display = "block"; // Show the monetization prompt
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem("meteorHighScore", highScore);
+        highScoreDisplay.innerText = highScore;
+      }
+      adBanner.style.display = "block";
     }
 
     function restartGame() {
       obstacles = [];
+      coins = [];
       score = 0;
       frame = 0;
+      scoreDisplay.innerText = "0";
       player.x = canvas.width / 2;
       player.targetX = canvas.width / 2;
       isGameOver = false;
       adBanner.style.display = "none";
     }
 
-    // Ad Callback Hook (Where you plug in your web ad network SDK)
+    // 4. Rewarded Ad Trigger
     function triggerRewardAd() {
-      alert("Ad network script plays here. Once finished, player is revived.");
-      isGameOver = false;
-      obstacles = []; // Clear current hazards
-      adBanner.style.display = "none";
+      isAdPlaying = true;
+      adBanner.innerText = "Loading Ad...";
+
+      // Simulate a 2-second ad until you paste your real Ad SDK
+      setTimeout(() => {
+        isAdPlaying = false;
+        isGameOver = false;
+        obstacles = [];
+        adBanner.innerText = "▶ Watch Ad to Revive";
+        adBanner.style.display = "none";
+        playSound(523.25, "sine", 0.2);
+      }, 2000);
     }
   </script>
 </body>
