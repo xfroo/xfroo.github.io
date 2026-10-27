@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Meteor Dodge",
-  "short_name": "Meteor Dodge",
+  "name": "Meteor Swerve",
+  "short_name": "Meteor Swerve",
   "description": "Dodge meteors, grab coins and unlock new ships in this fast arcade game.",
   "start_url": "./index.html",
   "scope": "./",
