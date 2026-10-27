@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Meteor Swerve",
   "short_name": "Meteor Swerve",
-  "description": "Dodge meteors, grab coins and unlock new ships in this fast arcade game.",
+  "description": "Fly through six meteor-filled worlds, beat the bosses, collect coins and upgrade your ships in this fast arcade game.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
