@@ -6,14 +6,15 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Meteor Dodge">
+  <meta name="apple-mobile-web-app-title" content="Meteor Swerve">
   <meta name="theme-color" content="#0b0f19">
   <meta name="description" content="Dodge meteors, grab coins and unlock new ships in this fast arcade game.">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="icon.svg">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
 
-  <title>Meteor Dodge</title>
+  <title>Meteor Swerve</title>
   <style>
     * {
       box-sizing: border-box;
@@ -281,6 +282,7 @@
     #skinName { font-size: 20px; font-weight: 900; }
     #skinStatus { font-size: 13px; font-weight: 700; color: var(--muted); margin-top: 2px; }
     #skinStatus.owned { color: #56d364; }
+    #skinStatus svg { width: 11px; height: 11px; fill: currentColor; vertical-align: -1px; margin-right: 3px; }
     #skinDots { display: flex; gap: 6px; margin-top: 8px; }
     #skinDots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.18); }
     #skinDots i.own { background: rgba(255,255,255,.45); }
@@ -367,6 +369,23 @@
       .btn.big { padding: 15px 24px; font-size: 19px; }
       .score-big { font-size: 60px; }
     }
+
+    @media (max-height: 480px) {
+      .overlay { gap: 7px; padding-top: calc(env(safe-area-inset-top) + 10px); padding-bottom: calc(env(safe-area-inset-bottom) + 10px); }
+      .title { font-size: 34px; }
+      #shipPreview { width: 76px; height: 76px; }
+      .btn { padding: 10px 22px; font-size: 16px; }
+      .btn.big { padding: 12px 22px; font-size: 18px; }
+      .score-big { font-size: 48px; }
+    }
+
+    @media (max-height: 400px) {
+      #menuHint { display: none; }
+      .title { font-size: 28px; margin-bottom: 0; }
+      .stat { padding: 4px 12px; }
+      .stat b { font-size: 18px; }
+      #shipPreview { width: 56px; height: 56px; }
+    }
   </style>
 </head>
 <body>
@@ -388,7 +407,7 @@
   <div id="countdown"></div>
 
   <div id="menu" class="overlay menu">
-    <div class="title"><span class="t1">METEOR</span><span class="t2">DODGE</span></div>
+    <div class="title"><span class="t1">METEOR</span><span class="t2">SWERVE</span></div>
     <div class="stats">
       <div class="stat"><small>BEST</small><b id="menuBest">0</b></div>
       <div class="stat"><small>COINS</small><b><i class="coin"></i><span id="menuCoins">0</span></b></div>
@@ -406,10 +425,10 @@
     <button class="btn gold" id="unlockBtn" hidden>Unlock</button>
     <button class="btn big" id="playBtn">PLAY</button>
     <div class="menu-foot">
-      <button class="icon-btn mute-btn" aria-label="Toggle sound">🔊</button>
+      <button class="icon-btn mute-btn" aria-label="Toggle sound"></button>
       <button class="pill" id="freeCoinsBtn"></button>
     </div>
-    <p class="hint">Drag anywhere to steer · grab coins · unlock ships</p>
+    <p class="hint" id="menuHint">Drag anywhere to steer · grab coins · unlock ships</p>
   </div>
 
   <div id="continue" class="overlay">
@@ -424,9 +443,9 @@
   </div>
 
   <div id="adwait" class="overlay">
-    <div class="spinner"></div>
-    <div class="h2">Opening ad…</div>
-    <div class="sub">Come back to the game when you're done<br>to get your reward.</div>
+    <div class="spinner" id="adSpinner"></div>
+    <div class="h2" id="adTitle">Opening ad…</div>
+    <div class="sub" id="adSub">Come back to the game when you're done<br>to get your reward.</div>
   </div>
 
   <div id="gameover" class="overlay">
@@ -445,7 +464,7 @@
   <div id="pause" class="overlay">
     <div class="h1">Paused</div>
     <button class="btn big" id="resumeBtn">Resume</button>
-    <button class="icon-btn mute-btn" aria-label="Toggle sound">🔊</button>
+    <button class="icon-btn mute-btn" aria-label="Toggle sound"></button>
     <button class="btn ghost" id="quitBtn">Menu</button>
   </div>
 
@@ -464,7 +483,10 @@
     const DRAG_SENSITIVITY = 1.2;
     const TAU = Math.PI * 2;
     const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    const EMOJI_FONT = '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+    // Icons are drawn rather than emoji, so they look the same on every device.
+    const ICON_SOUND_ON = '<svg viewBox="0 0 24 24"><path d="M3 9h4l5-4v14l-5-4H3z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
+    const ICON_SOUND_OFF = '<svg viewBox="0 0 24 24"><path d="M3 9h4l5-4v14l-5-4H3z"/><path d="M16 9.5l5 5m0-5l-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
+    const ICON_LOCK = '<svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z"/></svg>';
 
     const SKINS = [
       { name: "Comet",    price: 0,    body: "#58a6ff", accent: "#d6ecff", flame: "#7cc4ff" },
@@ -476,9 +498,9 @@
     ];
 
     const POWERUPS = {
-      shield: { icon: "🛡️", color: "#58e1ff", duration: 12, label: "SHIELD!" },
-      magnet: { icon: "🧲", color: "#ff6b9a", duration: 9,  label: "MAGNET!" },
-      slow:   { icon: "⏳", color: "#b388ff", duration: 5,  label: "SLOW-MO!" }
+      shield: { color: "#58e1ff", duration: 12, label: "SHIELD!" },
+      magnet: { color: "#ff6b9a", duration: 9,  label: "MAGNET!" },
+      slow:   { color: "#b388ff", duration: 5,  label: "SLOW-MO!" }
     };
 
     // ---------- Helpers ----------
@@ -515,6 +537,38 @@
       } catch (e) {}
     }
 
+    function loadAnalytics() {
+      const s = document.createElement("script");
+      s.async = true;
+      s.dataset.goatcounter = "https://xfroot.goatcounter.com/count";
+      s.src = "https://gc.zgo.at/count.js";
+      document.body.appendChild(s);
+    }
+
+    // ---------- CrazyGames ----------
+    // On CrazyGames (and on localhost, where the SDK shows a placeholder instead of
+    // a real ad) rewards come from CrazyGames video ads. On any other site the SDK
+    // is "disabled" and every call would throw, so the game uses the direct link.
+    let crazy = null;
+    let crazySettled = false;
+    let gameplayOn = false, gameplayTimer = 0;
+
+    // The SDK rejects (and logs an error for) gameplay calls less than a second
+    // apart, so a change is only reported once it has lasted a little over a
+    // second; a quick pause/resume never reaches the SDK at all.
+    function setGameplay(on) {
+      if (!crazy) return;
+      clearTimeout(gameplayTimer);
+      if (on === gameplayOn) return;
+      gameplayTimer = setTimeout(() => {
+        gameplayOn = on;
+        try {
+          if (on) crazy.game.gameplayStart();
+          else crazy.game.gameplayStop();
+        } catch (e) {}
+      }, 1100);
+    }
+
     function vibrate(pattern) {
       if (!navigator.vibrate || (navigator.userActivation && !navigator.userActivation.hasBeenActive)) return;
       try { navigator.vibrate(pattern); } catch (e) {}
@@ -528,42 +582,57 @@
     });
 
     // ---------- Save data ----------
+    // Progress goes to localStorage, or to the CrazyGames Data module once the SDK
+    // is up on CrazyGames (it backs saves up to the player's account; same API).
+    // deviceOnly keys (settings, not progress) always stay in localStorage.
+    let saveArea = null;
     const store = {
-      get(key, fallback) {
+      get(key, fallback, deviceOnly) {
         try {
-          const v = localStorage.getItem(key);
+          const v = (deviceOnly ? localStorage : saveArea || localStorage).getItem(key);
           return v === null ? fallback : JSON.parse(v);
         } catch (e) { return fallback; }
       },
-      set(key, value) {
-        try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+      set(key, value, deviceOnly) {
+        try { (deviceOnly ? localStorage : saveArea || localStorage).setItem(key, JSON.stringify(value)); } catch (e) {}
       }
     };
 
-    let best = Number(store.get("meteorHighScore", 0)) || 0;
-    let wallet = Number(store.get("meteorCoins", 0)) || 0;
-    let owned = store.get("meteorSkinsOwned", [0]);
-    if (!Array.isArray(owned)) owned = [0];
-    if (!owned.includes(0)) owned.push(0);
-    let selectedSkin = Number(store.get("meteorSkin", 0)) || 0;
-    if (!owned.includes(selectedSkin)) selectedSkin = 0;
-    let plays = Number(store.get("meteorPlays", 0)) || 0;
-    let freeCoinsAt = Number(store.get("meteorFreeAt", 0)) || 0;
+    let best, wallet, owned, selectedSkin, plays, freeCoinsAt;
+    function loadSave() {
+      best = Number(store.get("meteorHighScore", 0)) || 0;
+      wallet = Number(store.get("meteorCoins", 0)) || 0;
+      owned = store.get("meteorSkinsOwned", [0]);
+      if (!Array.isArray(owned)) owned = [0];
+      if (!owned.includes(0)) owned.push(0);
+      selectedSkin = Number(store.get("meteorSkin", 0)) || 0;
+      if (!owned.includes(selectedSkin)) selectedSkin = 0;
+      plays = Number(store.get("meteorPlays", 0)) || 0;
+      freeCoinsAt = Number(store.get("meteorFreeAt", 0)) || 0;
+    }
+    loadSave();
 
     const skin = () => SKINS[selectedSkin];
 
     // ---------- Sound (Web Audio, no files needed) ----------
     const Sound = (() => {
       let ac = null, master = null, noiseBuf = null;
-      let muted = !!store.get("meteorMuted", false);
+      let muted = !!store.get("meteorMuted", false, true);
+      let adMuted = false, platformMuted = false;   // forced by an ad or the CrazyGames site; never saved
+      const silent = () => muted || adMuted || platformMuted;
+      // Levels are balanced so every effect sits within about 7 dB of the others
+      const VOLUME = 1;
+      const applyVolume = () => { if (master) master.gain.value = silent() ? 0 : VOLUME; };
 
       function unlock() {
+        // Browsers only allow audio after the player has clicked, tapped or pressed a key
+        if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
         if (!ac) {
           const AC = window.AudioContext || window.webkitAudioContext;
           if (!AC) return;
           ac = new AC();
           master = ac.createGain();
-          master.gain.value = muted ? 0 : 0.6;
+          master.gain.value = silent() ? 0 : VOLUME;
           master.connect(ac.destination);
           noiseBuf = ac.createBuffer(1, Math.floor(ac.sampleRate * 0.8), ac.sampleRate);
           const d = noiseBuf.getChannelData(0);
@@ -573,7 +642,7 @@
       }
 
       function tone(freq, dur, opts) {
-        if (!ac || muted) return;
+        if (!ac || silent()) return;
         const { type = "sine", vol = 0.2, slide = 0, delay = 0 } = opts || {};
         const t = ac.currentTime + delay;
         const o = ac.createOscillator();
@@ -591,7 +660,7 @@
       }
 
       function noise(dur, opts) {
-        if (!ac || muted) return;
+        if (!ac || silent()) return;
         const { vol = 0.3, from = 1200, to = 200 } = opts || {};
         const t = ac.currentTime;
         const s = ac.createBufferSource();
@@ -615,28 +684,30 @@
         get muted() { return muted; },
         toggle() {
           muted = !muted;
-          store.set("meteorMuted", muted);
-          if (master) master.gain.value = muted ? 0 : 0.6;
+          store.set("meteorMuted", muted, true);
+          applyVolume();
           return muted;
         },
+        setAdMuted(v) { adMuted = v; applyVolume(); },
+        setPlatformMuted(v) { platformMuted = v; applyVolume(); },
         coin(step) {
           const f = 988 * Math.pow(2, step / 6);
-          tone(f, 0.07, { type: "square", vol: 0.06 });
-          tone(f * 1.335, 0.12, { type: "square", vol: 0.06, delay: 0.05 });
+          tone(f, 0.07, { type: "square", vol: 0.09 });
+          tone(f * 1.335, 0.12, { type: "square", vol: 0.09, delay: 0.05 });
         },
-        nearMiss() { tone(700, 0.18, { type: "triangle", vol: 0.12, slide: 2.2 }); },
-        power() { [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.12, { type: "triangle", vol: 0.12, delay: i * 0.06 })); },
+        nearMiss() { tone(700, 0.18, { type: "triangle", vol: 0.16, slide: 2.2 }); },
+        power() { [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.12, { type: "triangle", vol: 0.15, delay: i * 0.06 })); },
         shieldBreak() {
-          noise(0.35, { vol: 0.35, from: 3000, to: 300 });
+          noise(0.35, { vol: 0.3, from: 3000, to: 300 });
           tone(300, 0.3, { type: "sawtooth", vol: 0.08, slide: 0.5 });
         },
         explode() {
-          noise(0.8, { vol: 0.5, from: 2000, to: 60 });
-          tone(160, 0.6, { type: "sawtooth", vol: 0.12, slide: 0.25 });
+          noise(0.8, { vol: 0.3, from: 2000, to: 60 });
+          tone(160, 0.6, { type: "sawtooth", vol: 0.08, slide: 0.25 });
         },
-        beep(high) { tone(high ? 880 : 440, high ? 0.3 : 0.12, { type: "square", vol: 0.07 }); },
-        click() { tone(620, 0.05, { type: "triangle", vol: 0.08 }); },
-        best() { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.18, { type: "square", vol: 0.05, delay: i * 0.08 })); }
+        beep(high) { tone(high ? 880 : 440, high ? 0.3 : 0.12, { type: "square", vol: 0.09 }); },
+        click() { tone(620, 0.05, { type: "triangle", vol: 0.11 }); },
+        best() { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.18, { type: "square", vol: 0.07, delay: i * 0.08 })); }
       };
     })();
 
@@ -649,6 +720,7 @@
     const bgCanvas = document.createElement("canvas");
     const bgCtx = bgCanvas.getContext("2d");
     const isCoarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    if (!isCoarse) $("menuHint").textContent = "Move the mouse to steer · grab coins · unlock ships";
 
     let W = 0, H = 0, DPR = 1;
     let fieldX = 0, fieldW = 0;           // play area (capped width so desktop plays like a phone)
@@ -818,6 +890,55 @@
       return (glowCache[color] = c);
     }
 
+    // s is the icon's half-height in pixels
+    function drawPowerIcon(g, type, x, y, s) {
+      g.save();
+      g.translate(x, y);
+      g.scale(s / 10, s / 10);
+      g.fillStyle = g.strokeStyle = "#ffffff";
+      g.lineJoin = "round";
+      if (type === "shield") {
+        g.beginPath();
+        g.moveTo(0, -10);
+        g.lineTo(8, -6.5);
+        g.quadraticCurveTo(8.5, 5, 0, 10);
+        g.quadraticCurveTo(-8.5, 5, -8, -6.5);
+        g.closePath();
+        g.fill();
+        g.fillStyle = POWERUPS.shield.color;
+        g.beginPath();
+        g.moveTo(0, -6.3);
+        g.lineTo(4.8, -4.2);
+        g.quadraticCurveTo(5.1, 3.2, 0, 6.4);
+        g.closePath();
+        g.fill();
+      } else if (type === "magnet") {
+        g.lineWidth = 5;
+        g.beginPath();
+        g.moveTo(-5.5, -6);
+        g.lineTo(-5.5, 0);
+        g.arc(0, 0, 5.5, Math.PI, 0, true);
+        g.lineTo(5.5, -6);
+        g.stroke();
+        g.fillStyle = POWERUPS.magnet.color;
+        g.fillRect(-8, -10, 5, 4.5);
+        g.fillRect(3, -10, 5, 4.5);
+      } else {
+        g.fillRect(-7, -10, 14, 2.6);
+        g.fillRect(-7, 7.4, 14, 2.6);
+        g.lineWidth = 1.8;
+        g.beginPath();
+        g.moveTo(-5.5, -7.4); g.lineTo(5.5, -7.4); g.lineTo(0.9, 0);
+        g.lineTo(5.5, 7.4); g.lineTo(-5.5, 7.4); g.lineTo(-0.9, 0);
+        g.closePath();
+        g.stroke();
+        g.fillStyle = POWERUPS.slow.color;
+        g.beginPath(); g.moveTo(-3.6, -5.6); g.lineTo(3.6, -5.6); g.lineTo(0, -1.6); g.closePath(); g.fill();
+        g.beginPath(); g.moveTo(-4, 6.4); g.lineTo(4, 6.4); g.lineTo(0, 3); g.closePath(); g.fill();
+      }
+      g.restore();
+    }
+
     function drawShip(g, x, y, scale, sk, tilt, t) {
       g.save();
       g.translate(x, y);
@@ -882,8 +1003,8 @@
     }
 
     // ---------- Game state ----------
-    // menu | playing | paused | countdown | dying | continue | adwait | over
-    let state = "menu";
+    // boot | menu | playing | paused | countdown | dying | continue | adwait | over
+    let state = "boot";
     let stateT = 0;
     let T = 0;
     let timeScale = 1;
@@ -898,7 +1019,7 @@
     function newRun() {
       return {
         score: 0, time: 0, coins: 0,
-        revived: false, doubled: false, moved: false,
+        revived: false, doubled: false, moved: false, tutorial: false,
         spawnT: 0.9, coinT: 1.2, powerT: rand(9, 13),
         invuln: 0,
         pu: { shield: 0, magnet: 0, slow: 0 },
@@ -950,12 +1071,14 @@
       blurFocus();
       ["menu", "gameover", "continue", "pause"].forEach(hideScreen);
       run = newRun();
+      run.tutorial = plays === 0;
       meteors.length = coins.length = powerups.length = texts.length = 0;
       player.x = player.targetX = fieldX + fieldW / 2;
       player.tilt = 0;
       timeScale = 1;
       coinStreak = 0;
       state = "playing";
+      setGameplay(true);
       hud.classList.add("show");
       hud.classList.remove("dead");
       hudBest.textContent = "BEST " + best;
@@ -968,6 +1091,7 @@
     function showMenu() {
       blurFocus();
       state = "menu";
+      setGameplay(false);
       ["gameover", "continue", "pause"].forEach(hideScreen);
       hud.classList.remove("show");
       meteors.length = coins.length = powerups.length = 0;
@@ -978,6 +1102,7 @@
 
     function die() {
       state = "dying";
+      setGameplay(false);
       stateT = 0;
       drag = null;
       explosion(player.x, player.y, ["#ffffff", "#ffd166", "#ff7b54", "#f85149", skin().glow], 50);
@@ -988,7 +1113,7 @@
     }
 
     function afterDeath() {
-      if (!run.revived && run.score >= REVIVE_MIN_SCORE) showContinue();
+      if (!adsOff && !run.revived && run.score >= REVIVE_MIN_SCORE) showContinue();
       else showGameOver();
     }
 
@@ -1034,7 +1159,7 @@
       $("goBest").textContent = best;
       $("goCoins").textContent = "+" + run.coins;
       $("newBest").hidden = !isBest;
-      doubleBtn.hidden = run.coins <= 0;
+      doubleBtn.hidden = adsOff || run.coins <= 0;
       doubleBtn.disabled = false;
       doubleLabel.textContent = "Double coins (+" + run.coins + ")";
       showScreen("gameover", 650);
@@ -1053,9 +1178,11 @@
       Sound.power();
     }
 
-    function pauseGame() {
+    // CrazyGames wants no gameplayStop when the player merely switches tabs.
+    function pauseGame(fromTabSwitch) {
       if (state !== "playing" && state !== "countdown") return;
       state = "paused";
+      if (!fromTabSwitch) setGameplay(false);
       drag = null;
       keys = {};
       showScreen("pause", 200);
@@ -1076,6 +1203,7 @@
     let cdT = 0, cdShown = 0, cdInvuln = 0;
     function startCountdown(invuln) {
       state = "countdown";
+      setGameplay(true);
       cdT = 0;
       cdShown = 0;
       cdInvuln = invuln;
@@ -1107,25 +1235,80 @@
     }
 
     // ---------- Rewarded ads ----------
-    // The ad opens in a new tab. The reward is granted when the player comes
-    // back to the game (or after a short wait if the browser never left the page).
+    // On CrazyGames the reward comes from an SDK video ad and is granted only when
+    // it finishes. Elsewhere the ad opens in a new tab and the reward is granted when
+    // the player comes back to the game (or after a short wait if the browser never
+    // left the page).
     let adPending = null;
+    const adSpinner = $("adSpinner"), adTitle = $("adTitle"), adSub = $("adSub");
+
+    function showAdWait(title, sub, spinning) {
+      adTitle.textContent = title;
+      adSub.innerHTML = sub;
+      adSpinner.style.visibility = spinning ? "" : "hidden";
+      showScreen("adwait", 0);
+    }
 
     function openRewardAd(kind) {
       if (adPending) return;
       Sound.click();
-      const ad = { kind, hidden: false };
+      const ad = { kind, hidden: false, opened: false };
       adPending = ad;
       if (kind === "revive") {
         state = "adwait";
         hideScreen("continue");
       }
-      showScreen("adwait", 0);
-      try { window.open(AD_DIRECT_LINK, "_blank", "noopener"); } catch (e) {}
       track("ad-" + kind);
+      if (crazySettled) startAd(ad);
+      else {
+        showAdWait("Loading ad…", "", true);
+        crazyReady.then(() => startAd(ad));
+      }
+    }
+
+    function startAd(ad) {
+      if (adPending !== ad) return;
+      if (crazy) {
+        showAdWait("Loading ad…", "", true);
+        try {
+          crazy.ad.requestAd("rewarded", {
+            adStarted: () => Sound.setAdMuted(true),
+            adFinished: () => { Sound.setAdMuted(false); finishAd(); },
+            adError: err => { Sound.setAdMuted(false); failAd(err); }
+          });
+        } catch (e) { failAd(null); }
+        return;
+      }
+      if (!AD_DIRECT_LINK) { failAd(null); return; }
+      showAdWait("Opening ad…", "Come back to the game when you're done<br>to get your reward.", true);
+      ad.opened = true;
+      try { window.open(AD_DIRECT_LINK, "_blank", "noopener"); } catch (e) {}
       setTimeout(() => {
         if (adPending === ad && !ad.hidden && !document.hidden) finishAd();
       }, 2500);
+    }
+
+    // CrazyGames switches ads off during a game's first ("basic") launch. After the
+    // first refusal the ad buttons stay hidden for the rest of the visit. Nothing is
+    // saved, so they come back on their own once ads are switched on.
+    let adsOff = false;
+
+    function failAd(err) {
+      const ad = adPending;
+      if (!ad) return;
+      const code = (err && err.code) || "";
+      if (code.startsWith("adsDisabled")) {
+        adsOff = true;
+        doubleBtn.hidden = freeCoinsBtn.hidden = true;
+        showAdWait("Ads are off for now", "This bonus isn't available yet.", false);
+      } else if (code === "adblock") showAdWait("Ad blocked", "Turn off your ad blocker to earn rewards.", false);
+      else showAdWait("No ad available", "Please try again later.", false);
+      setTimeout(() => {
+        if (adPending !== ad) return;
+        adPending = null;
+        hideScreen("adwait");
+        if (ad.kind === "revive") showGameOver();
+      }, 1800);
     }
 
     function finishAd() {
@@ -1158,10 +1341,10 @@
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
         if (adPending) adPending.hidden = true;
-        else pauseGame();
+        else pauseGame(true);
       } else {
         lastFrame = performance.now();
-        if (adPending && adPending.hidden) {
+        if (adPending && adPending.hidden && adPending.opened) {
           const ad = adPending;
           setTimeout(() => { if (adPending === ad) finishAd(); }, 400);
         }
@@ -1170,6 +1353,7 @@
 
     // ---------- Menu / hangar ----------
     function refreshMenu() {
+      freeCoinsBtn.hidden = adsOff;
       $("menuBest").textContent = best;
       $("menuCoins").textContent = wallet;
       const s = SKINS[viewSkin];
@@ -1180,7 +1364,7 @@
       }
       $("skinName").textContent = s.name;
       skinStatus.className = isOwned ? "owned" : "";
-      skinStatus.textContent = isOwned ? "✓ Selected" : wallet >= s.price ? "🔒 Locked" : "🔒 Need " + (s.price - wallet) + " more";
+      skinStatus.innerHTML = isOwned ? "✓ Selected" : ICON_LOCK + (wallet >= s.price ? "Locked" : "Need " + (s.price - wallet) + " more");
       unlockBtn.hidden = isOwned;
       if (!isOwned) {
         unlockBtn.disabled = wallet < s.price;
@@ -1229,7 +1413,7 @@
     }
 
     function updateMuteButtons() {
-      document.querySelectorAll(".mute-btn").forEach(b => { b.textContent = Sound.muted ? "🔇" : "🔊"; });
+      document.querySelectorAll(".mute-btn").forEach(b => { b.innerHTML = Sound.muted ? ICON_SOUND_OFF : ICON_SOUND_ON; });
     }
 
     // ---------- Buttons ----------
@@ -1264,6 +1448,7 @@
       Sound.unlock();
       if (e.target !== canvas) return;
       if (state !== "playing" && state !== "countdown") return;
+      endTutorial();
       if (e.pointerType === "mouse") {
         player.targetX = clampX(e.clientX);
         run.moved = true;
@@ -1292,21 +1477,32 @@
     window.addEventListener("pointercancel", endDrag);
     window.addEventListener("touchend", Sound.unlock);
 
+    // A/D are matched both by key position (e.code, so AZERTY's Q/D work like
+    // ZQSD) and by the printed letter (e.key), so the "A D" shown in the guide
+    // is right on any layout. Escape is left alone: browsers use it to leave fullscreen.
+    function setKey(e, down) {
+      keys[e.code] = down;
+      if (e.key && e.key.length === 1) keys["k_" + e.key.toLowerCase()] = down;
+    }
+
     window.addEventListener("keydown", e => {
       Sound.unlock();
-      keys[e.code] = true;
       const onButton = e.target && e.target.tagName === "BUTTON";
+      if (e.code.startsWith("Arrow") || (e.code === "Space" && !onButton)) e.preventDefault();
+      if (adPending) return;
+      setKey(e, true);
+      if (state === "playing") endTutorial();
       if ((e.code === "Space" || e.code === "Enter") && !onButton) {
         e.preventDefault();
         if (state === "menu") startRun();
         else if (state === "over" && screens.gameover.classList.contains("ready")) startRun();
         else if (state === "paused") resumeGame();
-      } else if (e.code === "Escape" || e.code === "KeyP") {
+      } else if (e.code === "KeyP") {
         if (state === "playing" || state === "countdown") pauseGame();
         else if (state === "paused") resumeGame();
       }
     });
-    window.addEventListener("keyup", e => { keys[e.code] = false; });
+    window.addEventListener("keyup", e => setKey(e, false));
     window.addEventListener("blur", () => { keys = {}; });
     window.addEventListener("contextmenu", e => e.preventDefault());
     document.addEventListener("gesturestart", e => e.preventDefault());
@@ -1434,7 +1630,7 @@
 
     // ---------- Update ----------
     function updatePlayer(dt) {
-      const kdir = (keys.ArrowRight || keys.KeyD ? 1 : 0) - (keys.ArrowLeft || keys.KeyA ? 1 : 0);
+      const kdir = (keys.ArrowRight || keys.KeyD || keys.k_d ? 1 : 0) - (keys.ArrowLeft || keys.KeyA || keys.k_a ? 1 : 0);
       if (kdir) {
         player.targetX = clampX(player.targetX + kdir * fieldW * 1.5 * dt);
         run.moved = true;
@@ -1457,7 +1653,23 @@
       }
     }
 
+    // First-ever run: nothing falls and the clock waits until the player steers
+    // (or presses any key / taps), then a coin trail drops onto the ship to show
+    // what coins are for, and the meteors start.
+    function endTutorial() {
+      if (!run.tutorial) return;
+      run.tutorial = false;
+      const vy = H * 0.36;
+      for (let i = 0; i < 5; i++) coins.push({ x: player.targetX, y: -20 - i * 34, vy, ph: i * 0.5 });
+      run.coinT = 3.5;
+      run.spawnT = 2.4;
+    }
+
     function updateRun(dt, wdt) {
+      if (run.tutorial) {
+        if (run.moved) endTutorial();
+        else return;
+      }
       run.time += wdt;
       run.score += wdt * 10;
       run.invuln = Math.max(0, run.invuln - dt);
@@ -1659,9 +1871,6 @@
 
     function drawPowerups() {
       if (!powerups.length) return;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.font = "18px " + EMOJI_FONT;
       for (const p of powerups) {
         const def = POWERUPS[p.type];
         const r = 18 * (1 + Math.sin(T * 5 + p.ph) * 0.06);
@@ -1677,8 +1886,7 @@
         ctx.lineWidth = 2.5;
         ctx.strokeStyle = def.color;
         ctx.stroke();
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText(def.icon, p.x, p.y + 1);
+        drawPowerIcon(ctx, p.type, p.x, p.y, r * 0.52);
       }
     }
 
@@ -1808,9 +2016,6 @@
       const w = 76, h = 22, gap = 8;
       let x = W / 2 - (active.length * w + (active.length - 1) * gap) / 2;
       const y = safeTop + 96;
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
-      ctx.font = "13px " + EMOJI_FONT;
       for (const k of active) {
         const def = POWERUPS[k];
         const f = clamp(run.pu[k] / def.duration, 0, 1);
@@ -1820,21 +2025,114 @@
         ctx.fillStyle = def.color;
         roundRect(ctx, x + 26, y + 8, (w - 34) * f, 6, 3);
         ctx.fill();
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText(def.icon, x + 6, y + h / 2 + 1);
+        drawPowerIcon(ctx, k, x + 14, y + h / 2, 7);
         x += w + gap;
       }
     }
 
-    function drawHint() {
-      if (state !== "playing" || run.moved || run.time > 5 || plays > 3) return;
-      ctx.globalAlpha = 0.55 + 0.45 * Math.sin(T * 5);
-      ctx.fillStyle = "#cfe6ff";
+    // ---------- Controls guide (first few runs, until the player steers) ----------
+    // Pictures instead of text: a finger dot sweeping along a track on touch
+    // screens; a mouse sweeping plus the A ← / → D keys lighting up on desktop.
+    const GUIDE = "rgba(207,230,255,";
+
+    function chevron(x, y, dir) {
+      ctx.beginPath();
+      ctx.moveTo(x - dir * 5, y - 7);
+      ctx.lineTo(x + dir * 3, y);
+      ctx.lineTo(x - dir * 5, y + 7);
+      ctx.stroke();
+    }
+
+    function keycap(x, y, label, lit) {
+      roundRect(ctx, x - 13, y - 13, 26, 26, 6);
+      ctx.fillStyle = lit ? "rgba(88,166,255,.85)" : "rgba(255,255,255,.1)";
+      ctx.fill();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = lit ? "#cfe6ff" : GUIDE + ".45)";
+      ctx.stroke();
+      ctx.fillStyle = ctx.strokeStyle = "#ffffff";
+      if (label === "L" || label === "R") {
+        const d = label === "R" ? 1 : -1;
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(x - d * 6, y);
+        ctx.lineTo(x + d * 6, y);
+        ctx.stroke();
+        chevron(x + d * 3, y, d);
+      } else {
+        ctx.font = "800 13px " + FONT;
+        ctx.fillText(label, x, y + 1);
+      }
+    }
+
+    function drawMouseIcon(x, y) {
+      roundRect(ctx, x - 9, y - 13, 18, 26, 9);
+      ctx.fillStyle = "rgba(255,255,255,.92)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(11,15,25,.7)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x, y - 13);
+      ctx.lineTo(x, y - 3);
+      ctx.stroke();
+    }
+
+    function drawControlsGuide() {
+      if (state !== "playing" || run.moved || plays > 3) return;
+      if (!run.tutorial && run.time > 5) return;
+      const cx = clamp(player.x, fieldX + 96, fieldX + fieldW - 96);
+      const span = 62;
+      const u = Math.sin(T * 2.4);
+      const goingRight = Math.cos(T * 2.4) > 0;
+      const y = player.y + 46;
+      ctx.save();
+      ctx.lineCap = ctx.lineJoin = "round";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.font = "800 15px " + FONT;
-      ctx.fillText(isCoarse ? "◀  DRAG TO STEER  ▶" : "◀  MOVE THE MOUSE OR USE ← →  ▶", W / 2, player.y + 60);
-      ctx.globalAlpha = 1;
+      ctx.globalAlpha = 0.75 + 0.25 * Math.sin(T * 5);
+      ctx.setLineDash([4, 6]);
+      ctx.strokeStyle = GUIDE + ".35)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - span, y);
+      ctx.lineTo(cx + span, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.strokeStyle = GUIDE + ".8)";
+      ctx.lineWidth = 2.5;
+      chevron(cx - span - 14, y, -1);
+      chevron(cx + span + 14, y, 1);
+      const px = cx + u * span;
+      if (isCoarse) {
+        ctx.fillStyle = "rgba(255,255,255,.92)";
+        ctx.beginPath();
+        ctx.arc(px, y, 9, 0, TAU);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255,255,255,.5)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(px, y, 13 + (T * 2 % 1) * 8, 0, TAU);
+        ctx.stroke();
+      } else {
+        drawMouseIcon(px, y);
+        const ky = y + 34;
+        keycap(cx - 76, ky, "A", !goingRight);
+        keycap(cx - 46, ky, "L", !goingRight);
+        keycap(cx + 46, ky, "R", goingRight);
+        keycap(cx + 76, ky, "D", goingRight);
+      }
+      ctx.restore();
+    }
+
+    // Shown only if starting up (waiting for the CrazyGames SDK) takes a while
+    function drawBootSpinner() {
+      if (state !== "boot" || T < 0.4) return;
+      ctx.strokeStyle = GUIDE + ".7)";
+      ctx.lineWidth = 3;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.arc(W / 2, H / 2, 16, T * 5, T * 5 + 4.2);
+      ctx.stroke();
     }
 
     function render() {
@@ -1860,7 +2158,8 @@
         ctx.fillRect(0, 0, W, H);
       }
       drawPowerTimers();
-      drawHint();
+      drawControlsGuide();
+      drawBootSpinner();
 
       if (fieldW < W - 1) {
         ctx.fillStyle = "rgba(0,0,0,.4)";
@@ -1901,11 +2200,52 @@
       if (state === "menu") renderPreview();
     }
 
+    async function initCrazyGames() {
+      const sdk = window.CrazyGames && window.CrazyGames.SDK;
+      // CrazyGames runs games inside its own page (an iframe) or on its own domain.
+      // A top-level page anywhere else is the game's own website, where the SDK only
+      // reports "disabled" after several seconds, so don't keep players waiting for it.
+      const host = location.hostname;
+      const local = host === "localhost" || host === "127.0.0.1";
+      if (window.top === window.self && !local && !/crazygames/i.test(host)) {
+        loadAnalytics();
+        return;
+      }
+      try {
+        if (sdk) await Promise.race([sdk.init(), new Promise(r => setTimeout(r, 5000))]);
+      } catch (e) {}
+      const env = sdk && sdk.environment;
+      if (env !== "crazygames" && env !== "local") {
+        loadAnalytics();
+        return;
+      }
+      crazy = sdk;
+      // Only swap saves before a run has started, so a run under way keeps one save area.
+      if (state === "boot" || state === "menu") {
+        try {
+          sdk.data.getItem("meteorCoins");
+          saveArea = sdk.data;
+          loadSave();
+          viewSkin = selectedSkin;
+          refreshMenu();
+        } catch (e) {}
+      }
+      const applySettings = s => Sound.setPlatformMuted(!!(s && s.muteAudio));
+      try {
+        applySettings(sdk.game.settings);
+        sdk.game.addSettingsChangeListener(applySettings);
+      } catch (e) {}
+      // CrazyGames asks for "No thanks" to look exactly like the ad button
+      $("skipBtn").className = $("reviveBtn").className;
+      if (state === "playing" || state === "countdown") setGameplay(true);
+    }
+    const crazyReady = initCrazyGames().finally(() => { crazySettled = true; });
+
     updateMuteButtons();
-    showMenu();
+    // New players land straight in their first (tutorial) run; returning players get the menu.
+    crazyReady.then(() => { if (plays === 0) startRun(); else showMenu(); });
     requestAnimationFrame(frame);
   })();
   </script>
-  <script data-goatcounter="https://xfroot.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>
