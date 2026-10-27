@@ -341,7 +341,6 @@
     }
 
     // 4. Rewarded Ad Trigger
-    // Paste your Monetag Direct Link URL inside the quotes below:
     const AD_DIRECT_LINK = "https://uplcm.com/4/12131180";
 
     function triggerRewardAd() {
@@ -353,17 +352,6 @@
       window.open(AD_DIRECT_LINK, "_blank");
 
       // Revives the player after 2 seconds
-      setTimeout(() => {
-        isAdPlaying = false;
-        isGameOver = false;
-        obstacles = [];
-        adBanner.innerText = "▶ Watch Ad to Revive";
-        adBanner.style.display = "none";
-        playSound(523.25, "sine", 0.2);
-      }, 2000);
-    }
-
-      // Simulate a 2-second ad until you paste your real Ad SDK
       setTimeout(() => {
         isAdPlaying = false;
         isGameOver = false;
