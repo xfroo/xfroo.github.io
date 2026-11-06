@@ -118,6 +118,7 @@
     #hullRow { display: flex; justify-content: center; gap: 4px; margin-top: 8px; }
     #hullRow .cell { width: 16px; height: 8px; border-radius: 3px; background: rgba(255,255,255,.14); transition: background .2s; }
     #hullRow .cell.on { background: linear-gradient(180deg, #8ff0ff, #3fb8ff); box-shadow: 0 0 8px rgba(88,200,255,.6); }
+    #hullRow .cell.guard { background: linear-gradient(180deg, #fff3b0, #ffc93d); box-shadow: 0 0 8px rgba(255,211,77,.7); margin-left: 4px; }
     #coinBox {
       justify-self: end;
       display: inline-flex;
@@ -254,6 +255,7 @@
       border-radius: 6px;
       background: rgba(0,0,0,.25);
     }
+    .badge.new { background: linear-gradient(180deg, #ff6b6b, #e5383b); color: #ffffff; }
     .pill {
       font: inherit;
       font-size: 14px;
@@ -401,6 +403,15 @@
     #skinDots i.own { background: rgba(255,255,255,.45); }
     #skinDots i.cur { background: #ffffff; transform: scale(1.35); }
     #shipStats { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 13px; font-weight: 700; color: #cfe6ff; }
+    .trail-row { display: flex; align-items: center; gap: 8px; }
+    .arrow.mini { width: 32px; height: 32px; font-size: 22px; padding-bottom: 3px; }
+    .trail-mid { display: flex; align-items: center; gap: 7px; min-width: 196px; justify-content: center; font-size: 14px; }
+    .trail-mid small { font-size: 11px; font-weight: 800; letter-spacing: .14em; color: var(--muted); }
+    .trail-mid b { font-weight: 900; }
+    .trail-swatch { width: 18px; height: 18px; border-radius: 50%; box-shadow: 0 0 8px rgba(255,255,255,.25), inset 0 0 0 1px rgba(255,255,255,.3); flex: none; }
+    #trailStatus { font-size: 12px; font-weight: 800; color: var(--muted); display: inline-flex; align-items: center; gap: 3px; }
+    #trailStatus.owned { color: #56d364; }
+    #trailStatus svg { width: 11px; height: 11px; fill: currentColor; }
     #shipStats small { font-size: 11px; font-weight: 800; letter-spacing: .14em; color: var(--muted); margin-right: 6px; }
     .cells { display: inline-flex; gap: 3px; vertical-align: middle; }
     .cells i { width: 14px; height: 8px; border-radius: 3px; background: #3fb8ff; }
@@ -441,6 +452,10 @@
       white-space: nowrap;
     }
     .upg-buy:disabled { background: rgba(255,255,255,.1); color: var(--muted); cursor: default; }
+    .upg.supply { border-color: rgba(255,211,77,.3); }
+    .upg.supply .upg-ico { background: rgba(255,211,77,.16); color: #ffd34d; }
+    .upg-txt b em { font-style: normal; color: #ffd34d; margin-left: 4px; }
+    .upg-done { font-size: 13px; font-weight: 800; color: #56d364; padding: 2px 0; text-align: center; }
 
     .menu-foot { display: flex; align-items: center; gap: 12px; }
     .hint { font-size: 13px; color: var(--muted); font-weight: 600; }
@@ -635,7 +650,7 @@
     <canvas id="menuShip"></canvas>
     <button class="btn big" id="playBtn">PLAY</button>
     <div class="row">
-      <button class="btn sec" id="hangarBtn">Hangar</button>
+      <button class="btn sec" id="hangarBtn">Hangar <span class="badge new" id="hangarNew" hidden>NEW</span></button>
       <button class="btn sec" id="endlessBtn">Endless</button>
     </div>
     <div class="menu-foot">
@@ -683,10 +698,16 @@
           <button class="arrow" id="nextSkin" aria-label="Next ship">›</button>
         </div>
         <div id="shipStats"></div>
+        <div class="trail-row" id="trailRow">
+          <button class="arrow mini" id="prevTrail" aria-label="Previous trail">‹</button>
+          <div class="trail-mid"><small>TRAIL</small><i class="trail-swatch" id="trailSwatch"></i><b id="trailName">Standard</b><span id="trailStatus"></span></div>
+          <button class="arrow mini" id="nextTrail" aria-label="Next trail">›</button>
+        </div>
         <button class="btn gold" id="unlockBtn" hidden>Unlock</button>
+        <button class="btn gold" id="trailBtn" hidden>Unlock trail</button>
       </div>
       <div class="hangar-col upg-col">
-        <div class="upg-title">UPGRADES</div>
+        <div class="upg-title">SHOP</div>
         <div id="upgradeList"></div>
       </div>
     </div>
@@ -770,7 +791,10 @@
     <div class="h1">Paused</div>
     <button class="btn big" id="resumeBtn">Resume</button>
     <button class="icon-btn mute-btn" aria-label="Toggle sound"></button>
-    <button class="btn ghost" id="quitBtn">Quit</button>
+    <div class="row">
+      <button class="btn ghost" id="restartBtn">Restart</button>
+      <button class="btn ghost" id="quitBtn">Quit</button>
+    </div>
   </div></div>
 
   <script>
@@ -782,6 +806,8 @@
     const CONTINUE_SECONDS = 5;
     const FREE_COINS = 40;
     const FREE_COINS_COOLDOWN = 3 * 60 * 1000;
+    const GUARD_PRICE = 100;                // star guards: one blocks a hit in a sector still missing its no-hit star
+    const GUARD_MAX = 99;
     const SHIP_SCALE = 1.05;
     const PLAYER_HIT = 12;                  // hitbox is a bit smaller than the ship, so close calls feel fair
     const DRAG_SENSITIVITY = 1.2;
@@ -800,6 +826,7 @@
     const ICON_MAGNET = '<svg viewBox="0 0 24 24"><path d="M5 3h5v8a2 2 0 0 0 4 0V3h5v8a7 7 0 0 1-14 0z"/></svg>';
     const ICON_POWER = '<svg viewBox="0 0 24 24"><path d="M13.5 2L4 14h6.5l-1 8L19 10h-6.5z"/></svg>';
     const ICON_SHIELD = '<svg viewBox="0 0 24 24"><path d="M12 2l8 3.5v6c0 5-3.4 8.6-8 10.5-4.6-1.9-8-5.5-8-10.5v-6z"/></svg>';
+    const ICON_GUARD = '<svg viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2l8 3.5v6c0 5-3.4 8.6-8 10.5-4.6-1.9-8-5.5-8-10.5v-6zM12 7l1.29 3.22 3.47.23-2.67 2.23.85 3.37L12 14.2l-2.94 1.85.85-3.37-2.67-2.23 3.47-.23z"/></svg>';
 
     const SHIPS = [
       { name: "Comet",    price: 0,    hull: 1, perk: null,     perkText: "Balanced starter ship",              body: "#58a6ff", accent: "#d6ecff", flame: "#7cc4ff" },
@@ -810,6 +837,18 @@
       { name: "Phantom",  price: 6000, hull: 4, perk: "phase",  perkText: "Survives one fatal hit every run",   body: "#dfe6f0", accent: "#ffffff", flame: "rainbow" },
       // Earned with stars instead of coins: the reward for replaying sectors
       { name: "Starlight", price: 0, stars: 120, hull: 5, perk: "star", perkText: "Double coins, coin magnet, longer power-ups", body: "#ff6fb5", accent: "#ffe3f2", flame: "#ffd34d" }
+    ];
+
+    // Engine trails work with any ship. "Standard" keeps the ship's own flame colour.
+    const TRAILS = [
+      { name: "Standard", price: 0 },
+      { name: "Fire",     price: 1500,  colors: ["#ffe066", "#ff9f43", "#ff5e3a"] },
+      { name: "Ice",      price: 2500,  colors: ["#ffffff", "#bdf0ff", "#6fd3ff"] },
+      { name: "Toxic",    price: 4000,  colors: ["#eaff7a", "#9dff5c", "#3ce87a"] },
+      { name: "Neon",     price: 6000,  colors: ["#ff5ad1", "#a46bff", "#4fd6ff"] },
+      { name: "Rainbow",  price: 9000,  rainbow: true },
+      { name: "Gold",     price: 15000, colors: ["#fff6c2", "#ffd34d", "#e0a210"], sparkle: true },
+      { name: "Stardust", price: 0, stars: 144, colors: ["#ffffff", "#ffd3f0", "#a8d8ff", "#ffe9a6"], sparkle: true }
     ];
 
     const POWERUPS = {
@@ -999,10 +1038,17 @@
     };
 
     // levelStars holds a bitmask per sector: 1 cleared, 2 coin star, 4 no-damage star.
-    let best, wallet, owned, selectedSkin, plays, freeCoinsAt, levelStars, upgrades;
+    let best, wallet, owned, selectedSkin, plays, freeCoinsAt, levelStars, upgrades, guards, trailsOwned, selectedTrail;
     function loadSave() {
       best = Number(store.get("meteorHighScore", 0)) || 0;
       wallet = Number(store.get("meteorCoins", 0)) || 0;
+      guards = clamp(Math.floor(Number(store.get("meteorGuards", 0)) || 0), 0, GUARD_MAX);
+      trailsOwned = store.get("meteorTrails", [0]);
+      if (!Array.isArray(trailsOwned)) trailsOwned = [0];
+      trailsOwned = trailsOwned.filter(i => TRAILS[i]);
+      if (!trailsOwned.includes(0)) trailsOwned.push(0);
+      selectedTrail = Number(store.get("meteorTrail", 0)) || 0;
+      if (!trailsOwned.includes(selectedTrail)) selectedTrail = 0;
       owned = store.get("meteorSkinsOwned", [0]);
       if (!Array.isArray(owned)) owned = [0];
       if (!owned.includes(0)) owned.push(0);
@@ -1019,7 +1065,9 @@
     loadSave();
 
     const saveWallet = () => store.set("meteorCoins", wallet);
+    const saveGuards = () => store.set("meteorGuards", guards);
     const starsOf = id => levelStars[id] || 0;
+    const needsNoHitStar = lvl => !!lvl && !(starsOf(lvl.id) & 4);
     const cleared = id => (starsOf(id) & 1) === 1;
     const starCount = id => popcount(starsOf(id));
     const totalStars = () => Object.keys(levelStars).reduce((s, k) => s + popcount(levelStars[k]), 0);
@@ -1045,19 +1093,39 @@
     const powerMult = () => 1 + 0.25 * upgrades.power + (hasPerk("power") ? 0.5 : 0);
     const magnetRadius = () => Math.max([0, 55, 85, 120][upgrades.magnet], hasPerk("magnet") ? 110 : 0);
 
-    // Star ships join the hangar as soon as the player has enough stars.
-    function unlockStarShips() {
+    // Star rewards (a ship and a trail) join the hangar as soon as the player has
+    // enough stars. Returns notes about anything new.
+    function unlockStarRewards() {
       const fresh = [];
       SHIPS.forEach((s, i) => {
         if (s.stars && !owned.includes(i) && totalStars() >= s.stars) {
           owned.push(i);
-          fresh.push(s);
+          fresh.push("New ship unlocked: " + s.name + "!");
         }
       });
-      if (fresh.length) store.set("meteorSkinsOwned", owned);
+      TRAILS.forEach((t, i) => {
+        if (t.stars && !trailsOwned.includes(i) && totalStars() >= t.stars) {
+          trailsOwned.push(i);
+          fresh.push("New trail unlocked: " + t.name + "!");
+        }
+      });
+      if (fresh.length) {
+        store.set("meteorSkinsOwned", owned);
+        store.set("meteorTrails", trailsOwned);
+      }
       return fresh;
     }
-    unlockStarShips();
+    unlockStarRewards();
+
+    function trail() { return TRAILS[selectedTrail]; }
+
+    // The colour of one engine-trail particle (or of preview dot k, which must not flicker).
+    function trailColor(tr, sk, k) {
+      const rainbow = tr.rainbow || (!tr.colors && sk.flame === "rainbow");
+      if (rainbow) return "hsl(" + Math.floor((T * 220 + (k === undefined ? Math.random() * 60 : k * 30)) % 360) + ",100%,65%)";
+      if (!tr.colors) return sk.flame;
+      return tr.colors[k === undefined ? Math.floor(Math.random() * tr.colors.length) : k % tr.colors.length];
+    }
 
     // ---------- Sound (Web Audio, no files needed) ----------
     const Sound = (() => {
@@ -1193,7 +1261,21 @@
     const menuShipCanvas = $("menuShip");
     const mctx = menuShipCanvas.getContext("2d");
     const safeProbe = $("safeProbe");
-    const bgCanvas = document.createElement("canvas");
+
+    // Browsers keep big canvases on the graphics card and can wipe them (after the
+    // computer sleeps, or a graphics driver reset). The cached drawings (background,
+    // meteors, coins, glows) are rebuilt when a canvas reports it is back, or when a
+    // wiped one is spotted as the game comes back into view.
+    let cachesLost = false;
+    function newCanvas(w, h) {
+      const c = document.createElement("canvas");
+      c.width = w;
+      c.height = h;
+      c.addEventListener("contextrestored", () => { cachesLost = true; });
+      return c;
+    }
+    canvas.addEventListener("contextrestored", () => { cachesLost = true; });
+    const bgCanvas = newCanvas(1, 1);
     const bgCtx = bgCanvas.getContext("2d");
     const isCoarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
     if (!isCoarse) $("menuHint").textContent = "Move the mouse to steer · grab coins · beat the bosses";
@@ -1278,8 +1360,7 @@
     const SPRITE_SIZE = 160, SPRITE_R = 66, SPRITE_K = SPRITE_SIZE / SPRITE_R;
 
     function makeMeteorSprite(c) {
-      const cv = document.createElement("canvas");
-      cv.width = cv.height = SPRITE_SIZE;
+      const cv = newCanvas(SPRITE_SIZE, SPRITE_SIZE);
       const g = cv.getContext("2d");
       g.translate(SPRITE_SIZE / 2, SPRITE_SIZE / 2);
       const n = 9 + Math.floor(Math.random() * 4);
@@ -1327,9 +1408,7 @@
     const tailCache = {};
     function tailSprite(rgb) {
       if (tailCache[rgb]) return tailCache[rgb];
-      const c = document.createElement("canvas");
-      c.width = 64;
-      c.height = 256;
+      const c = newCanvas(64, 256);
       const g = c.getContext("2d");
       const gr = g.createLinearGradient(0, 0, 0, 256);
       gr.addColorStop(0, "rgba(" + rgb + ",0)");
@@ -1345,9 +1424,9 @@
       return (tailCache[rgb] = c);
     }
 
-    const coinSprite = (() => {
-      const c = document.createElement("canvas");
-      c.width = c.height = 64;
+    let coinSprite = makeCoinSprite();
+    function makeCoinSprite() {
+      const c = newCanvas(64, 64);
       const g = c.getContext("2d");
       g.translate(32, 32);
       const gr = g.createRadialGradient(-8, -8, 2, 0, 0, 30);
@@ -1372,13 +1451,12 @@
       g.lineWidth = 2.5;
       g.beginPath(); g.arc(0, 0, 25, -2.6, -1.3); g.stroke();
       return c;
-    })();
+    }
 
     const glowCache = {};
     function glow(color) {
       if (glowCache[color]) return glowCache[color];
-      const c = document.createElement("canvas");
-      c.width = c.height = 128;
+      const c = newCanvas(128, 128);
       const g = c.getContext("2d");
       const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
       gr.addColorStop(0, color);
@@ -1386,6 +1464,26 @@
       g.fillStyle = gr;
       g.fillRect(0, 0, 128, 128);
       return (glowCache[color] = c);
+    }
+
+    function rebuildCaches() {
+      spriteCache.clear();
+      for (const k in tailCache) delete tailCache[k];
+      for (const k in glowCache) delete glowCache[k];
+      coinSprite = makeCoinSprite();
+      buildBackground();
+      meteorSpritesFor(palette);
+    }
+
+    // A wiped canvas without any notice: the centres of these are always painted.
+    function cachesWiped() {
+      try {
+        const alpha = (c, x, y) => c.getContext("2d").getImageData(x, y, 1, 1).data[3];
+        return alpha(bgCanvas, bgCanvas.width >> 1, bgCanvas.height >> 1) === 0 ||
+          alpha(meteorSpritesFor(palette)[0], SPRITE_SIZE >> 1, SPRITE_SIZE >> 1) === 0;
+      } catch (e) {
+        return false;
+      }
     }
 
     // s is the icon's half-height in pixels
@@ -1514,6 +1612,7 @@
     let starSpeed = 1;
     let coinStreak = 0, lastCoinT = -1;
     let viewSkin = selectedSkin;
+    let viewTrail = selectedTrail;
     let viewWorld = 1;
     let hangarReturn = "menu";
     let boss = null;
@@ -1528,6 +1627,7 @@
         score: 0, time: 0, elapsed: 0,
         coins: 0, coinAcc: 0, coinsSpawned: 0, coinsPicked: 0,
         hull, maxHull: hull, damaged: false, phaseUsed: false,
+        guard: false, guardUsed: false, guardAd: false,
         revived: false, doubled: false, rewarded: false, moved: false, tutorial: false,
         spawnT: 0.9, coinT: 1.2, powerT: rand(7, 11),
         cometT: rand(2, 4), laserT: rand(3, 5), wellT: rand(4, 7), ufoT: rand(4, 7),
@@ -1550,6 +1650,7 @@
     const ringEl = $("ringProg");
     const contCount = $("contCount");
     const unlockBtn = $("unlockBtn");
+    const trailBtn = $("trailBtn");
     const skinStatus = $("skinStatus");
     const freeCoinsBtn = $("freeCoinsBtn");
     const levelGrid = $("levelGrid");
@@ -1606,6 +1707,9 @@
       coinStreak = 0;
       setPalette(mode === "level" ? lvl.w : 1);
       if (upgrades.shield) run.pu.shield = POWERUPS.shield.duration * powerMult();
+      // A star guard comes along only where the no-hit star is still to be won,
+      // and is used up only if it actually blocks a hit.
+      run.guard = mode === "level" && guards > 0 && needsNoHitStar(lvl);
       state = "playing";
       setGameplay(true);
       hud.classList.add("show");
@@ -1682,6 +1786,8 @@
       enterBreak("hangar");
       hangarReturn = from || "menu";
       viewSkin = selectedSkin;
+      viewTrail = selectedTrail;
+      store.set("meteorSeenShop", true);
       refreshHangar();
       showScreen("hangar", 200);
     }
@@ -1759,11 +1865,15 @@
       return false;
     }
 
+    // After a sector, the ad offers a free star guard while that sector's no-hit
+    // star is still missing (coins alone are no use once everything is bought).
     function setDoubleButton(screenName) {
       const btn = DOUBLE_BTN[screenName];
-      btn.hidden = adsOff || run.coins <= 0;
+      const guard = run.mode === "level" && needsNoHitStar(run.lvl) && guards < GUARD_MAX;
+      btn.dataset.kind = guard ? "guard" : "double";
+      btn.hidden = adsOff || (!guard && run.coins <= 0);
       btn.disabled = false;
-      btn.querySelector(".dl").textContent = "Double coins (+" + run.coins + ")";
+      btn.querySelector(".dl").textContent = guard ? "Free star guard" : "Double coins (+" + run.coins + ")";
     }
 
     function showGameOver() {
@@ -1797,6 +1907,7 @@
       const canBuy = canAffordSomething();
       $("failHangar").classList.toggle("glow", canBuy);
       $("failTip").textContent = canBuy ? "You have enough coins for an upgrade. A tougher ship gets you further!"
+        : needsNoHitStar(run.lvl) && !guards && wallet >= GUARD_PRICE ? "Star guards block a hit, so one mistake won't cost you the no-hit star. Get them in the Hangar."
         : run.lvl.boss ? "Bosses repeat their attacks in the same order. Learn the pattern!"
         : WORLD_TIPS[run.lvl.w - 1];
       showScreen("fail", 650);
@@ -1861,10 +1972,11 @@
       store.set("meteorStars", levelStars);
       const bonus = (prev & 1 ? Math.round(lvl.coinBonus / 2) : lvl.coinBonus) + popcount(fresh) * 10 * lvl.w;
       grantCoins(bonus);
-      const newShips = unlockStarShips();
+      const rewards = unlockStarRewards();
       const note = $("clearNote");
-      note.hidden = !newShips.length;
-      if (newShips.length) note.textContent = "New ship unlocked: " + newShips[0].name + "!";
+      const guardSaved = run.guardUsed && (fresh & 4);
+      note.hidden = !rewards.length && !guardSaved;
+      note.textContent = rewards.length ? rewards.join(" ") : guardSaved ? "Your star guard saved the no-hit star!" : "";
       $("clearTitle").textContent = lvl.boss ? "Boss defeated!" : "Sector clear!";
       $("clearSub").textContent = WORLDS[lvl.w - 1].name + " · " + lvl.id;
       const caps = ["Clear", "Coins " + Math.round(ratio * 100) + "%", "No damage"];
@@ -2082,6 +2194,18 @@
         if (label) $(label).textContent = "+" + extra * 2;
         Sound.power();
         coinBurst();
+      } else if (ad.kind === "guard") {
+        run.rewarded = true;
+        run.guardAd = true;
+        guards = Math.min(GUARD_MAX, guards + 1);
+        saveGuards();
+        const btn = DOUBLE_BTN[ad.screen];
+        if (btn) {
+          btn.disabled = true;
+          btn.querySelector(".dl").textContent = "Star guard added! (" + guards + ")";
+        }
+        if (ad.screen === "fail") $("failTip").textContent = "Your star guard will block the first hit on your next try.";
+        Sound.power();
       } else if (ad.kind === "coins") {
         wallet += FREE_COINS;
         saveWallet();
@@ -2119,12 +2243,16 @@
       } catch (e) { go(); }
     }
 
+    let hiddenAt = 0;
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
+        hiddenAt = performance.now();
         if (adPending) adPending.hidden = true;
         else pauseGame(true);
       } else {
         lastFrame = performance.now();
+        // Away long enough for the computer to have slept: check the cached drawings survived
+        if (lastFrame - hiddenAt > 5000 && cachesWiped()) cachesLost = true;
         if (adPending && adPending.hidden && adPending.opened) {
           const ad = adPending;
           setTimeout(() => { if (adPending === ad) finishAd(); }, 400);
@@ -2135,6 +2263,8 @@
     // ---------- Menu ----------
     function refreshMenu() {
       freeCoinsBtn.hidden = adsOff;
+      // Points returning players to the star guards and trails added to the hangar
+      $("hangarNew").hidden = !!store.get("meteorSeenShop", false);
       $("menuStars").textContent = totalStars();
       $("menuCoins").textContent = wallet;
       const [fw, fi] = frontier();
@@ -2227,19 +2357,67 @@
         '<i class="' + (i === viewSkin ? "cur" : owned.includes(i) ? "own" : "") + '"></i>').join("");
       const cells = '<i></i>'.repeat(s.hull) + '<i class="up"></i>'.repeat(upgrades.hull);
       $("shipStats").innerHTML = "<div><small>HULL</small><span class=\"cells\">" + cells + "</span></div><div>" + s.perkText + "</div>";
-      $("upgradeList").innerHTML = UPGRADES.map(u => {
+
+      // Trails: browsing to an owned one equips it; a locked one can be bought here
+      const tr = TRAILS[viewTrail], trOwned = trailsOwned.includes(viewTrail);
+      if (trOwned && selectedTrail !== viewTrail) {
+        selectedTrail = viewTrail;
+        store.set("meteorTrail", selectedTrail);
+      }
+      $("trailRow").hidden = !isOwned;
+      $("trailName").textContent = tr.name;
+      $("trailSwatch").style.background = trailSwatch(tr, isOwned ? s : skin());
+      const ts = $("trailStatus");
+      ts.className = trOwned ? "owned" : "";
+      ts.innerHTML = trOwned ? "✓" : ICON_LOCK + (tr.stars ? tr.stars + " ★" : tr.price);
+      trailBtn.hidden = !isOwned || trOwned || !!tr.stars;
+      if (!trailBtn.hidden) {
+        trailBtn.disabled = wallet < tr.price;
+        trailBtn.innerHTML = 'Unlock trail <i class="coin"></i> ' + tr.price;
+      }
+      const guardBuy = guards >= GUARD_MAX ? '<button class="upg-buy" disabled>MAX</button>'
+        : '<button class="upg-buy" data-u="guard"' + (wallet >= GUARD_PRICE ? "" : " disabled") + '><i class="coin"></i>' + GUARD_PRICE + "</button>";
+      const guardRow = '<div class="upg supply"><span class="upg-ico">' + ICON_GUARD + '</span><div class="upg-txt"><b>Star guard <em>×' + guards +
+        "</em></b><small>Blocks a hit in a sector where you still need the no-hit star</small></div>" + guardBuy + "</div>";
+      // Maxed upgrades fold into one line, so late in the game the shop stays short
+      const allMaxed = UPGRADES.every(u => upgrades[u.id] >= u.prices.length);
+      $("upgradeList").innerHTML = guardRow + (allMaxed ? '<div class="upg-done">✓ All upgrades maxed</div>' : UPGRADES.map(u => {
         const lvl = upgrades[u.id], max = u.prices.length, price = u.prices[lvl];
         const pips = Array.from({ length: max }, (_, i) => '<i class="' + (i < lvl ? "on" : "") + '"></i>').join("");
         const buy = lvl >= max ? '<button class="upg-buy" disabled>MAX</button>'
           : '<button class="upg-buy" data-u="' + u.id + '"' + (wallet >= price ? "" : " disabled") + '><i class="coin"></i>' + price + "</button>";
         return '<div class="upg"><span class="upg-ico">' + u.icon + '</span><div class="upg-txt"><b>' + u.name +
           "</b><small>" + u.text(lvl) + '</small><span class="pips">' + pips + "</span></div>" + buy + "</div>";
-      }).join("");
+      }).join(""));
     }
 
     function changeSkin(dir) {
       Sound.click();
       viewSkin = (viewSkin + dir + SHIPS.length) % SHIPS.length;
+      refreshHangar();
+    }
+
+    function trailSwatch(tr, sk) {
+      if (tr.rainbow || (!tr.colors && sk.flame === "rainbow")) return "conic-gradient(#ff5e5e, #ffd34d, #6dff7a, #4fd6ff, #a46bff, #ff5ad1, #ff5e5e)";
+      if (!tr.colors) return sk.flame;
+      return "linear-gradient(135deg, " + tr.colors.join(", ") + ")";
+    }
+
+    function changeTrail(dir) {
+      Sound.click();
+      viewTrail = (viewTrail + dir + TRAILS.length) % TRAILS.length;
+      refreshHangar();
+    }
+
+    function unlockTrail() {
+      const tr = TRAILS[viewTrail];
+      if (tr.stars || trailsOwned.includes(viewTrail) || wallet < tr.price) return;
+      wallet -= tr.price;
+      trailsOwned.push(viewTrail);
+      saveWallet();
+      store.set("meteorTrails", trailsOwned);
+      Sound.best();
+      coinBurst();
       refreshHangar();
     }
 
@@ -2252,6 +2430,16 @@
       store.set("meteorSkinsOwned", owned);
       Sound.best();
       coinBurst();
+      refreshHangar();
+    }
+
+    function buyGuard() {
+      if (guards >= GUARD_MAX || wallet < GUARD_PRICE) return;
+      wallet -= GUARD_PRICE;
+      guards++;
+      saveWallet();
+      saveGuards();
+      Sound.coin(4);
       refreshHangar();
     }
 
@@ -2296,15 +2484,23 @@
     on("prevSkin", () => changeSkin(-1));
     on("nextSkin", () => changeSkin(1));
     unlockBtn.addEventListener("click", unlockSkin);
+    on("prevTrail", () => changeTrail(-1));
+    on("nextTrail", () => changeTrail(1));
+    trailBtn.addEventListener("click", unlockTrail);
     $("upgradeList").addEventListener("click", e => {
       const b = e.target.closest(".upg-buy");
-      if (b && b.dataset.u) buyUpgrade(b.dataset.u);
+      if (b && b.dataset.u === "guard") buyGuard();
+      else if (b && b.dataset.u) buyUpgrade(b.dataset.u);
     });
     on("hangarBack", leaveHangar);
     on("reviveBtn", () => { if (state === "continue") openRewardAd("revive"); });
     on("skipBtn", () => { if (state === "continue") { Sound.click(); endRun(); } });
     for (const k in DOUBLE_BTN) {
-      DOUBLE_BTN[k].addEventListener("click", () => { if (state === k && run.coins > 0 && !run.doubled) openRewardAd("double"); });
+      DOUBLE_BTN[k].addEventListener("click", () => {
+        if (state !== k) return;
+        if (DOUBLE_BTN[k].dataset.kind === "guard") { if (!run.guardAd) openRewardAd("guard"); }
+        else if (run.coins > 0 && !run.doubled) openRewardAd("double");
+      });
     }
     freeCoinsBtn.addEventListener("click", () => { if (state === "menu" && Date.now() >= freeCoinsAt) openRewardAd("coins"); });
     on("nextBtn", () => { if (state === "clear") { Sound.click(); goNext(); } });
@@ -2320,6 +2516,13 @@
     on("pauseBtn", () => { Sound.click(); pauseGame(); });
     on("resumeBtn", resumeGame);
     on("quitBtn", () => { Sound.click(); quitRun(); });
+    on("restartBtn", () => {
+      if (state !== "paused") return;
+      Sound.click();
+      hideScreen("pause");
+      if (run.mode === "endless") recordBest();
+      retryLevel();
+    });
     document.querySelectorAll(".mute-btn").forEach(b => b.addEventListener("click", () => {
       Sound.unlock();
       Sound.toggle();
@@ -2726,10 +2929,26 @@
       addText(player.x, player.y - 48, "BLOCKED!", "#58e1ff", 20);
     }
 
+    function guardHit(src) {
+      run.guard = false;
+      run.guardUsed = true;
+      guards = Math.max(0, guards - 1);
+      saveGuards();
+      run.invuln = 1.2;
+      explosion(src.x, src.y, ["#ffd34d", "#ffffff", "#ffb347"], 26);
+      rings.push({ x: player.x, y: player.y, r: 14, vr: 320, life: 0.5, max: 0.5, color: "#ffd34d", w: 4 });
+      shake = 9;
+      Sound.shieldBreak();
+      vibrate(60);
+      addText(player.x, player.y - 48, "GUARDED!", "#ffd34d", 20);
+      renderHull();
+    }
+
     // Returns true when the hit landed (projectiles that land are destroyed).
     function hitPlayer(src) {
       if (run.invuln > 0 || state !== "playing") return false;
       if (run.pu.shield > 0) { shieldHit(src); return true; }
+      if (run.guard) { guardHit(src); return true; }
       if (run.hull <= 1 && hasPerk("phase") && !run.phaseUsed) {
         run.phaseUsed = true;
         run.invuln = 1.5;
@@ -2739,6 +2958,7 @@
         return false;
       }
       run.hull--;
+      const starLost = !run.damaged && run.mode === "level" && needsNoHitStar(run.lvl);
       run.damaged = true;
       renderHull();
       if (run.hull <= 0) { die(); return true; }
@@ -2748,6 +2968,7 @@
       Sound.hit();
       vibrate([60]);
       addText(player.x, player.y - 48, "HULL -1", "#ff8a6a", 20);
+      if (starLost) addText(player.x, player.y - 74, "NO-HIT STAR LOST", "#c9b3d9", 13);
       return true;
     }
 
@@ -2778,16 +2999,16 @@
       const vx = dt > 0 ? (player.x - prev) / dt : 0;
       player.tilt += (clamp(vx * 0.0008, -0.45, 0.45) - player.tilt) * (1 - Math.exp(-dt * 12));
 
-      // Engine trail
-      engineAcc += dt * 70;
-      const sk = skin();
+      // Engine trail. Bought trails are denser, longer and bolder, and the finest ones throw sparkles.
+      const sk = skin(), tr = trail(), fancy = tr.price || tr.stars;
+      engineAcc += dt * (fancy ? 110 : 70);
       while (engineAcc >= 1) {
         engineAcc--;
         const nx = player.x - Math.sin(player.tilt) * 17 * SHIP_SCALE;
         const ny = player.y + Math.cos(player.tilt) * 17 * SHIP_SCALE;
-        const life = rand(0.18, 0.32);
-        const color = sk.flame === "rainbow" ? "hsl(" + Math.floor((T * 220 + Math.random() * 60) % 360) + ",100%,65%)" : sk.flame;
-        particles.push({ x: nx + rand(-2, 2), y: ny, vx: rand(-15, 15) - Math.sin(player.tilt) * 60, vy: rand(150, 230), life, max: life, size: rand(1.8, 3.2), color, drag: 0, add: true });
+        let life = rand(0.18, 0.32) * (fancy ? 1.7 : 1), size = rand(1.8, 3.2) * (fancy ? 1.3 : 1);
+        if (tr.sparkle && Math.random() < 0.12) { life *= 1.8; size *= 1.7; }
+        particles.push({ x: nx + rand(-2, 2), y: ny, vx: rand(-15, 15) - Math.sin(player.tilt) * 60, vy: rand(150, 230), life, max: life, size, color: trailColor(tr, sk), drag: 0, add: true });
       }
     }
 
@@ -3049,7 +3270,8 @@
     }
 
     function renderHull() {
-      $("hullRow").innerHTML = Array.from({ length: run.maxHull }, (_, i) => '<i class="cell' + (i < run.hull ? " on" : "") + '"></i>').join("");
+      $("hullRow").innerHTML = Array.from({ length: run.maxHull }, (_, i) => '<i class="cell' + (i < run.hull ? " on" : "") + '"></i>').join("") +
+        (run.guard ? '<i class="cell guard"></i>' : "");
     }
 
     let shownScore = -1, shownCoins = -1, shownProg = -1;
@@ -3470,6 +3692,19 @@
         ctx.globalAlpha = 1;
       }
 
+      if (run.guard) {
+        ctx.save();
+        ctx.translate(player.x, player.y);
+        ctx.rotate(T * 1.2);
+        ctx.strokeStyle = "rgba(255,211,77,.75)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([7, 6]);
+        ctx.beginPath();
+        ctx.arc(0, 0, 25, 0, TAU);
+        ctx.stroke();
+        ctx.restore();
+      }
+
       if (run.pu.shield > 0) {
         const fading = run.pu.shield < 2.5 && Math.floor(T * 8) % 2 === 0;
         const r = 30 + Math.sin(T * 6) * 1.5;
@@ -3694,9 +3929,16 @@
     }
 
     function render() {
+      if (cachesLost) {
+        cachesLost = false;
+        rebuildCaches();
+      }
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       ctx.globalCompositeOperation = "source-over";
       ctx.globalAlpha = 1;
+      // A plain fill first, so the last frame is always wiped, even if the background picture is lost
+      ctx.fillStyle = palette.bg[1];
+      ctx.fillRect(0, 0, W, H);
       if (bgCanvas.width && bgCanvas.height) ctx.drawImage(bgCanvas, 0, 0, W, H);
       drawStars();
 
@@ -3734,7 +3976,7 @@
       }
     }
 
-    function renderShipPreview(g, cv, sk, isOwned) {
+    function renderShipPreview(g, cv, sk, isOwned, tr) {
       const k = cv.width / 130;
       g.setTransform(1, 0, 0, 1, 0, 0);
       g.clearRect(0, 0, cv.width, cv.height);
@@ -3742,9 +3984,21 @@
       g.globalCompositeOperation = "lighter";
       g.globalAlpha = isOwned ? 0.5 : 0.15;
       g.drawImage(glow(sk.glow), 5, 5, 120, 120);
+      const bob = Math.sin(T * 2.2) * 3;
+      if (isOwned) {
+        // The engine trail streaming out below the ship
+        for (let j = 0; j < 18; j++) {
+          const f = ((T * 1.6 + j / 18) % 1);
+          g.globalAlpha = (1 - f) * 0.95;
+          g.fillStyle = trailColor(tr, sk, j);
+          g.beginPath();
+          g.arc(65 + Math.sin(j * 2.3 + T * 4) * (1.5 + f * 9), 84 + bob + f * 44, 4.2 * (1 - f * 0.55), 0, TAU);
+          g.fill();
+        }
+      }
       g.globalCompositeOperation = "source-over";
       g.globalAlpha = isOwned ? 1 : 0.35;
-      drawShip(g, 65, 60 + Math.sin(T * 2.2) * 4, 2.1, sk, Math.sin(T * 1.3) * 0.08, T);
+      drawShip(g, 65, 52 + bob, 1.95, sk, Math.sin(T * 1.3) * 0.08, T);
       g.globalAlpha = 1;
     }
 
@@ -3758,8 +4012,8 @@
       if (dt > 0.05) dt = 0.05;      // time-based, so 60Hz and 120Hz screens play at the same speed
       update(dt);
       render();
-      if (state === "hangar") renderShipPreview(pctx, previewCanvas, SHIPS[viewSkin], owned.includes(viewSkin));
-      else if (state === "menu") renderShipPreview(mctx, menuShipCanvas, skin(), true);
+      if (state === "hangar") renderShipPreview(pctx, previewCanvas, SHIPS[viewSkin], owned.includes(viewSkin), TRAILS[viewTrail]);
+      else if (state === "menu") renderShipPreview(mctx, menuShipCanvas, skin(), true, trail());
     }
 
     window.addEventListener("resize", resize);
@@ -3792,8 +4046,9 @@
           sdk.data.getItem("meteorCoins");
           saveArea = sdk.data;
           loadSave();
-          unlockStarShips();
+          unlockStarRewards();
           viewSkin = selectedSkin;
+          viewTrail = selectedTrail;
           refreshMenu();
         } catch (e) {}
       }
