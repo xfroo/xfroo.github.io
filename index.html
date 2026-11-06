@@ -461,6 +461,31 @@
     .hint { font-size: 13px; color: var(--muted); font-weight: 600; }
     .tip { font-size: 13px; font-weight: 700; color: #ffe08a; max-width: 300px; line-height: 1.35; }
     .ver { font-size: 11px; font-weight: 700; color: var(--muted); opacity: .6; }
+
+    /* ---------- Daily bonus ---------- */
+    #daily { z-index: 25; background: rgba(7,10,20,.94); }
+    .days { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 300px; }
+    .day {
+      width: 64px;
+      height: 70px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .day small { font-size: 10px; font-weight: 800; letter-spacing: .1em; color: var(--muted); }
+    .day b { display: inline-flex; align-items: center; gap: 3px; }
+    .day b svg { width: 13px; height: 13px; fill: #ffd34d; }
+    .day.done { opacity: .45; }
+    .day.done b::after { content: " ✓"; color: #56d364; }
+    .day.today { border-color: #ffd34d; background: rgba(255,211,77,.14); box-shadow: 0 0 18px rgba(255,211,77,.35); }
+    .day.big { width: 136px; }
     .note {
       font-size: 14px;
       font-weight: 800;
@@ -656,9 +681,18 @@
     </div>
     <div class="menu-foot">
       <button class="icon-btn mute-btn" aria-label="Toggle sound"></button>
+      <button class="icon-btn music-btn" aria-label="Toggle music"></button>
       <button class="pill" id="freeCoinsBtn"></button>
     </div>
     <p class="hint" id="menuHint">Drag anywhere to steer · grab coins · beat the bosses</p>
+  </div></div>
+
+  <div id="daily" class="overlay"><div class="panel">
+    <div class="h1">Daily bonus</div>
+    <div class="sub" id="dailySub">Day 1 of 7</div>
+    <div class="days" id="dailyDays"></div>
+    <button class="btn ad" id="dailyDouble"><span class="badge">AD</span> <span class="dl">Claim ×2</span></button>
+    <button class="btn big gold" id="dailyClaim">Claim</button>
   </div></div>
 
   <div id="map" class="overlay menu"><div class="panel">
@@ -791,12 +825,15 @@
   <div id="pause" class="overlay"><div class="panel">
     <div class="h1">Paused</div>
     <button class="btn big" id="resumeBtn">Resume</button>
-    <button class="icon-btn mute-btn" aria-label="Toggle sound"></button>
+    <div class="row">
+      <button class="icon-btn mute-btn" aria-label="Toggle sound"></button>
+      <button class="icon-btn music-btn" aria-label="Toggle music"></button>
+    </div>
     <div class="row">
       <button class="btn ghost" id="restartBtn">Restart</button>
       <button class="btn ghost" id="quitBtn">Quit</button>
     </div>
-    <p class="ver">Meteor Swerve 2.2</p>
+    <p class="ver">Meteor Swerve 2.4</p>
   </div></div>
 
   <script>
@@ -806,7 +843,7 @@
     // ---------- Config ----------
     const AD_DIRECT_LINK = "https://uplcm.com/4/12131180";
     const CONTINUE_SECONDS = 5;
-    const FREE_COINS = 40;
+    const FREE_COINS = 40;                  // the free-coins ad's pay at the very start; it grows with progress
     const FREE_COINS_COOLDOWN = 3 * 60 * 1000;
     const GUARD_PRICE = 100;                // star guards: one blocks a hit in a sector still missing its no-hit star
     const GUARD_MAX = 99;
@@ -821,7 +858,9 @@
     // Icons are drawn rather than emoji, so they look the same on every device.
     const ICON_SOUND_ON = '<svg viewBox="0 0 24 24"><path d="M3 9h4l5-4v14l-5-4H3z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
     const ICON_SOUND_OFF = '<svg viewBox="0 0 24 24"><path d="M3 9h4l5-4v14l-5-4H3z"/><path d="M16 9.5l5 5m0-5l-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
-    const ICON_LOCK = '<svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z"/></svg>';
+    const ICON_MUSIC_ON = '<svg viewBox="0 0 24 24"><path d="M9 17.5V6.2l10.5-2.2v11.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="6.4" cy="17.6" r="2.9"/><circle cx="16.9" cy="15.6" r="2.9"/></svg>';
+    const ICON_MUSIC_OFF = '<svg viewBox="0 0 24 24"><path d="M9 17.5V6.2l10.5-2.2v11.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" opacity=".45"/><circle cx="6.4" cy="17.6" r="2.9" opacity=".45"/><circle cx="16.9" cy="15.6" r="2.9" opacity=".45"/><path d="M3.5 3.5l17 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
+    const ICON_LOCK ='<svg viewBox="0 0 24 24"><path d="M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z"/></svg>';
     const ICON_STAR = '<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg>';
     const ICON_SKULL = '<svg viewBox="0 0 24 24"><path d="M12 2C7 2 3.5 5.6 3.5 10.2c0 2.7 1.2 4.6 3 5.8V19a1 1 0 0 0 1 1H9v-2h2v2h2v-2h2v2h1.5a1 1 0 0 0 1-1v-3c1.8-1.2 3-3.1 3-5.8C20.5 5.6 17 2 12 2zM8.5 13.5a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm7 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg>';
     const ICON_ARMOR = '<svg viewBox="0 0 24 24"><path d="M12 2l8 4.5v9L12 22l-8-6.5v-9z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 7l4 2.3v4.6L12 17l-4-3.1V9.3z"/></svg>';
@@ -856,7 +895,8 @@
     const POWERUPS = {
       shield: { color: "#58e1ff", duration: 12, label: "SHIELD!" },
       magnet: { color: "#ff6b9a", duration: 9,  label: "MAGNET!" },
-      slow:   { color: "#b388ff", duration: 5,  label: "SLOW-MO!" }
+      slow:   { color: "#b388ff", duration: 5,  label: "SLOW-MO!" },
+      blast:  { color: "#ffb347", duration: 0,  label: "BLAST!" }     // instant: clears the screen
     };
 
     const UPGRADES = [
@@ -872,22 +912,22 @@
 
     // Each world has its own colours, a new kind of danger and a boss.
     const WORLDS = [
-      { name: "Asteroid Belt", boss: "Rock Titan",  accent: "#7cc4ff",
+      { name: "Asteroid Belt", boss: "Rock Titan",  accent: "#7cc4ff", fx: "dust",
         bg: ["#0b0f19", "#0f1430", "#1a1236"], blobs: ["rgba(88,166,255,0.10)", "rgba(200,80,255,0.08)", "rgba(248,81,73,0.07)"],
         rock: ["#ff9a76", "#d9483b", "#5a1a1a", "rgba(255,170,140,.55)"], tail: "255,110,50" },
-      { name: "Comet Lanes",   boss: "Comet Hydra", accent: "#5ee7ff",
+      { name: "Comet Lanes",   boss: "Comet Hydra", accent: "#5ee7ff", fx: "streaks",
         bg: ["#061420", "#0a2233", "#10324a"], blobs: ["rgba(60,220,255,0.13)", "rgba(80,140,255,0.09)", "rgba(120,255,220,0.06)"],
         rock: ["#ffb38a", "#c9583c", "#4d1b14", "rgba(255,190,150,.55)"], tail: "255,120,60" },
-      { name: "Frozen Rift",   boss: "Frost Giant", accent: "#bfe6ff",
+      { name: "Frozen Rift",   boss: "Frost Giant", accent: "#bfe6ff", fx: "snow",
         bg: ["#07111e", "#0d2240", "#17365a"], blobs: ["rgba(170,220,255,0.15)", "rgba(110,170,255,0.10)", "rgba(255,255,255,0.05)"],
         rock: ["#f2fbff", "#8cc4ef", "#264a72", "rgba(220,245,255,.6)"], tail: "150,210,255" },
-      { name: "Ion Storm",     boss: "Storm Core",  accent: "#e08bff",
+      { name: "Ion Storm",     boss: "Storm Core",  accent: "#e08bff", fx: "storm",
         bg: ["#110a22", "#22103f", "#381457"], blobs: ["rgba(200,90,255,0.15)", "rgba(90,200,255,0.08)", "rgba(255,80,200,0.08)"],
         rock: ["#d9b8ff", "#8a55c9", "#2e1450", "rgba(230,200,255,.55)"], tail: "200,120,255" },
-      { name: "Event Horizon", boss: "Singularity", accent: "#ffad66",
+      { name: "Event Horizon", boss: "Singularity", accent: "#ffad66", fx: "swirl",
         bg: ["#120706", "#260d09", "#3a140b"], blobs: ["rgba(255,140,60,0.15)", "rgba(255,70,40,0.10)", "rgba(255,200,120,0.06)"],
         rock: ["#ffb070", "#c2452a", "#3d120a", "rgba(255,190,140,.55)"], tail: "255,140,60" },
-      { name: "Alien Armada",  boss: "Mothership",  accent: "#7dffb8",
+      { name: "Alien Armada",  boss: "Mothership",  accent: "#7dffb8", fx: "scan",
         bg: ["#04120d", "#07231a", "#0c3628"], blobs: ["rgba(90,255,170,0.13)", "rgba(60,200,255,0.08)", "rgba(200,255,90,0.06)"],
         rock: ["#c7f0b0", "#5f9a55", "#1d3a1b", "rgba(200,255,190,.5)"], tail: "140,255,170" }
     ];
@@ -1149,11 +1189,130 @@
           master = ac.createGain();
           master.gain.value = silent() ? 0 : VOLUME;
           master.connect(ac.destination);
+          musicGain = ac.createGain();
+          musicGain.gain.value = musicOn && !hiddenPage ? MUSIC_VOLUME : 0;
+          musicGain.connect(master);
           noiseBuf = ac.createBuffer(1, Math.floor(ac.sampleRate * 1.2), ac.sampleRate);
           const d = noiseBuf.getChannelData(0);
           for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
         }
         if (ac.state === "suspended") ac.resume();
+      }
+
+      // ----- Music: a small synth band playing each world's chord loop -----
+      // Level 0 is calm (menus), 1 is flying, 2 is a boss fight: faster, with full drums.
+      // Notes are scheduled a moment ahead on the audio clock, so timing stays tight.
+      const MUSIC_VOLUME = 0.8;
+      const NOTE = { C: 0, D: 2, Eb: 3, E: 4, F: 5, G: 7, A: 9, Bb: 10, B: 11 };
+      const SONGS = [
+        { prog: ["Am", "F", "C", "G"], bpm: 100 },
+        { prog: ["C", "G", "Am", "F"], bpm: 106 },
+        { prog: ["Em", "C", "G", "D"], bpm: 96 },
+        { prog: ["Dm", "Bb", "F", "C"], bpm: 112 },
+        { prog: ["Bm", "G", "D", "A"], bpm: 92 },
+        { prog: ["Gm", "Eb", "Bb", "F"], bpm: 116 }
+      ];
+      // 16th-note patterns: arpeggio steps pick a chord tone (3 = root an octave up, -1 = rest)
+      const ARPS = [
+        [0, -1, 1, -1, 2, -1, 1, -1, 3, -1, 2, -1, 1, -1, 2, -1],
+        [0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 2, 1, 3],
+        [0, 2, 3, 2, 1, 2, 3, 2, 0, 2, 3, 2, 1, 3, 2, 1]
+      ];
+      const BASS = [null, [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0], [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1]];
+      const TEMPO = [0.8, 1, 1.15];
+      let musicOn = store.get("meteorMusic", true, true) !== false;
+      let musicGain = null, hiddenPage = false;
+      let song = null, songLevel = 0, nextTime = 0, step = 0;
+      const midiHz = m => 440 * Math.pow(2, (m - 69) / 12);
+      const wrap = (n, lo) => lo + ((((n - lo) % 12) + 12) % 12);
+
+      function chord(name) {
+        const minor = name.endsWith("m");
+        const root = NOTE[minor ? name.slice(0, -1) : name];
+        return { root, tones: [root, root + (minor ? 3 : 4), root + 7] };
+      }
+
+      function voice(type, freq, t, dur, vol, attack, cutoff) {
+        const o = ac.createOscillator(), f = ac.createBiquadFilter(), g = ac.createGain();
+        o.type = type;
+        o.frequency.setValueAtTime(freq, t);
+        f.type = "lowpass";
+        f.frequency.setValueAtTime(cutoff, t);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(vol, t + attack);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.connect(f);
+        f.connect(g);
+        g.connect(musicGain);
+        o.start(t);
+        o.stop(t + dur + 0.05);
+      }
+
+      function drum(kind, t) {
+        if (kind === "kick") {
+          const o = ac.createOscillator(), g = ac.createGain();
+          o.frequency.setValueAtTime(120, t);
+          o.frequency.exponentialRampToValueAtTime(42, t + 0.12);
+          g.gain.setValueAtTime(0.11, t);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+          o.connect(g);
+          g.connect(musicGain);
+          o.start(t);
+          o.stop(t + 0.2);
+          return;
+        }
+        const hat = kind === "hat", dur = hat ? 0.04 : 0.12;
+        const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+        s.buffer = noiseBuf;
+        f.type = hat ? "highpass" : "bandpass";
+        f.frequency.setValueAtTime(hat ? 7000 : 1800, t);
+        g.gain.setValueAtTime(hat ? 0.022 : 0.05, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        s.connect(f);
+        f.connect(g);
+        g.connect(musicGain);
+        s.start(t, (step * 0.37) % 0.9);
+        s.stop(t + dur + 0.02);
+      }
+
+      function playStep(t, spb) {
+        const s16 = step % 16, lvl = songLevel;
+        const { root, tones } = chord(song.prog[Math.floor(step / 16) % song.prog.length]);
+        if (s16 === 0) {
+          for (const n of tones) voice("triangle", midiHz(wrap(n, 57)), t, spb * 16 + 0.5, lvl ? 0.022 : 0.03, 0.4, 1400);
+        }
+        const a = ARPS[lvl][s16];
+        if (a >= 0) {
+          const n = wrap(tones[a % 3], 69) + (a === 3 ? 12 : 0);
+          voice(lvl === 2 ? "square" : "triangle", midiHz(n), t, 0.22, lvl ? 0.05 : 0.04, 0.005, lvl === 2 ? 2400 : 3200);
+        }
+        if (BASS[lvl] && BASS[lvl][s16]) voice("sawtooth", midiHz(wrap(root, 33)), t, spb * 2.2, 0.06, 0.008, 420);
+        if (lvl === 1) {
+          if (s16 % 8 === 0) drum("kick", t);
+          if (s16 % 4 === 2) drum("hat", t);
+        } else if (lvl === 2) {
+          if (s16 % 4 === 0) drum("kick", t);
+          if (s16 % 8 === 4) drum("snare", t);
+          if (s16 % 2 === 1) drum("hat", t);
+        }
+      }
+
+      function scheduleMusic() {
+        if (!ac || !musicGain || !song) return;
+        if (!musicOn || hiddenPage || silent() || ac.state !== "running") { nextTime = 0; return; }
+        const spb = 60 / (song.bpm * TEMPO[songLevel]) / 4;
+        // After a pause, pick up again right away instead of rushing through the missed notes
+        if (nextTime < ac.currentTime) nextTime = ac.currentTime + 0.06;
+        while (nextTime < ac.currentTime + 0.3) {
+          playStep(nextTime, spb);
+          nextTime += spb;
+          step = (step + 1) % (16 * song.prog.length);
+        }
+      }
+      setInterval(scheduleMusic, 80);
+
+      function applyMusicVolume() {
+        if (musicGain) musicGain.gain.setTargetAtTime(musicOn && !hiddenPage ? MUSIC_VOLUME : 0, ac.currentTime, 0.08);
       }
 
       function tone(freq, dur, opts) {
@@ -1205,12 +1364,29 @@
         },
         setAdMuted(v) { adMuted = v; applyVolume(); },
         setPlatformMuted(v) { platformMuted = v; applyVolume(); },
+        get musicOn() { return musicOn; },
+        toggleMusic() {
+          musicOn = !musicOn;
+          store.set("meteorMusic", musicOn, true);
+          applyMusicVolume();
+          return musicOn;
+        },
+        // Which world's song plays, and how intense (0 calm, 1 flying, 2 boss)
+        setMusic(world, level) {
+          const s = SONGS[world] || SONGS[0];
+          if (s !== song || level !== songLevel) {
+            if (s !== song) step = 0;
+            song = s;
+            songLevel = level;
+          }
+        },
+        setHidden(h) { hiddenPage = h; applyMusicVolume(); },
         coin(step) {
           const f = 988 * Math.pow(2, step / 6);
           tone(f, 0.07, { type: "square", vol: 0.09 });
           tone(f * 1.335, 0.12, { type: "square", vol: 0.09, delay: 0.05 });
         },
-        nearMiss() { tone(700, 0.18, { type: "triangle", vol: 0.16, slide: 2.2 }); },
+        nearMiss(step) { tone(700 * Math.pow(2, Math.min((step || 1) - 1, 9) / 12), 0.18, { type: "triangle", vol: 0.16, slide: 2.2 }); },
         power() { [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.12, { type: "triangle", vol: 0.15, delay: i * 0.06 })); },
         shieldBreak() {
           noise(0.35, { vol: 0.3, from: 3000, to: 300 });
@@ -1239,6 +1415,11 @@
             tone(330, 0.22, { type: "square", vol: 0.08, delay: d });
             tone(247, 0.22, { type: "square", vol: 0.08, delay: d + 0.2 });
           });
+        },
+        blast() {
+          noise(0.7, { vol: 0.3, from: 4000, to: 80 });
+          tone(220, 0.5, { type: "sawtooth", vol: 0.08, slide: 0.2 });
+          tone(880, 0.3, { type: "triangle", vol: 0.1, slide: 0.5, delay: 0.02 });
         },
         bossBoom() {
           noise(1.2, { vol: 0.3, from: 1500, to: 40 });
@@ -1533,6 +1714,18 @@
         g.fillStyle = POWERUPS.magnet.color;
         g.fillRect(-8, -10, 5, 4.5);
         g.fillRect(3, -10, 5, 4.5);
+      } else if (type === "blast") {
+        // an eight-point burst with a hot centre
+        g.beginPath();
+        for (let i = 0; i < 16; i++) {
+          const a = i * Math.PI / 8 - Math.PI / 2, r = i % 2 ? 4 : 10;
+          if (i) g.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+          else g.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+        }
+        g.closePath();
+        g.fill();
+        g.fillStyle = POWERUPS.blast.color;
+        g.beginPath(); g.arc(0, 0, 3.4, 0, TAU); g.fill();
       } else {
         g.fillRect(-7, -10, 14, 2.6);
         g.fillRect(-7, 7.4, 14, 2.6);
@@ -1620,6 +1813,7 @@
     let T = 0;
     let timeScale = 1;
     let shake = 0;
+    let flashT = 0;                         // white-out after a blast, fading
     let engineAcc = 0;
     let ambientT = 0;
     let contLeft = 0;
@@ -1632,7 +1826,7 @@
     let boss = null;
     let banner = null;
     let midgameBusy = false;
-    const AMBIENT = new Set(["menu", "map", "hangar", "ending", "boot"]);
+    const AMBIENT = new Set(["menu", "map", "hangar", "ending", "boot", "daily"]);
 
     function newRun(mode, lvl) {
       const hull = maxHull();
@@ -1641,7 +1835,7 @@
         score: 0, time: 0, elapsed: 0,
         coins: 0, coinAcc: 0, coinsSpawned: 0, coinsPicked: 0,
         hull, maxHull: hull, damaged: false, phaseUsed: false,
-        guard: false, guardUsed: false, guardAd: false,
+        guard: false, guardUsed: false, guardAd: false, combo: 0, comboAt: -99,
         revived: false, doubled: false, rewarded: false, moved: false, tutorial: false,
         spawnT: 0.9, coinT: 1.2, powerT: rand(7, 11),
         cometT: rand(2, 4), laserT: rand(3, 5), wellT: rand(4, 7), ufoT: rand(4, 7),
@@ -1674,7 +1868,7 @@
     document.querySelectorAll("[data-icon=star]").forEach(el => { el.innerHTML = ICON_STAR; });
 
     const screens = {};
-    ["menu", "map", "hangar", "continue", "adwait", "clear", "fail", "gameover", "ending", "pause"].forEach(n => { screens[n] = $(n); });
+    ["menu", "map", "hangar", "continue", "adwait", "clear", "fail", "gameover", "ending", "pause", "daily"].forEach(n => { screens[n] = $(n); });
 
     function showScreen(name, readyDelay) {
       const el = screens[name];
@@ -1788,6 +1982,8 @@
       setPalette(1);
       refreshMenu();
       showScreen("menu", 250);
+      const day = plays > 0 ? dailyDue() : 0;
+      if (day) showDaily(day);
     }
 
     function showMap(w) {
@@ -2122,7 +2318,8 @@
     function openRewardAd(kind) {
       if (adPending) return;
       Sound.click();
-      const ad = { kind, hidden: false, opened: false, screen: state };
+      // The coins on offer are fixed when the ad starts, so the reward matches the button
+      const ad = { kind, hidden: false, opened: false, screen: state, coins: kind === "coins" ? freeCoinsAmount() : 0 };
       adPending = ad;
       if (kind === "revive") {
         state = "adwait";
@@ -2167,6 +2364,7 @@
       adsOff = true;
       for (const k in DOUBLE_BTN) DOUBLE_BTN[k].hidden = true;
       freeCoinsBtn.hidden = true;
+      $("dailyDouble").hidden = true;
     }
 
     function failAd(err) {
@@ -2222,13 +2420,15 @@
         if (ad.screen === "fail") $("failTip").textContent = "Your star guard will block the first hit on your next try.";
         Sound.power();
       } else if (ad.kind === "coins") {
-        wallet += FREE_COINS;
+        wallet += ad.coins;
         saveWallet();
         freeCoinsAt = Date.now() + FREE_COINS_COOLDOWN;
         store.set("meteorFreeAt", freeCoinsAt);
         refreshMenu();
         Sound.power();
         coinBurst();
+      } else if (ad.kind === "daily") {
+        claimDaily(2);
       }
     }
 
@@ -2259,6 +2459,7 @@
     }
 
     document.addEventListener("visibilitychange", () => {
+      Sound.setHidden(document.hidden);
       if (document.hidden) {
         if (adPending) adPending.hidden = true;
         else pauseGame(true);
@@ -2287,6 +2488,14 @@
       updateFreeCoins();
     }
 
+    // The free-coins ad pays about two sectors' worth of coins at the player's
+    // stage: more for every sector cleared and every star won.
+    function freeCoinsAmount() {
+      let clearedCount = 0;
+      for (const id in levelStars) if (levelStars[id] & 1) clearedCount++;
+      return Math.round((FREE_COINS + 7 * clearedCount + 1.5 * totalStars()) / 10) * 10;
+    }
+
     let freeKey = "";
     function updateFreeCoins() {
       const left = freeCoinsAt - Date.now();
@@ -2301,8 +2510,58 @@
       } else if (freeKey !== "ready") {
         freeKey = "ready";
         freeCoinsBtn.disabled = false;
-        freeCoinsBtn.innerHTML = '<span class="badge">AD</span> +' + FREE_COINS + ' <i class="coin"></i>';
+        freeCoinsBtn.innerHTML = '<span class="badge">AD</span> +' + freeCoinsAmount() + ' <i class="coin"></i>';
       }
+    }
+
+    // ---------- Daily bonus ----------
+    // Playing on consecutive days climbs a 7-day ladder; missing a day starts it
+    // again. Coin days pay multiples of the free-coins amount, so they keep pace
+    // with the player's progress.
+    const DAILY = [{ coins: 1 }, { guards: 1 }, { coins: 2 }, { guards: 2 }, { coins: 3 }, { guards: 3 }, { coins: 6 }];
+    const dayKey = d => d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+    let dailyDay = 0;
+
+    // The ladder day waiting to be claimed today, or 0 if today's is taken.
+    function dailyDue() {
+      const s = store.get("meteorDaily", null), today = new Date();
+      if (s && s.last === dayKey(today)) return 0;
+      const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+      return s && s.last === dayKey(yesterday) ? (Number(s.streak) % 7) + 1 : 1;
+    }
+
+    function dailyReward(day, times) {
+      const r = DAILY[day - 1];
+      return r.coins ? { coins: r.coins * freeCoinsAmount() * times } : { guards: r.guards * times };
+    }
+
+    function showDaily(day) {
+      dailyDay = day;
+      state = "daily";
+      $("dailySub").textContent = "Day " + day + " of 7 · come back tomorrow for more";
+      $("dailyDays").innerHTML = DAILY.map((_, i) => {
+        const d = i + 1, r = dailyReward(d, 1);
+        const what = r.coins ? '<i class="coin"></i>' + r.coins : ICON_GUARD + "×" + r.guards;
+        return '<div class="day' + (d < day ? " done" : d === day ? " today" : "") + (d === 7 ? " big" : "") +
+          '"><small>DAY ' + d + "</small><b>" + what + "</b></div>";
+      }).join("");
+      const dbl = $("dailyDouble");
+      dbl.hidden = adsOff;
+      dbl.disabled = false;
+      showScreen("daily", 500);
+    }
+
+    function claimDaily(times) {
+      if (state !== "daily") return;
+      const r = dailyReward(dailyDay, times);
+      if (r.coins) { wallet += r.coins; saveWallet(); }
+      if (r.guards) { guards = Math.min(GUARD_MAX, guards + r.guards); saveGuards(); }
+      store.set("meteorDaily", { last: dayKey(new Date()), streak: dailyDay });
+      hideScreen("daily");
+      state = "menu";
+      refreshMenu();
+      Sound.power();
+      coinBurst();
     }
 
     // ---------- Galaxy map ----------
@@ -2477,6 +2736,7 @@
 
     function updateMuteButtons() {
       document.querySelectorAll(".mute-btn").forEach(b => { b.innerHTML = Sound.muted ? ICON_SOUND_OFF : ICON_SOUND_ON; });
+      document.querySelectorAll(".music-btn").forEach(b => { b.innerHTML = Sound.musicOn ? ICON_MUSIC_ON : ICON_MUSIC_OFF; });
     }
 
     // ---------- Buttons ----------
@@ -2517,6 +2777,8 @@
     }
     freeCoinsBtn.addEventListener("click", () => { if (state === "menu" && Date.now() >= freeCoinsAt) openRewardAd("coins"); });
     on("nextBtn", () => { if (state === "clear") { Sound.click(); goNext(); } });
+    on("dailyClaim", () => claimDaily(1));
+    on("dailyDouble", () => { if (state === "daily") openRewardAd("daily"); });
     on("replayBtn", () => { if (state === "clear") { Sound.click(); retryLevel(); } });
     on("clearMap", () => { if (state === "clear") { Sound.click(); showMap(run.lvl.w); } });
     on("retryBtn", () => { if (state === "fail") { Sound.click(); retryLevel(); } });
@@ -2539,6 +2801,12 @@
     document.querySelectorAll(".mute-btn").forEach(b => b.addEventListener("click", () => {
       Sound.unlock();
       Sound.toggle();
+      updateMuteButtons();
+      Sound.click();
+    }));
+    document.querySelectorAll(".music-btn").forEach(b => b.addEventListener("click", () => {
+      Sound.unlock();
+      Sound.toggleMusic();
       updateMuteButtons();
       Sound.click();
     }));
@@ -2611,6 +2879,7 @@
         else if (state === "fail" && ready("fail")) retryLevel();
         else if (state === "over" && ready("gameover")) startEndless();
         else if (state === "ending" && ready("ending")) showMap(WORLDS.length);
+        else if (state === "daily" && ready("daily")) claimDaily(1);
         else if (state === "paused") resumeGame();
       } else if (e.code === "KeyP") {
         if (state === "playing" || state === "countdown") pauseGame();
@@ -2723,7 +2992,7 @@
 
     function spawnPowerUp() {
       const roll = Math.random();
-      const type = roll < 0.4 ? "shield" : roll < 0.75 ? "magnet" : "slow";
+      const type = roll < 0.34 ? "shield" : roll < 0.64 ? "magnet" : roll < 0.84 ? "slow" : "blast";
       powerups.push({ type, x: fieldX + rand(40, fieldW - 40), y: -24, vy: H * 0.3, ph: Math.random() * TAU });
     }
 
@@ -2923,8 +3192,35 @@
       if (run.mode === "endless") addText(c.x, c.y - 12, "+5", "#ffd34d", 16);
     }
 
+    // A shockwave from the ship: every danger on screen bursts, and each rock leaves a coin.
+    function blast() {
+      let rocks = 0;
+      for (const m of meteors) {
+        if (m.ambient) continue;
+        const rock = m.kind !== "bullet" && m.kind !== "shard";
+        if (rock) rocks++;
+        sparks(m.x, m.y, rock ? "#ffd8a8" : "#ffffff", rock ? 14 : 5, rock ? 220 : 120);
+        if (rock) rings.push({ x: m.x, y: m.y, r: m.r * 0.5, vr: 160, life: 0.35, max: 0.35, color: "#ffd8a8", w: 2 });
+      }
+      for (const u of ufos) explosion(u.x, u.y, ["#ffffff", "#7dffb8", "#ffd166"], 30);
+      for (const w of wells) sparks(w.x, w.y, "#ffb070", 16, 200);
+      for (const b of beams) sparks(b.x, player.y, "#ff6bd6", 6, 120);
+      meteors.length = beams.length = wells.length = ufos.length = 0;
+      rings.push({ x: player.x, y: player.y, r: 20, vr: 1100, life: 0.7, max: 0.7, color: "#ffe2b0", w: 8 });
+      flashT = 0.45;
+      shake = Math.max(shake, 14);
+      Sound.blast();
+      vibrate([40, 30, 80]);
+      addText(player.x, player.y - 48, POWERUPS.blast.label, POWERUPS.blast.color, 24);
+      if (rocks) {
+        addPickupCoins(rocks);
+        addText(player.x, player.y - 76, "+" + rocks, "#ffd34d", 18);
+      }
+    }
+
     function collectPower(p) {
       const def = POWERUPS[p.type];
+      if (p.type === "blast") { blast(); return; }
       run.pu[p.type] = def.duration * powerMult();
       Sound.power();
       vibrate(30);
@@ -2960,6 +3256,7 @@
     // Returns true when the hit landed (projectiles that land are destroyed).
     function hitPlayer(src) {
       if (run.invuln > 0 || state !== "playing") return false;
+      run.combo = 0;
       if (run.pu.shield > 0) { shieldHit(src); return true; }
       if (run.guard) { guardHit(src); return true; }
       if (run.hull <= 1 && hasPerk("phase") && !run.phaseUsed) {
@@ -2985,16 +3282,26 @@
       return true;
     }
 
+    // Close calls in quick succession build a combo, and each one in the chain is
+    // worth more. Any hit breaks the chain.
+    const COMBO_WINDOW = 2.5;
     function nearMiss(m) {
-      Sound.nearMiss();
+      run.combo = T - run.comboAt < COMBO_WINDOW ? Math.min(run.combo + 1, 10) : 1;
+      run.comboAt = T;
+      const c = run.combo;
+      Sound.nearMiss(c);
+      const color = c >= 6 ? "#ff6bd6" : c >= 3 ? "#ffd34d" : "#7ee0ff";
+      const x = player.x + (m.x < player.x ? 36 : -36), size = 16 + Math.min(c - 1, 6) * 1.5;
+      const label = c > 1 ? "CLOSE x" + c + "! +" : "CLOSE! +";
       if (run.mode === "endless") {
-        run.score += 3;
-        addText(player.x + (m.x < player.x ? 36 : -36), player.y - 30, "CLOSE! +3", "#7ee0ff", 16);
+        run.score += 3 * c;
+        addText(x, player.y - 30, label + 3 * c, color, size);
       } else {
-        addPickupCoins(1);
-        addText(player.x + (m.x < player.x ? 36 : -36), player.y - 30, "CLOSE! +1", "#7ee0ff", 16);
+        addPickupCoins(c);
+        addText(x, player.y - 30, label + c, color, size);
       }
-      sparks((player.x + m.x) / 2, player.y, "#7ee0ff", 6, 140);
+      sparks((player.x + m.x) / 2, player.y, color, 6 + c, 140 + c * 10);
+      if (c === 5 || c === 10) rings.push({ x: player.x, y: player.y, r: 16, vr: 260, life: 0.45, max: 0.45, color, w: 3 });
     }
 
     // ---------- Update ----------
@@ -3280,6 +3587,7 @@
       }
       shake *= Math.exp(-dt * 7);
       if (shake < 0.3) shake = 0;
+      flashT = Math.max(0, flashT - dt * 1.6);
     }
 
     function renderHull() {
@@ -3306,6 +3614,9 @@
         banner.t += dt;
         if (banner.t > banner.life) banner = null;
       }
+      // The current world's song: calm on menus, livelier in flight, fiercest against a boss
+      const flying = !AMBIENT.has(state) && state !== "clear" && state !== "fail" && state !== "over";
+      Sound.setMusic(Math.max(0, WORLDS.indexOf(palette)), flying ? (boss ? 2 : 1) : 0);
       if (state === "paused" || state === "adwait") return;
 
       const slowTarget = state === "playing" && run.pu.slow > 0 ? 0.5 : 1;
@@ -3321,6 +3632,7 @@
         s.y += s.sp * H * starSpeed * wdt;
         if (s.y > H) { s.y -= H + 4; s.x = Math.random() * W; }
       }
+      updateAmbience(wdt);
 
       if (state === "countdown") {
         updateCountdown(dt);
@@ -3344,6 +3656,154 @@
       updateEffects(dt);
       updateHud();
       if (state === "menu") updateFreeCoins();
+    }
+
+    // ---------- World ambience ----------
+    // Each world has its own faint background life (dust, distant streaks, snow,
+    // lightning, a swirl of infalling matter, alien scanners). It is drawn behind
+    // everything that matters and kept dim, so it never reads as a danger.
+    let amb = [], ambKind = "", ambT = 0, bolt = null;
+    const swirlR = () => Math.max(W, H) * 0.45;
+
+    function newAmb(kind, anywhere) {
+      const y = anywhere ? rand(0, H) : -6;
+      if (kind === "dust") return { x: rand(0, W), y, vx: rand(-6, 6), vy: rand(8, 22), s: rand(1, 2.2), a: rand(0.15, 0.35) };
+      if (kind === "snow") return { x: rand(0, W), y, vy: rand(25, 60), s: rand(1, 2.8), a: rand(0.25, 0.6), ph: rand(0, TAU), sway: rand(8, 18), f: rand(0.6, 1.4) };
+      if (kind === "storm") return { x: rand(0, W), y, vy: rand(10, 30), s: rand(1, 2), a: rand(0.2, 0.4) };
+      if (kind === "swirl") return { ang: rand(0, TAU), rad: anywhere ? rand(40, swirlR()) : swirlR(), sp: rand(0.25, 0.6), a: rand(0.3, 0.6) };
+      if (kind === "scan") return { x: rand(0, W), y, vy: rand(6, 14), ph: rand(0, TAU), c: Math.random() < 0.5 ? "125,255,184" : "255,214,102" };
+      return null;
+    }
+
+    function updateAmbience(dt) {
+      const kind = palette.fx;
+      if (kind !== ambKind) {
+        ambKind = kind;
+        amb = [];
+        bolt = null;
+        ambT = rand(1, 3);
+        const n = { dust: 26, snow: 46, storm: 14, swirl: 24, scan: 8 }[kind] || 0;
+        for (let i = 0; i < n; i++) amb.push(newAmb(kind, true));
+      }
+      const fall = 0.6 + 0.4 * starSpeed;
+      for (let i = amb.length - 1; i >= 0; i--) {
+        const p = amb[i];
+        if (kind === "swirl") {
+          p.ang += p.sp * dt * (swirlR() / Math.max(p.rad, 30));
+          p.rad -= 10 * dt;
+          if (p.rad < 30) amb[i] = newAmb(kind, false);
+          continue;
+        }
+        if (kind === "streaks") {
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          if (p.y - p.len > H) amb.splice(i, 1);
+          continue;
+        }
+        p.y += p.vy * dt * fall;
+        if (p.vx) p.x += p.vx * dt;
+        if (p.y > H + 6) amb[i] = newAmb(kind, false);
+      }
+      ambT -= dt;
+      if (kind === "streaks" && ambT <= 0 && amb.length < 3) {
+        amb.push({ x: rand(-0.2 * W, W), y: -20, vx: rand(80, 160), vy: rand(300, 500), len: rand(50, 110), a: rand(0.16, 0.28) });
+        ambT = rand(1.2, 3);
+      } else if (kind === "storm" && ambT <= 0) {
+        const pts = [];
+        let x = rand(0, W), y = -10;
+        const end = H * rand(0.35, 0.65);
+        while (y < end) { pts.push(x, y); x += rand(-18, 18); y += rand(18, 32); }
+        pts.push(x, y);
+        bolt = { pts, t: 0 };
+        ambT = rand(3, 7);
+      }
+      if (bolt && (bolt.t += dt) > 0.24) bolt = null;
+    }
+
+    function drawAmbience() {
+      const kind = ambKind;
+      if (kind === "dust" || kind === "storm") {
+        const rgb = kind === "dust" ? "255,190,150," : "220,170,255,";
+        for (const p of amb) {
+          ctx.fillStyle = "rgba(" + rgb + p.a + ")";
+          ctx.fillRect(p.x, p.y, p.s, p.s);
+        }
+      } else if (kind === "snow") {
+        ctx.fillStyle = "#e6f4ff";
+        for (const p of amb) {
+          ctx.globalAlpha = p.a;
+          ctx.beginPath();
+          ctx.arc(p.x + Math.sin(T * p.f + p.ph) * p.sway, p.y, p.s, 0, TAU);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      } else if (kind === "streaks") {
+        ctx.lineWidth = 1.5;
+        for (const p of amb) {
+          const k = p.len / Math.hypot(p.vx, p.vy), tx = p.x - p.vx * k, ty = p.y - p.vy * k;
+          const g = ctx.createLinearGradient(tx, ty, p.x, p.y);
+          g.addColorStop(0, "rgba(180,240,255,0)");
+          g.addColorStop(1, "rgba(200,245,255," + p.a + ")");
+          ctx.strokeStyle = g;
+          ctx.beginPath();
+          ctx.moveTo(tx, ty);
+          ctx.lineTo(p.x, p.y);
+          ctx.stroke();
+        }
+      } else if (kind === "swirl") {
+        const cx = W / 2, cy = H * 0.18;
+        ctx.lineCap = "round";
+        for (let k = 0; k < 3; k++) {
+          const a0 = T * 0.25 + k * 2.1;
+          ctx.strokeStyle = "rgba(255,150,80,0.05)";
+          ctx.lineWidth = 16 - k * 3;
+          ctx.beginPath();
+          ctx.arc(cx, cy, 110 + k * 70, a0, a0 + 1.7);
+          ctx.stroke();
+        }
+        ctx.lineCap = "butt";
+        const R = swirlR();
+        ctx.fillStyle = "#ffb070";
+        for (const p of amb) {
+          ctx.globalAlpha = p.a * Math.min(1, p.rad / R + 0.2);
+          ctx.fillRect(cx + Math.cos(p.ang) * p.rad, cy + Math.sin(p.ang) * p.rad * 0.55, 1.6, 1.6);
+        }
+        ctx.globalAlpha = 1;
+      } else if (kind === "scan") {
+        // distant ships blinking, and a slow scanner sweep every few seconds
+        for (const p of amb) {
+          if (Math.sin(T * 3 + p.ph) < 0.55) continue;
+          ctx.fillStyle = "rgba(" + p.c + ",0.55)";
+          ctx.fillRect(p.x, p.y, 2, 2);
+        }
+        const cycle = T % 8;
+        if (cycle < 4) {
+          const y = cycle / 4 * (H + 60) - 30;
+          const g = ctx.createLinearGradient(0, y - 26, 0, y + 4);
+          g.addColorStop(0, "rgba(125,255,184,0)");
+          g.addColorStop(1, "rgba(125,255,184,0.07)");
+          ctx.fillStyle = g;
+          ctx.fillRect(0, y - 26, W, 30);
+          ctx.fillStyle = "rgba(160,255,200,0.12)";
+          ctx.fillRect(0, y + 4, W, 1);
+        }
+      }
+      if (bolt) {
+        const a = 1 - bolt.t / 0.24;
+        if (bolt.t < 0.08) {
+          ctx.fillStyle = "rgba(200,160,255," + (0.06 * a).toFixed(3) + ")";
+          ctx.fillRect(0, 0, W, H);
+        }
+        ctx.lineJoin = "round";
+        for (const [w, alpha] of [[6, 0.12], [2, 0.45]]) {
+          ctx.strokeStyle = "rgba(230,200,255," + (alpha * a).toFixed(3) + ")";
+          ctx.lineWidth = w;
+          ctx.beginPath();
+          ctx.moveTo(bolt.pts[0], bolt.pts[1]);
+          for (let i = 2; i < bolt.pts.length; i += 2) ctx.lineTo(bolt.pts[i], bolt.pts[i + 1]);
+          ctx.stroke();
+        }
+      }
     }
 
     // ---------- Render ----------
@@ -3954,6 +4414,7 @@
       ctx.fillRect(0, 0, W, H);
       if (bgCanvas.width && bgCanvas.height) ctx.drawImage(bgCanvas, 0, 0, W, H);
       drawStars();
+      drawAmbience();
 
       const sx = shake ? (Math.random() - 0.5) * shake : 0;
       const sy = shake ? (Math.random() - 0.5) * shake : 0;
@@ -3972,6 +4433,10 @@
 
       if (timeScale < 0.98) {
         ctx.fillStyle = "rgba(110,80,255," + ((1 - timeScale) * 0.22).toFixed(3) + ")";
+        ctx.fillRect(0, 0, W, H);
+      }
+      if (flashT > 0) {
+        ctx.fillStyle = "rgba(255,236,210," + flashT.toFixed(3) + ")";
         ctx.fillRect(0, 0, W, H);
       }
       drawBanner();
