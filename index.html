@@ -1475,15 +1475,30 @@
       meteorSpritesFor(palette);
     }
 
-    // A wiped canvas without any notice: the centres of these are always painted.
+    // A canvas wiped without any notice: the centres of these are always painted.
+    // Pixels are read through a tiny CPU-side canvas, so the check stays cheap and quiet.
+    const probe = document.createElement("canvas");
+    probe.width = probe.height = 1;
+    const probeCtx = probe.getContext("2d", { willReadFrequently: true });
+    function painted(c, x, y) {
+      probeCtx.clearRect(0, 0, 1, 1);
+      probeCtx.drawImage(c, x, y, 1, 1, 0, 0, 1, 1);
+      return probeCtx.getImageData(0, 0, 1, 1).data[3] > 0;
+    }
     function cachesWiped() {
       try {
-        const alpha = (c, x, y) => c.getContext("2d").getImageData(x, y, 1, 1).data[3];
-        return alpha(bgCanvas, bgCanvas.width >> 1, bgCanvas.height >> 1) === 0 ||
-          alpha(meteorSpritesFor(palette)[0], SPRITE_SIZE >> 1, SPRITE_SIZE >> 1) === 0;
+        return !painted(bgCanvas, bgCanvas.width >> 1, bgCanvas.height >> 1) ||
+          !painted(meteorSpritesFor(palette)[0], SPRITE_SIZE >> 1, SPRITE_SIZE >> 1) ||
+          !painted(coinSprite, 32, 32);
       } catch (e) {
         return false;
       }
+    }
+
+    // True while the browser has taken a canvas's graphics away (they come back blank).
+    function contextGone(c) {
+      const g = c.getContext("2d");
+      return !!(g.isContextLost && g.isContextLost());
     }
 
     // s is the icon's half-height in pixels
@@ -1706,6 +1721,7 @@
       timeScale = 1;
       coinStreak = 0;
       setPalette(mode === "level" ? lvl.w : 1);
+      if (cachesWiped()) cachesLost = true;
       if (upgrades.shield) run.pu.shield = POWERUPS.shield.duration * powerMult();
       // A star guard comes along only where the no-hit star is still to be won,
       // and is used up only if it actually blocks a hit.
@@ -2243,16 +2259,14 @@
       } catch (e) { go(); }
     }
 
-    let hiddenAt = 0;
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
-        hiddenAt = performance.now();
         if (adPending) adPending.hidden = true;
         else pauseGame(true);
       } else {
         lastFrame = performance.now();
-        // Away long enough for the computer to have slept: check the cached drawings survived
-        if (lastFrame - hiddenAt > 5000 && cachesWiped()) cachesLost = true;
+        // Back in view: check the cached drawings survived the time away
+        if (cachesWiped()) cachesLost = true;
         if (adPending && adPending.hidden && adPending.opened) {
           const ad = adPending;
           setTimeout(() => { if (adPending === ad) finishAd(); }, 400);
@@ -3929,7 +3943,9 @@
     }
 
     function render() {
-      if (cachesLost) {
+      // While a cached canvas is without its graphics, wait; as soon as it is back, redraw the caches
+      if (contextGone(bgCanvas) || contextGone(meteorSpritesFor(palette)[0])) cachesLost = true;
+      else if (cachesLost) {
         cachesLost = false;
         rebuildCaches();
       }
