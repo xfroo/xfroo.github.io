@@ -460,6 +460,7 @@
     .menu-foot { display: flex; align-items: center; gap: 12px; }
     .hint { font-size: 13px; color: var(--muted); font-weight: 600; }
     .tip { font-size: 13px; font-weight: 700; color: #ffe08a; max-width: 300px; line-height: 1.35; }
+    .ver { font-size: 11px; font-weight: 700; color: var(--muted); opacity: .6; }
     .note {
       font-size: 14px;
       font-weight: 800;
@@ -795,6 +796,7 @@
       <button class="btn ghost" id="restartBtn">Restart</button>
       <button class="btn ghost" id="quitBtn">Quit</button>
     </div>
+    <p class="ver">Meteor Swerve 2.2</p>
   </div></div>
 
   <script>
@@ -1262,15 +1264,17 @@
     const mctx = menuShipCanvas.getContext("2d");
     const safeProbe = $("safeProbe");
 
-    // Browsers keep big canvases on the graphics card and can wipe them (after the
-    // computer sleeps, or a graphics driver reset). The cached drawings (background,
-    // meteors, coins, glows) are rebuilt when a canvas reports it is back, or when a
-    // wiped one is spotted as the game comes back into view.
+    // Cached drawings (background, meteors, coins, glows) live in canvases kept in
+    // ordinary memory ("willReadFrequently" keeps them off the graphics card), because
+    // browsers wipe graphics-card canvases on a driver reset or after the computer
+    // sleeps, and the game would lose its meteors. Should one be wiped anyway, it is
+    // rebuilt as soon as that is noticed.
     let cachesLost = false;
     function newCanvas(w, h) {
       const c = document.createElement("canvas");
       c.width = w;
       c.height = h;
+      c.getContext("2d", { willReadFrequently: true });
       c.addEventListener("contextrestored", () => { cachesLost = true; });
       return c;
     }
@@ -1303,11 +1307,12 @@
       }
     }
 
+    // Smooth gradients only, so one canvas pixel per screen point is plenty
     function buildBackground() {
-      bgCanvas.width = canvas.width;
-      bgCanvas.height = canvas.height;
+      bgCanvas.width = Math.max(1, Math.round(W));
+      bgCanvas.height = Math.max(1, Math.round(H));
       const g = bgCtx;
-      g.setTransform(DPR, 0, 0, DPR, 0, 0);
+      g.setTransform(1, 0, 0, 1, 0, 0);
       const lg = g.createLinearGradient(0, 0, 0, H);
       lg.addColorStop(0, palette.bg[0]);
       lg.addColorStop(0.6, palette.bg[1]);
@@ -1493,12 +1498,6 @@
       } catch (e) {
         return false;
       }
-    }
-
-    // True while the browser has taken a canvas's graphics away (they come back blank).
-    function contextGone(c) {
-      const g = c.getContext("2d");
-      return !!(g.isContextLost && g.isContextLost());
     }
 
     // s is the icon's half-height in pixels
@@ -3943,9 +3942,7 @@
     }
 
     function render() {
-      // While a cached canvas is without its graphics, wait; as soon as it is back, redraw the caches
-      if (contextGone(bgCanvas) || contextGone(meteorSpritesFor(palette)[0])) cachesLost = true;
-      else if (cachesLost) {
+      if (cachesLost) {
         cachesLost = false;
         rebuildCaches();
       }
