@@ -581,6 +581,137 @@
       100% { opacity: 0; transform: scale(.85); }
     }
 
+    /* ---------- Online races ---------- */
+    .btn.vs {
+      background: linear-gradient(180deg, #b98cff, #7a4ae6);
+      box-shadow: 0 10px 28px rgba(150,100,255,.35), inset 0 -3px 0 rgba(0,0,0,.18);
+    }
+    .btn.vs svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; flex: none; }
+    #onlineBtn { font-size: 17px; padding: 12px 24px; min-width: 240px; }
+    input { font: inherit; user-select: text; -webkit-user-select: text; }
+    .pilot {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 16px;
+      padding: 6px 8px 6px 6px;
+    }
+    .pilot canvas { width: 46px; height: 46px; flex: none; }
+    .pilot-txt { text-align: left; min-width: 160px; }
+    .pilot-txt small, .room-label { display: block; font-size: 11px; font-weight: 800; letter-spacing: .14em; color: var(--muted); }
+    .pilot-txt b { font-size: 17px; font-weight: 900; }
+    .pilot .icon-btn svg { fill: none; stroke: currentColor; stroke-width: 2; }
+    .pilot .icon-btn svg circle { fill: currentColor; stroke: none; }
+    .join-row { display: flex; gap: 8px; align-items: center; }
+    #codeInput {
+      width: 150px;
+      height: 52px;
+      border-radius: 14px;
+      border: 2px solid rgba(255,255,255,.2);
+      background: rgba(0,0,0,.35);
+      color: #ffffff;
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: .3em;
+      text-align: center;
+      text-transform: uppercase;
+      padding: 0 0 0 .3em;
+      outline: none;
+    }
+    #codeInput:focus { border-color: #b98cff; }
+    #codeInput::placeholder { color: rgba(255,255,255,.25); letter-spacing: .12em; }
+    #codeGo { min-width: 0; padding: 14px 22px; }
+    .lobby-head, .lobby-foot { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .room-code {
+      font-size: 54px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      line-height: 1;
+      padding-left: .14em;
+      color: #efe4ff;
+      text-shadow: 0 4px 24px rgba(150,100,255,.55);
+    }
+    .slots { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 330px; }
+    .slot {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 48px;
+      padding: 4px 12px 4px 6px;
+      border-radius: 14px;
+      text-align: left;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .slot canvas { width: 38px; height: 38px; flex: none; }
+    .slot b { flex: 1; min-width: 0; font-size: 15px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .slot.me { border-color: rgba(88,166,255,.55); background: rgba(88,166,255,.1); }
+    .slot.empty { justify-content: center; color: var(--muted); font-size: 13px; font-weight: 700; opacity: .5; }
+    .slot.out { opacity: .55; }
+    .slot .place { width: 26px; flex: none; font-size: 18px; font-weight: 900; text-align: center; }
+    .slot.first .place { color: var(--gold); }
+    .slot .time { font-size: 13px; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .tag { font-size: 10px; font-weight: 900; letter-spacing: .08em; padding: 3px 6px; border-radius: 6px; background: rgba(255,255,255,.12); color: #cfe6ff; flex: none; }
+    .tag.host { background: rgba(255,211,77,.22); color: #ffe08a; }
+    .tag.bot { color: var(--muted); }
+    #vsTitle.gold { color: var(--gold); text-shadow: 0 6px 28px rgba(255,211,77,.45); }
+    #vsResult { background: rgba(7,10,20,.88); }
+    #lobbySpin { width: 34px; height: 34px; border-top-color: #b98cff; }
+
+    /* Race HUD: pilots still flying, race clock, attack meter and the list of pilots */
+    #vsBox, #atkRow, #vsList { display: none; }
+    #hud.vs #scoreBox { display: none; }
+    #hud.vs #vsBox { display: flex; flex-direction: column; align-items: center; padding-top: 2px; }
+    #hud.vs #atkRow, #hud.vs #vsList { display: flex; }
+    #vsAlive { font-size: 28px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; text-shadow: 0 3px 14px rgba(0,0,0,.7); }
+    #vsAlive small { font-size: 11px; font-weight: 800; letter-spacing: .14em; color: var(--muted); margin-left: 5px; }
+    #vsTime { font-size: 11px; font-weight: 800; letter-spacing: .1em; color: var(--muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
+    #atkRow { gap: 3px; margin-top: 6px; align-items: center; }
+    #atkRow svg { width: 12px; height: 12px; fill: #ff9f43; margin-right: 2px; }
+    #atkRow .cell { width: 11px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.12); }
+    #atkRow .cell.on { background: linear-gradient(180deg, #ffd08a, #ff7b3d); box-shadow: 0 0 6px rgba(255,140,60,.6); }
+    #vsList {
+      position: absolute;
+      left: 12px;
+      top: calc(env(safe-area-inset-top) + 62px);
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 3px;
+    }
+    #vsList div {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      max-width: 150px;
+      padding: 2px 9px 2px 5px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.38);
+      font-size: 11px;
+      font-weight: 800;
+    }
+    #vsList i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+    #vsList span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #vsList .out { opacity: .4; }
+    #vsList .out span { text-decoration: line-through; }
+
+    /* Landscape screens: the room's pilots sit beside the room details */
+    @media (orientation: landscape) and (min-width: 600px) and (max-height: 620px) {
+      #lobby .panel, #vsResult .panel {
+        display: grid;
+        grid-template-columns: auto minmax(260px, 330px);
+        grid-template-areas: "head slots" "foot slots";
+        justify-content: center;
+        align-items: center;
+        column-gap: 34px;
+        row-gap: 10px;
+      }
+      .lobby-head { grid-area: head; align-self: end; }
+      .lobby-foot { grid-area: foot; align-self: start; }
+      #lobbySlots, #vsStandings { grid-area: slots; }
+    }
+
     @media (max-width: 360px) {
       #levelGrid { grid-template-columns: repeat(4, 58px); gap: 8px; }
       .lvl { width: 58px; height: 58px; border-radius: 14px; }
@@ -610,8 +741,21 @@
       .star-slot:nth-child(2) svg { width: 50px; height: 50px; }
     }
 
+    @media (max-height: 640px) {
+      #lobbyTip { display: none; }
+      .room-code { font-size: 44px; }
+      .slot { min-height: 42px; }
+      .slot canvas { width: 32px; height: 32px; }
+      #onlineBtn { padding: 10px 22px; font-size: 16px; }
+    }
+
     @media (max-height: 480px) {
       .overlay { padding-top: calc(env(safe-area-inset-top) + 10px); padding-bottom: calc(env(safe-area-inset-bottom) + 10px); }
+      .pilot canvas { width: 36px; height: 36px; }
+      .room-code { font-size: 36px; }
+      .slot { min-height: 36px; padding-top: 2px; padding-bottom: 2px; }
+      .slot canvas { width: 28px; height: 28px; }
+      #codeInput { height: 44px; font-size: 22px; }
       .panel { gap: 7px; }
       .title { font-size: 34px; }
       #menuShip { display: none; }
@@ -660,9 +804,12 @@
         <div id="lvlName">SECTOR 1-1</div>
         <div id="progBar"><i id="progFill"></i></div>
       </div>
+      <div id="vsBox"><div id="vsAlive">4/4</div><div id="vsTime">0:00</div></div>
       <div id="hullRow"></div>
+      <div id="atkRow"></div>
     </div>
     <div id="coinBox"><i class="coin"></i><span id="coinCount">0</span></div>
+    <div id="vsList"></div>
   </div>
 
   <div id="countdown"></div>
@@ -675,6 +822,7 @@
     </div>
     <canvas id="menuShip"></canvas>
     <button class="btn big" id="playBtn">PLAY</button>
+    <button class="btn vs" id="onlineBtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>Online race <span class="badge new" id="onlineNew" hidden>NEW</span></button>
     <div class="row">
       <button class="btn sec" id="hangarBtn">Hangar <span class="badge new" id="hangarNew" hidden>NEW</span></button>
       <button class="btn sec" id="endlessBtn">Endless</button>
@@ -822,8 +970,64 @@
     <button class="btn ghost" id="endMap">Map</button>
   </div></div>
 
+  <div id="online" class="overlay menu"><div class="panel">
+    <div class="h1">Online race</div>
+    <div class="sub">Up to 4 pilots fly through the same meteor storm. Last ship flying wins!</div>
+    <div class="pilot">
+      <canvas id="vsShip"></canvas>
+      <div class="pilot-txt"><small>PILOT</small><b id="pilotName"></b></div>
+      <button class="icon-btn" id="pilotRoll" aria-label="New pilot name"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.5" cy="8.5" r="1.6"/><circle cx="15.5" cy="8.5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="8.5" cy="15.5" r="1.6"/><circle cx="15.5" cy="15.5" r="1.6"/></svg></button>
+    </div>
+    <button class="btn big vs" id="quickBtn">Quick match</button>
+    <div class="row">
+      <button class="btn sec" id="createBtn">Create room</button>
+      <button class="btn sec" id="joinBtn">Join room</button>
+    </div>
+    <div class="join-row" id="joinRow" hidden>
+      <input id="codeInput" type="text" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CODE" aria-label="Room code">
+      <button class="btn" id="codeGo">Join</button>
+    </div>
+    <button class="btn sec" id="botsBtn">Race the bots</button>
+    <p class="tip" id="onlineMsg" hidden></p>
+    <p class="hint" id="vsStats"></p>
+    <button class="btn ghost" id="onlineBack">‹ Menu</button>
+  </div></div>
+
+  <div id="lobby" class="overlay menu"><div class="panel">
+    <div class="lobby-head">
+      <small class="room-label" id="lobbyLabel">ROOM CODE</small>
+      <div class="room-code" id="lobbyCode"></div>
+      <button class="btn sec" id="inviteBtn">Copy invite link</button>
+    </div>
+    <div class="slots" id="lobbySlots"></div>
+    <div class="lobby-foot">
+      <div class="spinner" id="lobbySpin"></div>
+      <p class="sub" id="lobbyStatus"></p>
+      <p class="tip" id="lobbyTip">Close calls charge your attack meter. When it's full, meteors rain down on your rivals!</p>
+      <button class="btn big" id="startBtn">Start race</button>
+      <button class="btn sec" id="lobbyBots" hidden>Race the bots instead</button>
+      <button class="btn ghost" id="lobbyLeave">Leave</button>
+    </div>
+  </div></div>
+
+  <div id="vsResult" class="overlay"><div class="panel">
+    <div class="lobby-head">
+      <div class="h1" id="vsTitle">Victory!</div>
+      <div class="sub" id="vsSub"></div>
+    </div>
+    <div class="slots" id="vsStandings"></div>
+    <div class="lobby-foot">
+      <div class="go-row">
+        <div class="stat"><small>COINS</small><b><i class="coin"></i><span id="vsCoins">+0</span></b></div>
+      </div>
+      <button class="btn big" id="rematchBtn">Race again</button>
+      <p class="sub" id="vsNext" hidden></p>
+      <button class="btn ghost" id="vsLeave">Leave</button>
+    </div>
+  </div></div>
+
   <div id="pause" class="overlay"><div class="panel">
-    <div class="h1">Paused</div>
+    <div class="h1" id="pauseTitle">Paused</div>
     <button class="btn big" id="resumeBtn">Resume</button>
     <div class="row">
       <button class="icon-btn mute-btn" aria-label="Toggle sound"></button>
@@ -833,7 +1037,8 @@
       <button class="btn ghost" id="restartBtn">Restart</button>
       <button class="btn ghost" id="quitBtn">Quit</button>
     </div>
-    <p class="ver">Meteor Swerve 2.4</p>
+    <p class="hint" id="pauseNote" hidden>Online races keep going while this is open.</p>
+    <p class="ver">Meteor Swerve 2.5</p>
   </div></div>
 
   <script>
@@ -849,6 +1054,8 @@
     const GUARD_MAX = 99;
     const SHIP_SCALE = 1.05;
     const PLAYER_HIT = 12;                  // hitbox is a bit smaller than the ship, so close calls feel fair
+    // Online races scale the ship and its hitbox with the play area, so every screen size races alike
+    let pHit = PLAYER_HIT, shipScale = SHIP_SCALE;
     const DRAG_SENSITIVITY = 1.2;
     const TAU = Math.PI * 2;
     const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
@@ -931,6 +1138,8 @@
         bg: ["#04120d", "#07231a", "#0c3628"], blobs: ["rgba(90,255,170,0.13)", "rgba(60,200,255,0.08)", "rgba(200,255,90,0.06)"],
         rock: ["#c7f0b0", "#5f9a55", "#1d3a1b", "rgba(200,255,190,.5)"], tail: "140,255,170" }
     ];
+    // Red-hot rocks that rivals send in an online race
+    const ATTACK_PAL = { rock: ["#ffd7c9", "#ff4d3d", "#4d0a10", "rgba(255,140,120,.75)"], tail: "255,70,60" };
     const HAZARDS = ["comet", "splitter", "laser", "well", "ufo"];   // brought in by worlds 2 to 6
     const HAZARD_NAMES = ["Comets", "Splitting ice", "Laser beams", "Black holes", "UFOs"];
     // Shown when a sector is lost, one per world
@@ -982,6 +1191,16 @@
     const rand = (a, b) => a + Math.random() * (b - a);
     const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
     const popcount = n => (n & 1) + (n >> 1 & 1) + (n >> 2 & 1);
+
+    // A small seeded random generator: every player in an online race gets the same storm from the same seed
+    function mulberry32(a) {
+      return () => {
+        a = a + 0x6D2B79F5 | 0;
+        let t = Math.imul(a ^ a >>> 15, 1 | a);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
 
     function mix(hex, amount) {
       const n = parseInt(hex.slice(1), 16);
@@ -1129,11 +1348,13 @@
     }
 
     const skin = () => SHIPS[selectedSkin];
-    const hasPerk = p => skin().perk === p || (skin().perk === "star" && p !== "phase");
+    // In an online race every ship flies the same (looks and trails still show)
+    const inRace = () => run.mode === "versus";
+    const hasPerk = p => !inRace() && (skin().perk === p || (skin().perk === "star" && p !== "phase"));
     const maxHull = () => skin().hull + upgrades.hull;
     const coinMult = () => hasPerk("midas") ? 2 : hasPerk("lucky") ? 1.25 : 1;
-    const powerMult = () => 1 + 0.25 * upgrades.power + (hasPerk("power") ? 0.5 : 0);
-    const magnetRadius = () => Math.max([0, 55, 85, 120][upgrades.magnet], hasPerk("magnet") ? 110 : 0);
+    const powerMult = () => inRace() ? 1 : 1 + 0.25 * upgrades.power + (hasPerk("power") ? 0.5 : 0);
+    const magnetRadius = () => inRace() ? 0 : Math.max([0, 55, 85, 120][upgrades.magnet], hasPerk("magnet") ? 110 : 0);
 
     // Star rewards (a ship and a trail) join the hangar as soon as the player has
     // enough stars. Returns notes about anything new.
@@ -1410,6 +1631,18 @@
           noise(0.3, { vol: 0.14, from: 3000, to: 800 });
         },
         shot() { tone(900, 0.08, { type: "square", vol: 0.06, slide: 0.5 }); },
+        incoming() {
+          tone(1046, 0.09, { type: "square", vol: 0.07 });
+          tone(784, 0.14, { type: "square", vol: 0.07, delay: 0.1 });
+        },
+        attack() {
+          noise(0.3, { vol: 0.16, from: 500, to: 4000 });
+          tone(260, 0.32, { type: "sawtooth", vol: 0.07, slide: 3 });
+        },
+        knockout() {
+          noise(0.5, { vol: 0.2, from: 1600, to: 90 });
+          tone(200, 0.35, { type: "triangle", vol: 0.08, slide: 0.4 });
+        },
         alarm() {
           [0, 0.45].forEach(d => {
             tone(330, 0.22, { type: "square", vol: 0.08, delay: d });
@@ -1807,7 +2040,9 @@
 
     // ---------- Game state ----------
     // boot | menu | map | hangar | playing | countdown | paused | dying | continue
-    // | adwait | won | clear | fail | over | ending
+    // | adwait | won | clear | fail | over | ending | daily
+    // Online races: online (race menu) | lobby | vsStart (race countdown) | playing
+    // | dying | vsSpec (out, watching the others) | vsOver (results)
     let state = "boot";
     let stateT = 0;
     let T = 0;
@@ -1826,7 +2061,7 @@
     let boss = null;
     let banner = null;
     let midgameBusy = false;
-    const AMBIENT = new Set(["menu", "map", "hangar", "ending", "boot", "daily"]);
+    const AMBIENT = new Set(["menu", "map", "hangar", "ending", "boot", "daily", "online", "lobby"]);
 
     function newRun(mode, lvl) {
       const hull = maxHull();
@@ -1868,7 +2103,7 @@
     document.querySelectorAll("[data-icon=star]").forEach(el => { el.innerHTML = ICON_STAR; });
 
     const screens = {};
-    ["menu", "map", "hangar", "continue", "adwait", "clear", "fail", "gameover", "ending", "pause", "daily"].forEach(n => { screens[n] = $(n); });
+    ["menu", "map", "hangar", "continue", "adwait", "clear", "fail", "gameover", "ending", "pause", "daily", "online", "lobby", "vsResult"].forEach(n => { screens[n] = $(n); });
 
     function showScreen(name, readyDelay) {
       const el = screens[name];
@@ -1913,6 +2148,8 @@
       player.tilt = 0;
       timeScale = 1;
       coinStreak = 0;
+      pHit = PLAYER_HIT;
+      shipScale = SHIP_SCALE;
       setPalette(mode === "level" ? lvl.w : 1);
       if (cachesWiped()) cachesLost = true;
       if (upgrades.shield) run.pu.shield = POWERUPS.shield.duration * powerMult();
@@ -1922,7 +2159,7 @@
       state = "playing";
       setGameplay(true);
       hud.classList.add("show");
-      hud.classList.remove("dead");
+      hud.classList.remove("dead", "vs");
       hud.classList.toggle("level", mode === "level");
       renderHull();
       plays++;
@@ -2028,10 +2265,13 @@
       shake = 18;
       Sound.explode();
       vibrate([80, 40, 140]);
+      // Out of an online race: keep the pause button, it's the way to leave while watching
+      if (run.mode === "versus") { Vs.eliminated(); return; }
       hud.classList.add("dead");
     }
 
     function afterDeath() {
+      if (run.mode === "versus") { Vs.afterDeath(); return; }
       const worthIt = run.mode === "level" ? run.elapsed / run.lvl.duration > 0.15 : run.score >= 30;
       if (!adsOff && !run.revived && worthIt) showContinue();
       else endRun();
@@ -2216,15 +2456,30 @@
 
     // CrazyGames wants no gameplayStop when the player merely switches tabs.
     function pauseGame(fromTabSwitch) {
+      // Online races can't stop: the button only offers a way out, and a tab switch does nothing
+      if (Vs.racing()) {
+        if (!fromTabSwitch) Vs.raceMenu();
+        return;
+      }
       if (state !== "playing" && state !== "countdown") return;
       state = "paused";
       if (!fromTabSwitch) setGameplay(false);
       drag = null;
       keys = {};
+      $("pauseTitle").textContent = "Paused";
+      $("resumeBtn").textContent = "Resume";
+      $("quitBtn").textContent = "Quit";
+      $("restartBtn").hidden = false;
+      $("pauseNote").hidden = true;
       showScreen("pause", 200);
     }
 
     function resumeGame() {
+      if (run.mode === "versus") {
+        hideScreen("pause");
+        blurFocus();
+        return;
+      }
       if (state !== "paused") return;
       blurFocus();
       hideScreen("pause");
@@ -2232,7 +2487,8 @@
     }
 
     function quitRun() {
-      if (run.mode === "level") showMap(run.lvl.w);
+      if (run.mode === "versus") Vs.leave();
+      else if (run.mode === "level") showMap(run.lvl.w);
       else {
         recordBest();
         showMenu();
@@ -2460,6 +2716,7 @@
 
     document.addEventListener("visibilitychange", () => {
       Sound.setHidden(document.hidden);
+      Vs.onVisibility(document.hidden);
       if (document.hidden) {
         if (adPending) adPending.hidden = true;
         else pauseGame(true);
@@ -2479,6 +2736,7 @@
       freeCoinsBtn.hidden = adsOff;
       // Points returning players to the star guards and trails added to the hangar
       $("hangarNew").hidden = !!store.get("meteorSeenShop", false);
+      $("onlineNew").hidden = !!store.get("meteorSeenVs", false, true);
       $("menuStars").textContent = totalStars();
       $("menuCoins").textContent = wallet;
       const [fw, fi] = frontier();
@@ -2742,6 +3000,7 @@
     // ---------- Buttons ----------
     const on = (id, fn) => $(id).addEventListener("click", fn);
     on("playBtn", () => { Sound.click(); showMap(); });
+    on("onlineBtn", () => { Sound.click(); Vs.open(); });
     on("hangarBtn", () => { Sound.click(); showHangar("menu"); });
     on("endlessBtn", () => { Sound.click(); startEndless(); });
     on("worldPrev", () => changeWorld(-1));
@@ -2818,10 +3077,13 @@
     let drag = null;
     let keys = {};
 
+    // The ship can be steered during a run's countdown and an online race's countdown too
+    const steerable = () => state === "playing" || state === "countdown" || state === "vsStart";
+
     window.addEventListener("pointerdown", e => {
       Sound.unlock();
       if (e.target !== canvas) return;
-      if (state !== "playing" && state !== "countdown") return;
+      if (!steerable()) return;
       endTutorial();
       if (e.pointerType === "mouse") {
         player.targetX = clampX(e.clientX);
@@ -2832,7 +3094,7 @@
     });
 
     window.addEventListener("pointermove", e => {
-      if (state !== "playing" && state !== "countdown") return;
+      if (!steerable()) return;
       if (e.pointerType === "mouse") {
         player.targetX = clampX(e.clientX);
         run.moved = true;
@@ -2881,6 +3143,7 @@
         else if (state === "ending" && ready("ending")) showMap(WORLDS.length);
         else if (state === "daily" && ready("daily")) claimDaily(1);
         else if (state === "paused") resumeGame();
+        else if ((state === "lobby" && ready("lobby")) || (state === "vsOver" && ready("vsResult"))) Vs.enterKey();
       } else if (e.code === "KeyP") {
         if (state === "playing" || state === "countdown") pauseGame();
         else if (state === "paused") resumeGame();
@@ -2940,8 +3203,19 @@
 
     function shatter(m) {
       const k = kScale();
+      // In an online race the shards were rolled with the rock, so every player gets the same ones,
+      // started from the exact split point
+      const late = m.shards ? Math.max(0, (m.y - m.splitY) / m.vy) : 0;
       for (let j = -1; j <= 1; j++) {
-        addMeteor({ kind: "shard", x: m.x + j * m.r * 0.4, y: m.y, r: rand(10, 13) * k, vx: j * fieldW * rand(0.16, 0.24), vy: H * rand(0.48, 0.56) });
+        const s = m.shards && m.shards[j + 1];
+        const sh = addMeteor(s
+          ? { kind: "shard", x: m.x + j * m.r * 0.4, y: m.splitY, r: s.r, vx: s.vx, vy: s.vy }
+          : { kind: "shard", x: m.x + j * m.r * 0.4, y: m.y, r: rand(10, 13) * k, vx: j * fieldW * rand(0.16, 0.24), vy: H * rand(0.48, 0.56) });
+        if (s) {
+          sh.x += sh.vx * late;
+          sh.y += sh.vy * late;
+          sh.gone = m.gone;
+        }
       }
       sparks(m.x, m.y, m.pal.rock[0], 18, 220);
       Sound.crack();
@@ -3184,6 +3458,7 @@
     function collectCoin(c) {
       run.coinsPicked++;
       if (run.mode === "endless") run.score += 5;
+      else if (run.mode === "versus") Vs.charge(0.2);
       addPickupCoins(1);
       coinStreak = (T - lastCoinT < 0.45) ? Math.min(coinStreak + 1, 8) : 0;
       lastCoinT = T;
@@ -3194,6 +3469,7 @@
 
     // A shockwave from the ship: every danger on screen bursts, and each rock leaves a coin.
     function blast() {
+      if (run.mode === "versus") { Vs.blast(); return; }
       let rocks = 0;
       for (const m of meteors) {
         if (m.ambient) continue;
@@ -3296,6 +3572,10 @@
       if (run.mode === "endless") {
         run.score += 3 * c;
         addText(x, player.y - 30, label + 3 * c, color, size);
+      } else if (run.mode === "versus") {
+        // In a race close calls charge the attack meter (a chain of three or more charges double)
+        addText(x, player.y - 30, c > 1 ? "CLOSE x" + c + "!" : "CLOSE!", color, size);
+        Vs.charge(c >= 3 ? 2 : 1);
       } else {
         addPickupCoins(c);
         addText(x, player.y - 30, label + c, color, size);
@@ -3324,8 +3604,8 @@
       engineAcc += dt * (fancy ? 110 : 70);
       while (engineAcc >= 1) {
         engineAcc--;
-        const nx = player.x - Math.sin(player.tilt) * 17 * SHIP_SCALE;
-        const ny = player.y + Math.cos(player.tilt) * 17 * SHIP_SCALE;
+        const nx = player.x - Math.sin(player.tilt) * 17 * shipScale;
+        const ny = player.y + Math.cos(player.tilt) * 17 * shipScale;
         let life = rand(0.18, 0.32) * (fancy ? 1.7 : 1), size = rand(1.8, 3.2) * (fancy ? 1.3 : 1);
         if (tr.sparkle && Math.random() < 0.12) { life *= 1.8; size *= 1.7; }
         particles.push({ x: nx + rand(-2, 2), y: ny, vx: rand(-15, 15) - Math.sin(player.tilt) * 60, vy: rand(150, 230), life, max: life, size, color: trailColor(tr, sk), drag: 0, add: true });
@@ -3419,12 +3699,21 @@
 
     function updateWorld(wdt) {
       const playing = state === "playing";
+      // Online races share every rock, so one that hits (or is blasted by) a ship is only
+      // marked gone for that ship; rocks a rival sent are meant for one ship alone.
+      const race = run.mode === "versus", me = race ? Vs.me() : -1, bit = race ? 1 << me : 0;
       for (let i = meteors.length - 1; i >= 0; i--) {
         const m = meteors[i];
-        if (m.warn > 0) { m.warn -= wdt; continue; }
-        m.x += m.vx * wdt;
-        m.y += m.vy * wdt;
-        m.rot += m.vr * wdt;
+        let mdt = wdt;
+        if (m.warn > 0) {
+          m.warn -= wdt;
+          if (m.warn > 0) continue;
+          mdt = -m.warn;      // it set off partway through this frame
+          m.warn = 0;
+        }
+        m.x += m.vx * mdt;
+        m.y += m.vy * mdt;
+        m.rot += m.vr * mdt;
         if (m.kind === "bullet") {
           if (m.x < fieldX - 20 || m.x > fieldX + fieldW + 20) { meteors.splice(i, 1); continue; }
         } else if (m.vx) {
@@ -3436,15 +3725,16 @@
           shatter(m);
           continue;
         }
-        if (playing && !m.ambient) {
+        if (playing && !m.ambient && !(race && ((m.gone & bit) || (m.tgt !== undefined && m.tgt !== me)))) {
           const hr = m.kind === "bullet" ? m.r : m.r * 0.8;
           const dy = m.y - player.y;
-          const gap = Math.hypot(m.x - player.x, dy) - PLAYER_HIT - hr;
-          if (gap < 0 && run.invuln <= 0) {
-            if (hitPlayer(m)) { meteors.splice(i, 1); continue; }
+          const gap = Math.hypot(m.x - player.x, dy) - pHit - hr;
+          if (gap < 0 && run.invuln <= 0 && hitPlayer(m)) {
+            if (!race) { meteors.splice(i, 1); continue; }
+            m.gone |= bit;
           }
-          if (Math.abs(dy) < PLAYER_HIT + hr + 24) m.minGap = Math.min(m.minGap, gap);
-          if (!m.passed && m.y - hr > player.y + PLAYER_HIT) {
+          if (Math.abs(dy) < pHit + hr + 24) m.minGap = Math.min(m.minGap, gap);
+          if (!m.passed && m.y - hr > player.y + pHit) {
             m.passed = true;
             if (m.minGap >= 0 && m.minGap < 14 && run.invuln <= 0 && state === "playing") nearMiss(m);
           }
@@ -3466,7 +3756,7 @@
             c.y += dy * step;
             d = Math.hypot(player.x - c.x, player.y - c.y);
           }
-          if (d < PLAYER_HIT + 19) {
+          if (d < pHit + 19) {
             collectCoin(c);
             coins.splice(i, 1);
             continue;
@@ -3478,7 +3768,7 @@
       for (let i = powerups.length - 1; i >= 0; i--) {
         const p = powerups[i];
         p.y += p.vy * wdt;
-        if (playing && Math.hypot(player.x - p.x, player.y - p.y) < PLAYER_HIT + 26) {
+        if (playing && Math.hypot(player.x - p.x, player.y - p.y) < pHit + 26) {
           collectPower(p);
           powerups.splice(i, 1);
           continue;
@@ -3503,7 +3793,7 @@
           Sound.laserFire();
           shake = Math.max(shake, 3);
         }
-        if (b.fired && playing && Math.abs(player.x - b.x) < b.w / 2 + PLAYER_HIT * 0.6) hitPlayer({ x: player.x, y: player.y });
+        if (b.fired && playing && Math.abs(player.x - b.x) < b.w / 2 + pHit * 0.6) hitPlayer({ x: player.x, y: player.y });
         if (b.t >= b.warn + b.fire) beams.splice(i, 1);
       }
 
@@ -3528,7 +3818,7 @@
         if (playing) {
           const dx = w.x - player.x, dy = w.y - player.y, d = Math.hypot(dx, dy);
           if (d < w.reach * 1.6) pullShip(Math.sign(dx) * 130 * (1 - d / (w.reach * 1.6)) * wdt);
-          if (d < w.r * 0.8 + PLAYER_HIT) hitPlayer(w);
+          if (d < w.r * 0.8 + pHit) hitPlayer(w);
         }
         if (w.y > H + 60) wells.splice(i, 1);
       }
@@ -3598,7 +3888,8 @@
     let shownScore = -1, shownCoins = -1, shownProg = -1;
     function updateHud() {
       if (run.coins !== shownCoins) { shownCoins = run.coins; coinEl.textContent = run.coins; }
-      if (run.mode === "level") {
+      if (run.mode === "versus") Vs.hud();
+      else if (run.mode === "level") {
         const p = clamp(run.elapsed / run.lvl.duration, 0, 1);
         const v = Math.round((run.lvl.boss ? 1 - p : p) * 200) / 2;
         if (v !== shownProg) { shownProg = v; progFill.style.width = v + "%"; }
@@ -3615,15 +3906,16 @@
         if (banner.t > banner.life) banner = null;
       }
       // The current world's song: calm on menus, livelier in flight, fiercest against a boss
-      const flying = !AMBIENT.has(state) && state !== "clear" && state !== "fail" && state !== "over";
-      Sound.setMusic(Math.max(0, WORLDS.indexOf(palette)), flying ? (boss ? 2 : 1) : 0);
+      const flying = !AMBIENT.has(state) && state !== "clear" && state !== "fail" && state !== "over" && state !== "vsOver";
+      // The last two pilots of an online race get the boss-fight beat
+      Sound.setMusic(Math.max(0, WORLDS.indexOf(palette)), flying ? (boss || Vs.duel() ? 2 : 1) : 0);
       if (state === "paused" || state === "adwait") return;
 
       const slowTarget = state === "playing" && run.pu.slow > 0 ? 0.5 : 1;
       timeScale += (slowTarget - timeScale) * Math.min(1, dt * 6);
       const wdt = dt * timeScale;
 
-      if (state === "playing" || state === "countdown" || state === "won") updatePlayer(dt);
+      if (state === "playing" || state === "countdown" || state === "won" || state === "vsStart") updatePlayer(dt);
 
       starSpeed = AMBIENT.has(state) ? 0.6
         : (state === "playing" || state === "countdown" || state === "won") ? 1 + Math.min(run.time, 150) / 150 * 2
@@ -3634,7 +3926,10 @@
       }
       updateAmbience(wdt);
 
-      if (state === "countdown") {
+      if (Vs.racing()) {
+        // The race clock drives the shared storm, not the frame time
+        Vs.update(dt);
+      } else if (state === "countdown") {
         updateCountdown(dt);
       } else {
         if (state === "playing") updateRun(dt, wdt);
@@ -3657,6 +3952,1612 @@
       updateHud();
       if (state === "menu") updateFreeCoins();
     }
+
+    // ---------- Online races ----------
+    // Up to four pilots fly through the same meteor storm; the last ship flying wins.
+    // Every player's game builds the storm itself from a shared seed and the race clock,
+    // so only ship positions, knock-outs and attacks travel over the network. Players
+    // connect straight to the room's host over WebRTC (PeerJS; its free public server
+    // only introduces them). "Race the bots" runs the same race offline against
+    // computer pilots. Positions are shared as fractions of the play area, and sizes
+    // scale with it, so phones and desktops race in the same storm.
+    const Vs = (() => {
+      const PROTO = 1;
+      const MAX = 4;
+      const PREFIX = "meteorswerve-v" + PROTO + "-";   // our ids on the shared PeerJS server
+      const COLORS = ["#58e1ff", "#ffb347", "#ff6bd6", "#9dff5c"];
+      const HULL = 3;
+      const CHARGE = 5;                 // the attack meter's size
+      const SEND_EVERY = 1 / 15;        // seconds between position updates
+      const VIEW_DELAY = 0.12;          // rivals are drawn this far in the past, so they glide
+      const LEAD_IN = 4;                // seconds from "go" to the start, so everyone's countdown lines up
+      const AFK = 8000;                 // ms without a word before a player counts as gone
+      const LETTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+      const ADJ = ["Swift", "Lucky", "Brave", "Cosmic", "Solar", "Turbo", "Nimble", "Silent", "Wild", "Bright",
+        "Rapid", "Stellar", "Icy", "Blazing", "Quantum", "Hyper", "Plucky", "Daring", "Clever", "Mighty"];
+      const NOUN = ["Comet", "Falcon", "Nova", "Rocket", "Pilot", "Ranger", "Meteor", "Star", "Orbit", "Photon",
+        "Quasar", "Pulsar", "Voyager", "Nebula", "Zephyr", "Spark", "Rover", "Hawk", "Lynx", "Astro"];
+      const BOT_NAMES = ["Rusty", "Zippy", "Blip", "Sparky", "Dash", "Widget", "Bolt", "Pixel"];
+      // Computer pilots: how far ahead they look (s), how often they rethink (s), top speed
+      // (play-area widths per second), how sloppy their aim is (px), the room they leave (px)
+      // and how often a rethink just doesn't happen (a lapse in attention)
+      const SKILLS = [
+        { look: 0.5, react: 0.26, speed: 0.85, noise: 30, margin: 0, lapse: 0.35 },
+        { look: 0.6, react: 0.2, speed: 0.95, noise: 20, margin: 2, lapse: 0.25 },
+        { look: 0.65, react: 0.18, speed: 1.0, noise: 18, margin: 2, lapse: 0.21 }
+      ];
+      const PEER_OPTS = {
+        debug: 0,
+        secure: true,
+        config: { iceServers: [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" }] }
+      };
+      const ERRORS = {
+        unavailable: "No room with that code. Check the letters and try again.",
+        full: "That room is full.",
+        busy: "That race has already started.",
+        version: "That room runs a different version of the game. Reload the page and try again.",
+        timeout: "Couldn't connect to that room. Some networks block direct connections, so try another network (like Wi-Fi).",
+        network: "Can't reach the online service right now. Check your connection and try again.",
+        browser: "This browser can't play online races.",
+        load: "Couldn't load online play. Check your internet connection.",
+        lost: "Lost the connection to the room.",
+        hostLeft: "The host closed the room.",
+        nomatch: "No pilots found right now. Try again, invite a friend, or race the bots."
+      };
+      const NAME_OK = /^[A-Za-z0-9 ._-]{1,20}$/;
+
+      let kind = null;                  // "host" | "guest" | "bots" while in a room or a bot race
+      let sess = 0;                     // bumped by every new action, so stale async steps stop
+      let peer = null, searchPeer = null, hostConn = null;
+      let code = "", roomTag = "", qm = false, open = false;
+      let me = 0;
+      let players = [];                 // by slot: { slot, name, ship, trail, bot, sk, conn, seen, lastState, lastAtk }
+      let racing = false;               // a race is under way in this room
+      let race = null;
+      let raceNo = 0;
+      let clockSamples = [], offset = 0, lastPing = 0, lastHost = 0;
+      let autoAt = 0, rematchAt = 0, searchStart = 0, lobbyCdAt = 0, aliveNow = 0;
+      let searchLabel = "", searchText = "", flashMsg = "", flashUntil = 0;
+      let hiddenAt = 0;
+      let forced = false;               // the host counted us out: don't report it back
+      let shown = {};
+      let listDirty = false;
+      let pilot = store.get("meteorPilot", "", true);
+      let crazyName = "";
+
+      const pick = a => a[Math.floor(Math.random() * a.length)];
+      const count = () => players.filter(Boolean).length;
+      const racer = slot => race ? race.racers.find(r => r.slot === slot) : null;
+      const clock = () => race ? (performance.now() - race.start) / 1000 : 0;
+      const num = v => typeof v === "number" && isFinite(v) ? v : NaN;
+      const ordinal = n => n + (n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th");
+      const fmt = s => { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+      const fx = u => fieldX + u * fieldW;
+
+      // ----- Pilot names: made up from a word list (no free text), or the CrazyGames name -----
+      function rollName() {
+        pilot = pick(ADJ) + " " + pick(NOUN) + " " + (1 + Math.floor(Math.random() * 99));
+        store.set("meteorPilot", pilot, true);
+      }
+      if (typeof pilot !== "string" || !NAME_OK.test(pilot)) rollName();
+      const myName = () => crazyName || pilot;
+      const cleanName = (n, slot) => typeof n === "string" && NAME_OK.test(n.trim()) ? n.trim() : "Pilot " + (slot + 1);
+      const cleanShip = s => Number.isInteger(s) && SHIPS[s] ? s : 0;
+      const cleanTrail = r => Number.isInteger(r) && TRAILS[r] ? r : 0;
+
+      function setCrazyUser(u) {
+        crazyName = u && typeof u.username === "string" && NAME_OK.test(u.username) ? u.username : "";
+        if (state === "online") {
+          $("pilotName").textContent = myName();
+          $("pilotRoll").hidden = !!crazyName;
+        }
+      }
+
+      function stats() {
+        const s = store.get("meteorVs", null) || {};
+        return { races: Number(s.races) || 0, wins: Number(s.wins) || 0, botWins: Number(s.botWins) || 0 };
+      }
+
+      // ----- Connections -----
+      let libLoad = null;
+      function loadLib() {
+        if (typeof RTCPeerConnection === "undefined") return Promise.reject("browser");
+        if (window.Peer) return Promise.resolve();
+        if (!libLoad) {
+          libLoad = new Promise((resolve, reject) => {
+            const s = document.createElement("script");
+            s.src = "peerjs.min.js";
+            s.onload = () => (window.Peer ? resolve() : reject("load"));
+            s.onerror = () => { libLoad = null; reject("load"); };
+            document.head.appendChild(s);
+          });
+        }
+        return libLoad;
+      }
+
+      // A peer registered with the introduction server, under a given id or a random one
+      function newPeer(id) {
+        return new Promise((resolve, reject) => {
+          let p, done = false;
+          try { p = id ? new window.Peer(id, PEER_OPTS) : new window.Peer(PEER_OPTS); }
+          catch (e) { reject("browser"); return; }
+          const end = (ok, why) => {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            if (ok) { resolve(p); return; }
+            try { p.destroy(); } catch (e) {}
+            reject(why);
+          };
+          const timer = setTimeout(() => end(false, "network"), 15000);
+          p.on("open", () => end(true));
+          p.on("error", err => {
+            const t = err && err.type;
+            end(false, t === "unavailable-id" ? "taken" : t === "browser-incompatible" ? "browser" : "network");
+          });
+        });
+      }
+
+      // Knocks on a room host's door. Resolves "ok" once let in (the session is then set
+      // up), or with the reason it didn't work.
+      function knock(p, id, token) {
+        return new Promise(resolve => {
+          let done = false, conn = null;
+          const end = why => {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            p.off("error", onErr);
+            if (why !== "ok" && conn) { try { conn.close(); } catch (e) {} }
+            resolve(why);
+          };
+          const onErr = err => {
+            const t = err && err.type;
+            if (t === "peer-unavailable") end("unavailable");
+            else if (t !== "webrtc") end("network");
+          };
+          const timer = setTimeout(() => end("timeout"), 12000);
+          p.on("error", onErr);
+          try { conn = p.connect(id, { reliable: true, serialization: "json" }); } catch (e) { conn = null; }
+          if (!conn) { end("network"); return; }
+          conn.on("open", () => {
+            try { conn.send({ t: "hi", v: PROTO, n: myName(), s: selectedSkin, r: selectedTrail }); } catch (e) { end("timeout"); }
+          });
+          conn.on("data", msg => {
+            if (done) { if (hostConn === conn) guestData(msg); return; }
+            if (!msg || typeof msg !== "object") return;
+            if (msg.t === "no") end(msg.why === "full" || msg.why === "version" ? msg.why : "busy");
+            else if (msg.t === "wl") {
+              if (token !== sess) { end("cancelled"); return; }
+              joined(p, conn, msg);
+              end("ok");
+            }
+          });
+          conn.on("close", () => { if (!done) end("timeout"); else if (hostConn === conn) lost("hostLeft"); });
+          conn.on("error", () => { if (!done) end("timeout"); });
+        });
+      }
+
+      function send(msg) {
+        try { if (hostConn && hostConn.open) hostConn.send(msg); } catch (e) {}
+      }
+      function sendAll(msg, except) {
+        for (const q of players) {
+          if (q && q.conn && q.conn !== except) { try { if (q.conn.open) q.conn.send(msg); } catch (e) {} }
+        }
+      }
+
+      // ----- Guest side -----
+      function joined(p, conn, msg) {
+        kind = "guest";
+        peer = p;
+        searchPeer = null;
+        hostConn = conn;
+        me = clamp(msg.me | 0, 1, MAX - 1);
+        code = typeof msg.code === "string" && /^[A-Z]{4}$/.test(msg.code) ? msg.code : "";
+        roomTag = typeof msg.tag === "string" ? msg.tag.slice(0, 24) : code;
+        qm = !!msg.qm;
+        players = [];
+        racing = false;
+        race = null;
+        clockSamples = [];
+        offset = 0;
+        lastHost = performance.now();
+        lobbyCdAt = 0;
+        // A few quick clock readings before any race can start
+        for (let i = 0; i < 4; i++) setTimeout(() => { if (hostConn === conn) ping(); }, i * 150);
+        showLobby();
+        crazyRoom();
+        track("vs-joined");
+      }
+
+      function ping() {
+        lastPing = performance.now();
+        send({ t: "pi", c: lastPing });
+      }
+
+      // The host's clock: the reading with the quickest round trip is the most accurate
+      function clockSample(msg) {
+        const now = performance.now(), rtt = now - num(msg.c), h = num(msg.h);
+        if (!(rtt >= 0 && rtt < 5000) || !isFinite(h)) return;
+        clockSamples.push({ rtt, off: h + rtt / 2 - now });
+        if (clockSamples.length > 10) clockSamples.shift();
+        offset = clockSamples.reduce((a, b) => (b.rtt < a.rtt ? b : a)).off;
+      }
+
+      function guestData(msg) {
+        if (!msg || typeof msg !== "object" || kind !== "guest") return;
+        lastHost = performance.now();
+        const r = race;
+        switch (msg.t) {
+          case "lb": takeLobby(msg); break;
+          case "po": clockSample(msg); break;
+          case "go":
+            if (Array.isArray(msg.ps) && msg.ps.includes(me) && isFinite(msg.at)) {
+              beginRace({ id: msg.id | 0, seed: msg.seed | 0, world: clamp(msg.w | 0, 1, WORLDS.length), start: msg.at - offset, roster: msg.ps });
+            }
+            break;
+          case "st": if (r && msg.r === r.id) sample(msg.p | 0, num(msg.m), num(msg.x), msg.f | 0); break;
+          case "de": if (r && msg.r === r.id) knockedOut(msg.p | 0, num(msg.m)); break;
+          case "at": if (r && msg.r === r.id) incoming(me, msg.p | 0, clamp(msg.k | 0, 1, 4)); break;
+          case "en": if (r && msg.r === r.id) finishRace(msg.rk, num(msg.nx)); break;
+          case "by": lost("hostLeft"); break;
+        }
+      }
+
+      function takeLobby(msg) {
+        const before = count();
+        players = [];
+        for (const q of Array.isArray(msg.ps) ? msg.ps.slice(0, MAX) : []) {
+          const slot = q ? q.p | 0 : -1;
+          if (slot < 0 || slot >= MAX || players[slot]) continue;
+          players[slot] = { slot, name: cleanName(q.n, slot), ship: cleanShip(q.s), trail: cleanTrail(q.r), bot: false };
+        }
+        racing = !!msg.race;
+        aliveNow = clamp(msg.al | 0, 0, MAX);
+        lobbyCdAt = num(msg.cd) > 0 ? performance.now() + msg.cd * 1000 : 0;
+        if (state === "lobby") {
+          renderLobby();
+          if (count() > before && before) Sound.click();
+        } else if (state === "vsOver") resultStatus();
+        crazyRoom();
+      }
+
+      // ----- Host side -----
+      function becomeHost(p, opts) {
+        kind = "host";
+        peer = p;
+        searchPeer = null;
+        me = 0;
+        code = opts.code || "";
+        roomTag = code || "Q" + Math.random().toString(36).slice(2, 10);
+        qm = !!opts.qm;
+        open = true;
+        players = [{ slot: 0, name: myName(), ship: selectedSkin, trail: selectedTrail, bot: false }];
+        racing = false;
+        race = null;
+        autoAt = rematchAt = 0;
+        searchStart = performance.now();
+        p.on("connection", conn => {
+          conn.on("data", msg => { if (peer === p) hostData(conn, msg); });
+          conn.on("close", () => { if (peer === p) drop(conn); });
+          conn.on("error", () => { if (peer === p) drop(conn); });
+        });
+        p.on("disconnected", () => {
+          // Lost touch with the introduction server: keep a private room findable by its code
+          if (peer !== p || qm || !open) return;
+          setTimeout(() => { try { if (peer === p && p.disconnected && !p.destroyed) p.reconnect(); } catch (e) {} }, 2000);
+        });
+        p.on("error", () => {});
+        showLobby();
+        crazyRoom();
+      }
+
+      function welcome(conn, msg, now) {
+        const refuse = why => {
+          try { conn.send({ t: "no", why }); } catch (e) {}
+          setTimeout(() => { try { conn.close(); } catch (e) {} }, 600);
+        };
+        if (msg.v !== PROTO) { refuse("version"); return; }
+        if (!open) { refuse("busy"); return; }
+        let slot = -1;
+        for (let i = 1; i < MAX; i++) if (!players[i]) { slot = i; break; }
+        if (slot < 0) { refuse("full"); return; }
+        players[slot] = { slot, name: cleanName(msg.n, slot), ship: cleanShip(msg.s), trail: cleanTrail(msg.r), bot: false, conn, seen: now, lastState: now, lastAtk: 0 };
+        conn.vsSlot = slot;
+        try { conn.send({ t: "wl", me: slot, code, tag: roomTag, qm }); } catch (e) {}
+        // A quick match starts by itself a little after the second pilot arrives
+        if (qm && !racing) autoAt = count() >= MAX ? now : count() === 2 ? now + 7000 : Math.max(autoAt, now + 4000);
+        Sound.click();
+        lobbyChanged();
+      }
+
+      function hostData(conn, msg) {
+        if (!msg || typeof msg !== "object" || kind !== "host") return;
+        const now = performance.now();
+        const q = players[conn.vsSlot];
+        if (!q || q.conn !== conn) {
+          if (msg.t === "hi") welcome(conn, msg, now);
+          return;
+        }
+        q.seen = now;
+        const r = race;
+        switch (msg.t) {
+          case "pi":
+            try { conn.send({ t: "po", c: msg.c, h: now }); } catch (e) {}
+            break;
+          case "st": {
+            if (!r || msg.r !== r.id || r.ended) break;
+            const m = num(msg.m), x = num(msg.x);
+            if (!isFinite(m) || !isFinite(x)) break;
+            q.lastState = now;
+            sample(q.slot, m, x, msg.f | 0);
+            sendAll({ t: "st", r: r.id, p: q.slot, m, x: clamp(x, 0, 1), f: msg.f & 3 }, conn);
+            break;
+          }
+          case "de":
+            if (r && msg.r === r.id) hostOut(q.slot, num(msg.m));
+            break;
+          case "at": {
+            if (!r || msg.r !== r.id || r.ended) break;
+            const rc = racer(q.slot);
+            if (!rc || !rc.alive || now - q.lastAtk < 900) break;
+            q.lastAtk = now;
+            const k = clamp(msg.k | 0, 1, 4);
+            sendAll({ t: "at", r: r.id, p: q.slot, k }, conn);
+            incoming(me, q.slot, k);
+            break;
+          }
+          case "by":
+            drop(conn);
+            break;
+        }
+      }
+
+      function drop(conn) {
+        const q = players[conn.vsSlot];
+        if (!q || q.conn !== conn) return;
+        players[q.slot] = undefined;
+        try { conn.close(); } catch (e) {}
+        const rc = racer(q.slot);
+        if (race && !race.ended && rc && rc.alive) hostOut(q.slot, clock());
+        if (qm && !racing && count() < 2) autoAt = 0;
+        lobbyChanged();
+      }
+
+      function lobbyChanged() {
+        if (kind !== "host") return;
+        const now = performance.now();
+        sendAll({
+          t: "lb",
+          ps: players.filter(Boolean).map(q => ({ p: q.slot, n: q.name, s: q.ship, r: q.trail })),
+          race: racing,
+          al: race && !race.ended ? race.racers.filter(r => r.alive).length : 0,
+          cd: qm && autoAt && !racing ? Math.max(0, (autoAt - now) / 1000) : 0
+        });
+        if (state === "lobby") renderLobby();
+        else if (state === "vsOver") resultStatus();
+        crazyRoom();
+      }
+
+      function hostStart() {
+        if (kind !== "host" || racing || count() < 2) return;
+        autoAt = rematchAt = 0;
+        if (qm && open) {
+          // Free the public quick-match spot for the next pilots; everyone here stays connected
+          open = false;
+          try { peer.disconnect(); } catch (e) {}
+        }
+        const roster = players.filter(Boolean).map(q => q.slot);
+        const now = performance.now();
+        const msg = { t: "go", id: ++raceNo, seed: Math.floor(Math.random() * 2147483647), w: 1 + Math.floor(Math.random() * WORLDS.length), at: now + LEAD_IN * 1000, ps: roster };
+        for (const q of players) if (q) { q.lastState = now; q.lastAtk = 0; }
+        sendAll(msg);
+        beginRace({ id: msg.id, seed: msg.seed, world: msg.w, start: msg.at, roster });
+        lobbyChanged();
+        track("vs-race");
+      }
+
+      // A pilot is out: tell everyone, and end the race when one pilot is left
+      function hostOut(slot, t) {
+        const rc = racer(slot);
+        if (!race || race.ended || !rc || !rc.alive) return;
+        const now = clock();
+        t = isFinite(t) ? clamp(t, 0, now + 0.5) : now;
+        sendAll({ t: "de", r: race.id, p: slot, m: t });
+        knockedOut(slot, t);
+        hostCheckEnd();
+        lobbyChanged();
+      }
+
+      function hostCheckEnd() {
+        if (!race || race.ended || race.racers.filter(r => r.alive).length > 1) return;
+        const rk = ranking(clock());
+        const nx = qm ? 15 : 0;          // quick matches roll straight into the next race
+        sendAll({ t: "en", r: race.id, rk, nx });
+        finishRace(rk, nx);
+      }
+
+      // Standings: ships still flying first (the toughest first), then by how long each lasted
+      function ranking(endT) {
+        const score = r => r.alive ? 1e6 + (r.slot === me ? run.hull : r.hull || 0) : r.deadAt;
+        return race.racers.slice().sort((a, b) => score(b) - score(a))
+          .map((r, i) => [r.slot, i + 1, +(r.alive ? endT : r.deadAt).toFixed(2)]);
+      }
+
+      // ----- Rooms -----
+      function searching(label, text) {
+        kind = null;
+        players = [];
+        code = "";
+        qm = false;
+        searchLabel = label;
+        searchText = text;
+        searchStart = performance.now();
+        showLobby();
+      }
+
+      function fail(token, why) {
+        if (token !== sess) return;
+        showOnline(ERRORS[why] || ERRORS.network);
+      }
+
+      // Quick match: join whoever is waiting at one of three public spots, or wait there
+      // ourselves. The waiting host frees the spot when its race starts.
+      async function quickMatch() {
+        leaveSession();
+        const token = sess;
+        searching("QUICK MATCH", "Looking for pilots…");
+        track("vs-quick");
+        try {
+          await loadLib();
+          if (token !== sess) return;
+          const p = await newPeer(null);
+          if (token !== sess) { p.destroy(); return; }
+          searchPeer = p;
+          for (let round = 0, tries = 0; round < 2; round++) {
+            for (let s = 1; s <= 3 && tries < 14; s++, tries++) {
+              const id = PREFIX + "qm" + s;
+              const r = await knock(p, id, token);
+              if (token !== sess) return;
+              if (r === "ok") return;
+              if (r === "network") throw "network";
+              if (r !== "unavailable") continue;     // busy, full or unreachable: try the next spot
+              try {
+                const hp = await newPeer(id);
+                if (token !== sess) { hp.destroy(); return; }
+                searchPeer = null;
+                p.destroy();
+                becomeHost(hp, { qm: true });
+                return;
+              } catch (e) {
+                if (token !== sess) return;
+                if (e === "taken") { s--; continue; }     // someone just took the spot: join them instead
+                throw e;
+              }
+            }
+          }
+          throw "nomatch";
+        } catch (e) { fail(token, e); }
+      }
+
+      async function createRoom() {
+        leaveSession();
+        const token = sess;
+        searching("ROOM CODE", "Opening a room…");
+        track("vs-room");
+        try {
+          await loadLib();
+          for (let i = 0; i < 6; i++) {
+            if (token !== sess) return;
+            const c = Array.from({ length: 4 }, () => pick(LETTERS)).join("");
+            try {
+              const p = await newPeer(PREFIX + "room-" + c);
+              if (token !== sess) { p.destroy(); return; }
+              becomeHost(p, { code: c });
+              return;
+            } catch (e) {
+              if (e !== "taken") throw e;
+            }
+          }
+          throw "network";
+        } catch (e) { fail(token, e); }
+      }
+
+      async function joinRoom(c) {
+        c = String(c || "").toUpperCase().replace(/[^A-Z]/g, "");
+        if (c.length !== 4) { showOnline("Room codes have 4 letters."); return; }
+        leaveSession();
+        const token = sess;
+        searching("JOINING", "Joining room " + c + "…");
+        track("vs-join");
+        try {
+          await loadLib();
+          if (token !== sess) return;
+          const p = await newPeer(null);
+          if (token !== sess) { p.destroy(); return; }
+          searchPeer = p;
+          const r = await knock(p, PREFIX + "room-" + c, token);
+          if (token !== sess) return;
+          if (r !== "ok") throw r;
+        } catch (e) { fail(token, e); }
+      }
+
+      function joinInvite(c) {
+        if (typeof c !== "string" || !/^[A-Za-z]{4}$/.test(c)) return;
+        c = c.toUpperCase();
+        if ((kind === "host" || kind === "guest") && code === c) return;   // already there
+        joinRoom(c);
+      }
+
+      // A room code from an invite: CrazyGames' invite parameters, or ?room=CODE on the website
+      function inviteCode() {
+        let c = null;
+        try { if (crazy && crazy.game.inviteParams) c = crazy.game.inviteParams.room; } catch (e) {}
+        try {
+          const url = new URL(location.href);
+          if (!c) c = url.searchParams.get("room");
+          if (url.searchParams.has("room")) {
+            url.searchParams.delete("room");
+            history.replaceState(null, "", url.pathname + url.search + url.hash);
+          }
+        } catch (e) {}
+        return typeof c === "string" && /^[A-Za-z]{4}$/.test(c) ? c.toUpperCase() : null;
+      }
+
+      function instant() {
+        try { return !!(crazy && crazy.game.isInstantMultiplayer); } catch (e) { return false; }
+      }
+
+      function crazyRoom() {
+        if (!crazy || (kind !== "host" && kind !== "guest")) return;
+        try {
+          crazy.game.updateRoom(qm
+            ? { roomId: roomTag, isJoinable: false }
+            : { roomId: code, isJoinable: count() < MAX, inviteParams: { room: code } });
+        } catch (e) {}
+      }
+
+      function crazyLeft() {
+        try { if (crazy) crazy.game.leftRoom(); } catch (e) {}
+      }
+
+      async function copyText(t) {
+        try { await navigator.clipboard.writeText(t); return true; } catch (e) {}
+        try {
+          const ta = document.createElement("textarea");
+          ta.value = t;
+          ta.style.cssText = "position:fixed;opacity:0;user-select:text;-webkit-user-select:text";
+          document.body.appendChild(ta);
+          ta.select();
+          const ok = document.execCommand("copy");
+          ta.remove();
+          return ok;
+        } catch (e) { return false; }
+      }
+
+      async function invite() {
+        if (!code) return;
+        let link = location.origin + location.pathname + "?room=" + code;
+        try {
+          if (crazy) {
+            const l = await crazy.game.inviteLink({ room: code });
+            if (typeof l === "string" && l) link = l;
+          }
+        } catch (e) {}
+        const text = "Race me in Meteor Swerve! Room code " + code;
+        if (navigator.share && isCoarse) {
+          try { await navigator.share({ title: "Meteor Swerve", text, url: link }); return; }
+          catch (e) { if (e && e.name === "AbortError") return; }
+        }
+        const ok = await copyText(link);
+        flashMsg = ok ? "Invite link copied! Send it to your friends." : "Share this link: " + link;
+        flashUntil = performance.now() + (ok ? 3500 : 15000);
+        lobbyStatus();
+      }
+
+      // Back out of any room or race, quietly
+      function leaveSession() {
+        sess++;
+        const inRoom = kind === "host" || kind === "guest";
+        if (kind === "guest") send({ t: "by" });
+        else if (kind === "host") sendAll({ t: "by" });
+        const ps = [peer, searchPeer];
+        peer = searchPeer = hostConn = null;
+        // Give the goodbyes a moment to go out
+        setTimeout(() => ps.forEach(p => { try { if (p) p.destroy(); } catch (e) {} }), 300);
+        if (inRoom) crazyLeft();
+        kind = null;
+        players = [];
+        racing = false;
+        race = null;
+        code = roomTag = "";
+        qm = open = false;
+        autoAt = rematchAt = lobbyCdAt = aliveNow = 0;
+        forced = false;
+        flashUntil = 0;
+      }
+
+      function lost(why) {
+        if (kind !== "host" && kind !== "guest") return;
+        showOnline(ERRORS[why] || ERRORS.lost);
+      }
+
+      // ----- Screens -----
+      function showOnline(msg) {
+        leaveSession();
+        enterBreak("online");
+        store.set("meteorSeenVs", true, true);
+        $("pilotName").textContent = myName();
+        $("pilotRoll").hidden = !!crazyName;
+        const s = stats();
+        $("vsStats").textContent = s.races ? "Online wins: " + s.wins + " of " + s.races + " races"
+          : s.botWins ? "Bot races won: " + s.botWins : "";
+        const m = $("onlineMsg");
+        m.textContent = msg || "";
+        m.hidden = !msg;
+        $("joinRow").hidden = true;
+        showScreen("online", 200);
+        shipIcon($("vsShip"), selectedSkin);
+      }
+
+      function showLobby() {
+        if (state !== "lobby") {
+          enterBreak("lobby");
+          showScreen("lobby", 250);
+        }
+        renderLobby();
+      }
+
+      function shipIcon(cv, ship) {
+        const css = cv.getBoundingClientRect().width || 38;
+        const px = Math.max(16, Math.round(css * DPR));
+        cv.width = cv.height = px;
+        const g = cv.getContext("2d");
+        const k = px / 60;
+        g.setTransform(k, 0, 0, k, 0, 0);
+        g.globalCompositeOperation = "lighter";
+        g.globalAlpha = 0.45;
+        g.drawImage(glow(SHIPS[ship].glow), 4, 4, 52, 52);
+        g.globalCompositeOperation = "source-over";
+        g.globalAlpha = 1;
+        drawShip(g, 30, 32, 1.05, SHIPS[ship], 0, 0.3);
+      }
+
+      function slotRow(q, place, time) {
+        const row = document.createElement("div");
+        row.className = "slot" + (q.slot === me ? " me" : "") + (place === 1 ? " first" : "");
+        if (place) {
+          const pl = document.createElement("span");
+          pl.className = "place";
+          pl.textContent = place;
+          row.appendChild(pl);
+        }
+        const cv = document.createElement("canvas");
+        const name = document.createElement("b");
+        name.textContent = q.name;
+        name.style.color = COLORS[q.slot];
+        row.append(cv, name);
+        const tag = (txt, cls) => {
+          const t = document.createElement("span");
+          t.className = "tag" + (cls ? " " + cls : "");
+          t.textContent = txt;
+          row.appendChild(t);
+        };
+        if (q.slot === me) tag("YOU");
+        if (q.bot) tag("BOT", "bot");
+        else if (q.slot === 0 && kind !== "bots") tag("HOST", "host");
+        if (time !== undefined) {
+          const t = document.createElement("span");
+          t.className = "time";
+          t.textContent = fmt(time);
+          row.appendChild(t);
+        }
+        return { row, cv };
+      }
+
+      function renderLobby() {
+        $("lobbyLabel").textContent = !kind ? searchLabel : qm ? "QUICK MATCH" : "ROOM CODE";
+        $("lobbyCode").textContent = code;
+        $("lobbyCode").hidden = !kind || qm || !code;
+        $("inviteBtn").hidden = !kind || qm || !code;
+        const box = $("lobbySlots");
+        box.textContent = "";
+        box.hidden = !kind;
+        if (kind) {
+          for (let s = 0; s < MAX; s++) {
+            const q = players[s];
+            if (q) {
+              const el = slotRow(q);
+              box.appendChild(el.row);
+              shipIcon(el.cv, q.ship);
+            } else {
+              const row = document.createElement("div");
+              row.className = "slot empty";
+              row.textContent = "Waiting for a pilot…";
+              box.appendChild(row);
+            }
+          }
+        }
+        $("startBtn").hidden = kind !== "host";
+        $("lobbyTip").hidden = !kind;
+        lobbyStatus();
+      }
+
+      function lobbyStatus() {
+        const now = performance.now(), n = count();
+        let txt, spin = false;
+        if (now < flashUntil) txt = flashMsg;
+        else if (!kind) { txt = searchText; spin = true; }
+        else if (kind === "host") {
+          if (racing) txt = "Race in progress…";
+          else if (qm && n < 2) { txt = "Waiting for pilots to join…"; spin = true; }
+          else if (qm) txt = "Starting in " + Math.max(1, Math.ceil((autoAt - now) / 1000)) + "…";
+          else txt = n < 2 ? "Share the code with friends. Up to 4 pilots can race." : "Everyone in? Start the race!";
+        } else if (racing) txt = "A race is on (" + aliveNow + " still flying). You'll fly in the next one!";
+        else if (qm && lobbyCdAt) txt = "Starting in " + Math.max(1, Math.ceil((lobbyCdAt - now) / 1000)) + "…";
+        else if (qm) { txt = "Waiting for more pilots…"; spin = true; }
+        else txt = "Waiting for the host to start the race…";
+        const st = $("lobbyStatus");
+        if (st.textContent !== txt) {
+          st.textContent = txt;
+          st.style.wordBreak = txt.includes("://") ? "break-all" : "";
+        }
+        $("lobbySpin").hidden = !spin;
+        $("startBtn").disabled = n < 2 || racing;
+        // Few pilots around: offer the bots after a while
+        $("lobbyBots").hidden = !((!kind || (kind === "host" && qm && n < 2)) && now - searchStart > 15000);
+      }
+
+      function raceMenu() {
+        const out = state !== "playing" && state !== "vsStart";
+        $("pauseTitle").textContent = kind === "bots" ? "Bot race" : "Online race";
+        $("resumeBtn").textContent = out ? "Keep watching" : "Keep flying";
+        $("quitBtn").textContent = "Leave race";
+        $("restartBtn").hidden = true;
+        $("pauseNote").textContent = kind === "bots" ? "The race keeps going while this is open." : "Online races keep going while this is open.";
+        $("pauseNote").hidden = false;
+        showScreen("pause", 150);
+      }
+
+      function leave() {
+        showOnline();
+      }
+
+      function enterKey() {
+        if (state === "lobby" && kind === "host" && !$("startBtn").disabled) { Sound.click(); hostStart(); }
+        else if (state === "vsOver" && !$("rematchBtn").hidden && !$("rematchBtn").disabled) { Sound.click(); rematch(); }
+      }
+
+      // ----- Bot races -----
+      function practice(again) {
+        if (!again || kind !== "bots") {
+          leaveSession();
+          kind = "bots";
+          me = 0;
+          // The bots get sharper as the player beats them
+          const won = stats().botWins;
+          const lv = won >= 15 ? [2, 2, 2] : won >= 10 ? [1, 2, 2] : won >= 5 ? [0, 1, 2] : won >= 2 ? [0, 0, 1] : [0, 0, 0];
+          const names = BOT_NAMES.slice().sort(() => Math.random() - 0.5);
+          players = [{ slot: 0, name: myName(), ship: selectedSkin, trail: selectedTrail, bot: false }];
+          for (let i = 1; i < MAX; i++) {
+            players[i] = { slot: i, name: "Bot " + names[i], ship: Math.floor(Math.random() * SHIPS.length),
+              trail: Math.floor(Math.random() * TRAILS.length), bot: true, sk: SKILLS[lv[i - 1]], skIdx: lv[i - 1] };
+          }
+          track("vs-bots");
+        }
+        players[0].ship = selectedSkin;
+        players[0].trail = selectedTrail;
+        beginRace({ id: ++raceNo, seed: Math.floor(Math.random() * 2147483647), world: 1 + Math.floor(Math.random() * WORLDS.length),
+          start: performance.now() + (LEAD_IN - 0.8) * 1000, roster: [0, 1, 2, 3] });
+      }
+
+      function rematch() {
+        if (kind === "bots") practice(true);
+        else if (kind === "host") hostStart();
+      }
+
+      // ----- The race -----
+      function beginRace(o) {
+        const roster = (Array.isArray(o.roster) ? o.roster : []).map(s => s | 0)
+          .filter((s, i, a) => s >= 0 && s < MAX && a.indexOf(s) === i);
+        if (!roster.includes(me)) return;
+        Sound.unlock();
+        blurFocus();
+        hideAllScreens();
+        run = newRun("versus", null);
+        run.hull = run.maxHull = HULL;
+        run.charge = 0;
+        clearWorld();
+        banner = null;
+        flashT = 0;
+        timeScale = 1;
+        coinStreak = 0;
+        drag = null;
+        setPalette(o.world);
+        if (cachesWiped()) cachesLost = true;
+        meteorSpritesFor(ATTACK_PAL);
+        const k = fieldW / 390;
+        pHit = PLAYER_HIT * k;
+        shipScale = SHIP_SCALE * k;
+        // Everyone starts in their own lane
+        const lane = i => (i + 0.5) / roster.length;
+        player.x = player.targetX = fx(lane(roster.indexOf(me)));
+        player.y = baseY;
+        player.tilt = 0;
+        const seed = o.seed >>> 0;
+        race = {
+          id: o.id, start: o.start, simT: 0, ended: false, overtime: false, cd: 99, sendT: 0, lastAtk: 0,
+          // separate streams, so the order in which they're used can't make two players' storms differ
+          rng: { rock: mulberry32(seed ^ 0x51ed27), coin: mulberry32(seed ^ 0x2c1b3c6d), power: mulberry32(seed ^ 0x297a2d39),
+            comet: mulberry32(seed ^ 0x6a09e667), laser: mulberry32(seed ^ 0x3c6ef372) },
+          next: { rock: 0.8, coin: 1.2, power: 0, comet: 0.5, laser: 0.5 },
+          beamEnds: [],
+          racers: roster.map((slot, i) => {
+            const q = players[slot] || { name: "Pilot " + (slot + 1), ship: 0, trail: 0 };
+            return {
+              slot, name: q.name, ship: q.ship, trail: q.trail, bot: !!q.bot, sk: q.sk, skIdx: q.skIdx || 0,
+              alive: true, deadAt: 0, u0: lane(i), x: fx(lane(i)), tx: fx(lane(i)), vx: 0, tilt: 0,
+              hull: HULL, invuln: 0, thinkT: 0, atkT: rand(10, 20), eng: 0, samples: []
+            };
+          })
+        };
+        race.next.power = 7 + race.rng.power() * 3;
+        racing = true;
+        state = "vsStart";
+        lobbyCdAt = autoAt = rematchAt = 0;
+        hud.classList.add("show", "vs");
+        hud.classList.remove("dead", "level");
+        renderHull();
+        shown = {};
+        listDirty = true;
+        setGameplay(true);
+      }
+
+      function tick(dt) {
+        const r = race;
+        const now = clock();
+        if (state === "vsStart") {
+          const n = Math.ceil(-now);
+          if (n !== r.cd && n >= 1 && n <= 3) {
+            r.cd = n;
+            popCountdown(n);
+            Sound.beep(false);
+          }
+          if (now < 0) {
+            ghosts(dt);
+            netTick(dt);
+            return;
+          }
+          popCountdown("GO!");
+          Sound.beep(true);
+          state = "playing";
+        }
+        // Step the storm up to the race clock (in small steps, so nothing tunnels through
+        // the ship after a slow frame or a while in the background)
+        let gap = now - r.simT;
+        if (gap > 120) { r.simT = now - 120; gap = 120; }
+        while (gap > 1e-6) {
+          const s = Math.min(gap, 1 / 60);
+          gap -= s;
+          r.simT += s;
+          step(s);
+          if (race !== r) return;
+          if (!r.ended) direct(r.simT);
+        }
+        if (state === "dying") {
+          stateT += dt;
+          if (stateT > 1) watch();
+        }
+        ghosts(dt);
+        netTick(dt);
+        if (r.ended && r.resultsAt && performance.now() >= r.resultsAt) showResults();
+      }
+
+      function step(s) {
+        if (state === "playing") {
+          run.time = race.simT;
+          run.invuln = Math.max(0, run.invuln - s);
+          for (const k in run.pu) run.pu[k] = Math.max(0, run.pu[k] - s);
+        }
+        if (kind === "bots") stepBots(s);
+        updateWorld(s);
+        updateHazards(s, s);
+      }
+
+      // How hard the storm is t seconds in, measured on the endless-mode clock (races ramp up faster)
+      const diff = t => 16 + 1.4 * t;
+      const mixAt = d => ({ comet: clamp((d - 35) / 45, 0, 0.7), splitter: clamp((d - 65) / 45, 0, 0.7), laser: clamp((d - 95) / 45, 0, 0.7) });
+      const fallSpeed = d => 0.42 + Math.min(d, 150) * 0.0042 + Math.max(0, d - 150) * 0.004;
+      function rockGap(t) {
+        const d = diff(t), mx = mixAt(d);
+        // Past endless mode's top speed comes overtime: the storm keeps thickening until someone falls
+        const g = d > 150 ? 0.17 * Math.pow(0.985, d - 150) : Math.max(0.17, 0.6 * Math.pow(0.985, d));
+        return g * (1 + 0.28 * (mx.comet + mx.splitter + mx.laser));
+      }
+
+      // Rocks start this far above the screen (in screen heights, not rock sizes, so they reach
+      // each height at the same moment on every screen)
+      const TOP = -0.16;
+
+      // Something due at race time ts, made at race time now: move it on by the difference
+      function age(m, late) {
+        m.x += (m.vx || 0) * late;
+        m.y += m.vy * late;
+        return m;
+      }
+
+      function raceRock(ts, now) {
+        const R = race.rng.rock, d = diff(ts), k = fieldW / 390;
+        const mx = mixAt(d);
+        if (mx.splitter && R() < 0.2 * mx.splitter) { raceSplitter(ts, now, R, k); return; }
+        let r = 12 + R() * 15, vy = fallSpeed(d) * (0.85 + R() * 0.35);
+        const roll = R();
+        if (d > 20 && roll < 0.1) { r = 34 + R() * 10; vy *= 0.72; }          // big & slow
+        else if (d > 35 && roll < 0.25) { r = 9 + R() * 3; vy *= 1.45; }     // small & fast
+        const u = r / 390 + R() * (1 - 2 * r / 390);
+        const vx = d > 25 && R() < 0.3 ? (R() * 2 - 1) * 0.12 : 0;
+        age(addMeteor({ kind: "rock", x: fx(u), y: TOP * H, r: r * k, vx: vx * fieldW, vy: vy * H }), now - ts);
+      }
+
+      function raceSplitter(ts, now, R, k) {
+        const r = 30 + R() * 6, edge = (r + 10) / 390;
+        const u = edge + R() * (1 - 2 * edge);
+        const m = addMeteor({ kind: "splitter", x: fx(u), y: TOP * H, r: r * k, vx: 0, vy: H * (0.3 + R() * 0.06), splitY: H * (0.3 + R() * 0.12), vr: rand(-1, 1) });
+        m.shards = [-1, 0, 1].map(j => ({ r: (10 + R() * 3) * k, vx: j * fieldW * (0.16 + R() * 0.08), vy: H * (0.48 + R() * 0.08) }));
+        age(m, now - ts);
+      }
+
+      function raceComet(ts, now) {
+        const R = race.rng.comet, k = fieldW / 390;
+        const r = 8 + R() * 2.5, edge = (r + 20) / 390;
+        const u = edge + R() * (1 - 2 * edge);
+        const vy = (0.78 + R() * 0.17) * (1 + Math.min(diff(ts), 150) * 0.002);
+        const m = addMeteor({ kind: "comet", x: fx(u), y: TOP * H, r: r * k, vx: (R() * 0.32 - 0.16) * vy * 2 * fieldW, vy: vy * H, warn: 0.55, vr: 0 });
+        const late = now - ts;
+        if (late < m.warn) m.warn -= late;
+        else { age(m, late - m.warn); m.warn = 0; }
+      }
+
+      function raceLaser(ts, now) {
+        beams.push({ x: fx(0.1 + race.rng.laser() * 0.8), w: 24 * fieldW / 390, warn: 1.15, fire: 0.5, t: now - ts, fired: false });
+        Sound.laserWarn();
+      }
+
+      function raceCoins(ts, now) {
+        const R = race.rng.coin, late = now - ts;
+        const vy = H * 0.36 * (1 + Math.min(diff(ts), 150) * 0.004);
+        const put = (u, up, ph) => coins.push({ x: fx(u), y: -20 - up + vy * late, vy, ph });
+        const roll = R();
+        if (roll < 0.4) put(0.08 + R() * 0.84, 0, R() * TAU);
+        else if (roll < 0.7) {
+          const u = 0.08 + R() * 0.84;
+          for (let i = 0; i < 5; i++) put(u, i * 34, i * 0.5);
+        } else {
+          const u = 0.18 + R() * 0.64;
+          for (let i = 0; i < 7; i++) put(u + Math.sin(i * 0.8) * 0.128, i * 30, i * 0.5);
+        }
+      }
+
+      // Shields, magnets and blasts (slow-motion would put a player's storm out of step)
+      function racePower(ts, now) {
+        const R = race.rng.power, roll = R();
+        const type = roll < 0.45 ? "shield" : roll < 0.7 ? "magnet" : "blast";
+        powerups.push({ type, x: fx(0.1 + R() * 0.8), y: -24 + H * 0.3 * (now - ts), vy: H * 0.3, ph: R() * TAU });
+      }
+
+      // Brings in everything due by race time now, exactly as every other player's game does
+      function direct(now) {
+        const n = race.next, rng = race.rng;
+        while (n.rock <= now) { raceRock(n.rock, now); n.rock += rockGap(n.rock); }
+        while (n.coin <= now) { raceCoins(n.coin, now); n.coin += 1.8 + rng.coin(); }
+        while (n.power <= now) { racePower(n.power, now); n.power += 10 + rng.power() * 5; }
+        while (n.comet <= now) {
+          const mx = mixAt(diff(n.comet));
+          if (mx.comet > 0) {
+            raceComet(n.comet, now);
+            n.comet += (1.4 + rng.comet() * 1.6) / (0.4 + mx.comet);
+          } else n.comet += 0.5;
+        }
+        while (n.laser <= now) {
+          const ts = n.laser, mx = mixAt(diff(ts));
+          if (mx.laser > 0) {
+            if (race.beamEnds.filter(e => e > ts).length < 2) {
+              raceLaser(ts, now);
+              race.beamEnds.push(ts + 1.65);
+              if (mx.laser > 0.6 && rng.laser() < 0.35) {
+                raceLaser(ts, now);
+                race.beamEnds.push(ts + 1.65);
+              }
+            }
+            n.laser = ts + (3.5 + rng.laser() * 3) / (0.5 + mx.laser);
+          } else n.laser = ts + 0.5;
+        }
+        if (race.beamEnds.length > 8) race.beamEnds = race.beamEnds.filter(e => e > now);
+        if (!race.overtime && diff(now) >= 150) {
+          race.overtime = true;
+          showBanner("OVERTIME", "The storm keeps growing", "#ff6b6b", true);
+          Sound.alarm();
+        }
+      }
+
+      // ----- Attacks -----
+      function addCharge(n) {
+        if (!race || race.ended || state !== "playing") return;
+        run.charge = Math.min(CHARGE, (run.charge || 0) + n);
+        if (run.charge >= CHARGE && performance.now() - race.lastAtk > 1000) {
+          run.charge = 0;
+          launch(me, 3);
+        }
+      }
+
+      function launch(from, k) {
+        if (!race || race.ended) return;
+        if (from === me) {
+          race.lastAtk = performance.now();
+          addText(player.x, player.y - 66, "ATTACK SENT!", "#ff9f43", 18);
+          rings.push({ x: player.x, y: player.y, r: 16, vr: 420, life: 0.5, max: 0.5, color: "#ff9f43", w: 3 });
+          Sound.attack();
+          vibrate(25);
+          if (kind === "guest") send({ t: "at", r: race.id, k });
+          else if (kind === "host") sendAll({ t: "at", r: race.id, p: me, k });
+        }
+        if (kind === "bots") {
+          for (const rc of race.racers) if (rc.slot !== from && rc.alive) incoming(rc.slot, from, k);
+        }
+      }
+
+      // A rival's attack: red-hot rocks aimed at where the ship is now, after a warning
+      function incoming(target, from, k) {
+        if (!race || race.ended) return;
+        const rc = racer(target), src = racer(from);
+        if (!rc || !rc.alive || !src || from === target) return;
+        let x = rc.x;
+        if (target === me) {
+          if (state !== "playing") return;
+          x = player.x;
+          addText(W / 2, safeTop + 128, "INCOMING FROM " + src.name.toUpperCase() + "!", COLORS[from], 14);
+          Sound.incoming();
+          vibrate(40);
+        }
+        const kk = fieldW / 390, r = 15 * kk, spread = fieldW * 0.12;
+        for (let j = 0; j < k; j++) {
+          const off = (j - (k - 1) / 2) * spread + rand(-6, 6) * kk;
+          const m = addMeteor({ kind: "rock", x: clamp(x + off, fieldX + r, fieldX + fieldW - r), y: -r * 1.3, r, vx: 0, vy: H * 0.6, warn: 0.9 + j * 0.08, vr: rand(-2, 2) });
+          m.tgt = target;
+          m.atk = true;
+          m.pal = ATTACK_PAL;
+          m.warnColor = COLORS[from];
+        }
+      }
+
+      // The Blast power-up clears this ship's view of the storm, and the shockwave rolls on to every rival
+      function raceBlast() {
+        const bit = 1 << me;
+        let rocks = 0;
+        for (const m of meteors) {
+          if (m.ambient || (m.gone & bit) || (m.tgt !== undefined && m.tgt !== me)) continue;
+          m.gone |= bit;
+          if (m.warn > 0) continue;
+          const rock = m.kind !== "bullet" && m.kind !== "shard";
+          if (rock) rocks++;
+          sparks(m.x, m.y, rock ? "#ffd8a8" : "#ffffff", rock ? 14 : 5, rock ? 220 : 120);
+        }
+        rings.push({ x: player.x, y: player.y, r: 20, vr: 1100, life: 0.7, max: 0.7, color: "#ffe2b0", w: 8 });
+        flashT = 0.45;
+        shake = Math.max(shake, 14);
+        Sound.blast();
+        vibrate([40, 30, 80]);
+        addText(player.x, player.y - 44, POWERUPS.blast.label, POWERUPS.blast.color, 24);
+        if (rocks) addPickupCoins(rocks);
+        launch(me, 4);
+      }
+
+      // ----- Knock-outs and the finish -----
+      function eliminated() {
+        const rc = racer(me);
+        if (!race || !rc || !rc.alive) return;
+        const t = Math.max(0, race.simT);
+        rc.alive = false;
+        rc.deadAt = t;
+        listDirty = true;
+        const left = race.racers.filter(r => r.alive).length;
+        showBanner("ELIMINATED", ordinal(left + 1) + " place", "#ff6b6b");
+        if (kind === "guest") { if (!forced) send({ t: "de", r: race.id, m: t }); }
+        else if (kind === "host") {
+          sendAll({ t: "de", r: race.id, p: me, m: t });
+          hostCheckEnd();
+          lobbyChanged();
+        } else if (kind === "bots") botsCheckEnd();
+        forced = false;
+      }
+
+      // After the explosion: watch the rest of the race
+      function watch() {
+        if (race && state === "dying") state = "vsSpec";
+      }
+
+      function knockedOut(slot, t) {
+        const rc = racer(slot);
+        if (!rc || !rc.alive) return;
+        if (slot === me) {
+          // The host counted us out (we went quiet too long): go up in flames here too
+          if (state === "playing" || state === "vsStart") { forced = true; die(); }
+          else { rc.alive = false; rc.deadAt = isFinite(t) ? t : clock(); listDirty = true; }
+          return;
+        }
+        rc.alive = false;
+        rc.deadAt = isFinite(t) ? t : clock();
+        listDirty = true;
+        const x = rc.bot ? rc.x : rc.gx;
+        if (x !== undefined && state !== "vsOver") {
+          explosion(x, baseY, [COLORS[slot], "#ffffff", "#ffd166"], 34);
+          Sound.knockout();
+          addText(W / 2, safeTop + 150, rc.name + " is out!", COLORS[slot], 15);
+        }
+      }
+
+      function finishRace(rk, nx) {
+        if (!race || race.ended) return;
+        const rows = [];
+        for (const e of Array.isArray(rk) ? rk.slice(0, MAX) : []) {
+          if (!Array.isArray(e)) continue;
+          const rc = racer(e[0] | 0);
+          if (!rc || rows.some(x => x.slot === rc.slot)) continue;
+          rows.push({ slot: rc.slot, place: clamp(e[1] | 0, 1, MAX), time: Math.max(0, num(e[2]) || 0) });
+        }
+        for (const rc of race.racers) {
+          if (!rows.some(x => x.slot === rc.slot)) rows.push({ slot: rc.slot, place: rows.length + 1, time: rc.deadAt || 0 });
+        }
+        rows.sort((a, b) => a.place - b.place);
+        race.ended = true;
+        race.endT = Math.max(0, race.simT);
+        race.results = rows;
+        racing = false;
+        const mine = rows.find(x => x.slot === me);
+        const place = race.place = mine ? mine.place : rows.length;
+        const n = rows.length;
+        // Coins for the podium, more in a bigger race
+        const bonus = n < 2 ? 0 : place === 1 ? 15 + 15 * (n - 1) : place === 2 && n >= 3 ? 20 : place === 3 && n >= 4 ? 10 : 0;
+        grantCoins(bonus);
+        const st = stats();
+        if (kind === "bots") { if (place === 1) st.botWins++; }
+        else { st.races++; if (place === 1) st.wins++; }
+        store.set("meteorVs", st);
+        if (place === 1 && state === "playing") {
+          run.invuln = 99;     // nothing can touch the winner now
+          showBanner("VICTORY!", "Last ship flying", "#ffd34d");
+          confetti();
+          Sound.best();
+          happyTime();
+        }
+        race.resultsAt = performance.now() + (place === 1 ? 2400 : 1500);
+        rematchAt = nx > 0 ? performance.now() + nx * 1000 : 0;
+        setGameplay(false);
+        listDirty = true;
+        track(kind === "bots" ? "vs-bots-done" : place === 1 ? "vs-won" : "vs-done");
+      }
+
+      function showResults() {
+        const r = race;
+        if (!r || !r.results) return;
+        r.resultsAt = 0;
+        state = "vsOver";
+        blurFocus();
+        hideAllScreens("vsResult");
+        hud.classList.remove("show");
+        banner = null;
+        texts.length = 0;
+        const rows = r.results, n = rows.length, place = r.place;
+        const mine = rows.find(x => x.slot === me);
+        const title = $("vsTitle");
+        title.textContent = place === 1 ? "Victory!" : ordinal(place) + " place";
+        title.classList.toggle("gold", place === 1);
+        $("vsSub").textContent = place === 1 ? (n > 1 ? "Last ship flying out of " + n + "!" : "Last ship flying!")
+          : "You flew for " + fmt(mine ? mine.time : 0) + ".";
+        const box = $("vsStandings");
+        box.textContent = "";
+        for (const row of rows) {
+          const rc = racer(row.slot);
+          const el = slotRow(rc, row.place, row.time);
+          box.appendChild(el.row);
+          shipIcon(el.cv, rc.ship);
+        }
+        $("vsCoins").textContent = "+" + run.coins;
+        resultStatus();
+        showScreen("vsResult", 700);
+      }
+
+      function resultStatus() {
+        if (state !== "vsOver") return;
+        const btn = $("rematchBtn"), next = $("vsNext"), n = count();
+        let txt = "";
+        if (kind === "bots") {
+          btn.hidden = false;
+          btn.disabled = false;
+        } else if (kind === "host") {
+          btn.hidden = false;
+          btn.disabled = n < 2;
+          if (n < 2) txt = qm || !code ? "Everyone else has left." : "Everyone else has left. Friends can still join with code " + code + ".";
+        } else {
+          btn.hidden = true;
+          txt = racing ? "The next race is starting…" : "Waiting for the host to start the next race…";
+        }
+        if (rematchAt && n >= 2 && !racing) txt = "Next race in " + Math.max(1, Math.ceil((rematchAt - performance.now()) / 1000)) + "…";
+        next.hidden = !txt;
+        if (next.textContent !== txt) next.textContent = txt;
+      }
+
+      // ----- Rivals on screen -----
+      function sample(slot, m, x, f) {
+        const rc = racer(slot);
+        if (!rc || slot === me || !isFinite(m) || !isFinite(x)) return;
+        const b = rc.samples;
+        if (b.length && m <= b[b.length - 1].m) return;
+        b.push({ m, x: clamp(x, 0, 1), f: f & 3 });
+        if (b.length > 40) b.shift();
+      }
+
+      function ghostAt(rc, t) {
+        const b = rc.samples;
+        if (!b.length) return { u: rc.u0, f: 0, v: 0 };
+        let i = b.length - 1;
+        if (t >= b[i].m) return { u: b[i].x, f: b[i].f, v: 0 };
+        while (i > 0 && b[i - 1].m > t) i--;
+        if (i === 0) return { u: b[0].x, f: b[0].f, v: 0 };
+        const a = b[i - 1], c = b[i], span = Math.max(1e-3, c.m - a.m), k = (t - a.m) / span;
+        return { u: a.x + (c.x - a.x) * k, f: a.f, v: (c.x - a.x) / span };
+      }
+
+      function ghosts(dt) {
+        const t = clock() - VIEW_DELAY;
+        for (const rc of race.racers) {
+          if (rc.slot === me || !rc.alive) continue;
+          let vx;
+          if (rc.bot) {
+            rc.gx = rc.x;
+            rc.gf = rc.invuln > 0 ? 2 : 0;
+            vx = rc.vx;
+          } else {
+            const g = ghostAt(rc, t);
+            rc.gx = fx(g.u);
+            rc.gf = g.f;
+            vx = g.v * fieldW;
+          }
+          rc.tilt += (clamp(vx * 0.0008, -0.45, 0.45) - rc.tilt) * (1 - Math.exp(-dt * 12));
+          // Their engine trail (in the trail they picked in the hangar)
+          rc.eng += dt * 45;
+          const sk = SHIPS[rc.ship], tr = TRAILS[rc.trail];
+          while (rc.eng >= 1) {
+            rc.eng--;
+            const life = rand(0.16, 0.28);
+            particles.push({ x: rc.gx - Math.sin(rc.tilt) * 17 * shipScale + rand(-2, 2), y: baseY + Math.cos(rc.tilt) * 17 * shipScale,
+              vx: rand(-15, 15) - Math.sin(rc.tilt) * 60, vy: rand(150, 230), life, max: life, size: rand(1.6, 2.8),
+              color: trailColor(tr, sk), drag: 0, add: true, alpha: 0.55 });
+          }
+        }
+      }
+
+      function label(txt, x, y, col, size) {
+        ctx.font = "800 " + (size || 11) + "px " + FONT;
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "rgba(0,0,0,.65)";
+        ctx.strokeText(txt, x, y);
+        ctx.fillStyle = col;
+        ctx.fillText(txt, x, y);
+      }
+
+      // Rivals fly as see-through ships in their own colour, with their names
+      function draw() {
+        if (!race) return;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.lineJoin = "round";
+        const tags = [];      // name tags already placed, so ships flying together don't overprint
+        for (const rc of race.racers) {
+          if (rc.slot === me || !rc.alive || rc.gx === undefined) continue;
+          const x = rc.gx, y = baseY, col = COLORS[rc.slot];
+          ctx.globalAlpha = 0.45;
+          ctx.strokeStyle = col;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, y + 2 * shipScale, 22 * shipScale, 0, TAU);
+          ctx.stroke();
+          ctx.globalAlpha = (rc.gf & 2) && Math.floor(T * 14) % 2 === 0 ? 0.2 : 0.6;
+          drawShip(ctx, x, y, shipScale, SHIPS[rc.ship], rc.tilt, T);
+          if (rc.gf & 1) {
+            ctx.globalAlpha = 0.5;
+            ctx.strokeStyle = "rgba(160,240,255,.9)";
+            ctx.beginPath();
+            ctx.arc(x, y, 30 * shipScale, 0, TAU);
+            ctx.stroke();
+          }
+          ctx.globalAlpha = 0.95;
+          let ty = y - 38 * shipScale;
+          for (const tx of tags) if (Math.abs(tx - x) < 70) ty -= 13;
+          tags.push(x);
+          label(rc.name, x, ty, col);
+        }
+        ctx.globalAlpha = 1;
+        if (state === "vsStart") label("YOU", player.x, player.y - 40 * shipScale, COLORS[me], 13);
+      }
+
+      function hudTick() {
+        const r = race;
+        if (!r) return;
+        const alive = r.racers.filter(x => x.alive).length;
+        const a = alive + "/" + r.racers.length;
+        if (shown.alive !== a) {
+          shown.alive = a;
+          $("vsAlive").innerHTML = a + "<small>FLYING</small>";
+        }
+        const secs = Math.floor(Math.max(0, r.ended ? r.endT : r.simT));
+        if (shown.secs !== secs) {
+          shown.secs = secs;
+          $("vsTime").textContent = fmt(secs);
+        }
+        const ch = Math.min(CHARGE, Math.floor(run.charge || 0));
+        if (shown.charge !== ch) {
+          shown.charge = ch;
+          let h = '<svg viewBox="0 0 24 24"><path d="M13.5 2L4 14h6.5l-1 8L19 10h-6.5z"/></svg>';
+          for (let i = 0; i < CHARGE; i++) h += '<i class="cell' + (i < ch ? " on" : "") + '"></i>';
+          $("atkRow").innerHTML = h;
+        }
+        if (listDirty) {
+          listDirty = false;
+          renderList();
+        }
+      }
+
+      function renderList() {
+        const el = $("vsList");
+        el.textContent = "";
+        // On wide screens the list sits beside the play area instead of over it
+        el.style.left = fieldX > 176 ? Math.round(fieldX - 166) + "px" : "";
+        for (const rc of race.racers) {
+          const row = document.createElement("div");
+          if (!rc.alive) row.className = "out";
+          const dot = document.createElement("i");
+          dot.style.background = COLORS[rc.slot];
+          const name = document.createElement("span");
+          name.textContent = rc.slot === me ? "You" : rc.name;
+          row.append(dot, name);
+          el.appendChild(row);
+        }
+      }
+
+      // ----- Computer pilots -----
+      const LANES = 23;
+      const laneDanger = new Float32Array(LANES), laneCost = new Float32Array(LANES), laneOrder = [];
+      for (let i = 0; i < LANES; i++) laneOrder.push(i);
+
+      // Plays the bot's own flight towards x over its look-ahead time against where every
+      // threat will be. Returns when it would be hit, or 0 if the way is clear.
+      function pathHit(b, tx, threats, rays) {
+        const sk = b.sk, maxV = sk.speed * fieldW, dt = 0.05, y = baseY;
+        let x = b.x;
+        for (let t = dt; t <= sk.look + 1e-6; t += dt) {
+          x += clamp((tx - x) * 9, -maxV, maxV) * dt;
+          for (const m of threats) {
+            const mt = t - m.wait;
+            if (mt < 0) continue;
+            const my = m.y + m.vy * mt;
+            if (Math.abs(my - y) > m.hr) continue;
+            const mx = m.x + m.vx * mt;
+            if (Math.abs(mx - x) < m.hr && Math.hypot(mx - x, my - y) < m.hr) return t;
+          }
+          for (const ray of rays) if (t >= ray.from && t <= ray.to && Math.abs(x - ray.x) < ray.reach) return t;
+        }
+        return 0;
+      }
+
+      // Scores lanes across the play area by the danger heading for them, then flies to the
+      // best one it can reach without being hit on the way
+      function think(b) {
+        const bit = 1 << b.slot, sk = b.sk, y = baseY;
+        const left = fieldX + 22, span = fieldW - 44;
+        const threats = [], rays = [];
+        laneDanger.fill(0);
+        for (const m of meteors) {
+          if (m.ambient || (m.gone & bit) || (m.tgt !== undefined && m.tgt !== b.slot)) continue;
+          const vy = Math.max(m.vy, 1);
+          const hr = (m.kind === "bullet" ? m.r : m.r * 0.8) + pHit + sk.margin;
+          const wait = m.warn > 0 ? m.warn : 0;
+          const dy = y - m.y;
+          if (dy < -hr) continue;
+          const t0 = wait + Math.max(0, dy - hr) / vy;
+          if (t0 > sk.look) continue;
+          threats.push({ x: m.x, y: m.y, vx: m.vx || 0, vy, wait, hr });
+          const t1 = wait + (dy + hr) / vy;
+          const vx = m.vx || 0;
+          const xa = m.x + vx * t0, xb = m.x + vx * t1;
+          const lo = Math.min(xa, xb) - hr, hi = Math.max(xa, xb) + hr;
+          const w = 1.25 - t0 / sk.look;
+          const i0 = Math.max(0, Math.floor((lo - 30 - left) / span * (LANES - 1)));
+          const i1 = Math.min(LANES - 1, Math.ceil((hi + 30 - left) / span * (LANES - 1)));
+          for (let i = i0; i <= i1; i++) {
+            const x = left + span * i / (LANES - 1);
+            if (x > lo && x < hi) laneDanger[i] += 4 * w;
+            else {
+              const d = x <= lo ? lo - x : x - hi;
+              if (d < 30) laneDanger[i] += (1 - d / 30) * w;
+            }
+          }
+        }
+        for (const bm of beams) {
+          const from = Math.max(0, bm.warn - bm.t), to = bm.warn + bm.fire - bm.t;
+          if (from > sk.look) continue;
+          const reach = bm.w / 2 + pHit * 0.6 + sk.margin;
+          rays.push({ x: bm.x, from, to, reach });
+          for (let i = 0; i < LANES; i++) if (Math.abs(left + span * i / (LANES - 1) - bm.x) < reach + 6) laneDanger[i] += 6;
+        }
+        const cur = clamp(Math.round((b.x - left) / span * (LANES - 1)), 0, LANES - 1);
+        for (let i = 0; i < LANES; i++) laneCost[i] = laneDanger[i] + Math.abs(i - cur) * 0.06 + (i === 0 || i === LANES - 1 ? 0.3 : 0);
+        // Try the cheapest lanes first; a lane can only win if the flight there is clear (or least bad)
+        laneOrder.sort((p, q) => laneCost[p] - laneCost[q]);
+        let best = cur, bestCost = Infinity;
+        for (const i of laneOrder) {
+          if (laneCost[i] >= bestCost) break;
+          const hit = pathHit(b, left + span * i / (LANES - 1), threats, rays);
+          const cost = laneCost[i] + (hit ? 30 + (sk.look - hit) * 30 : 0);
+          if (cost < bestCost) { bestCost = cost; best = i; }
+        }
+        b.tx = left + span * best / (LANES - 1) + (Math.random() - 0.5) * sk.noise;
+      }
+
+      function stepBots(s) {
+        for (const b of race.racers) {
+          if (!b.bot || !b.alive) continue;
+          b.invuln = Math.max(0, b.invuln - s);
+          b.thinkT -= s;
+          if (b.thinkT <= 0) {
+            b.thinkT = b.sk.react * rand(0.8, 1.25);
+            if (Math.random() >= b.sk.lapse) think(b);
+          }
+          const maxV = b.sk.speed * fieldW;
+          b.vx = clamp((b.tx - b.x) * 9, -maxV, maxV);
+          b.x = clamp(b.x + b.vx * s, fieldX + 20, fieldX + fieldW - 20);
+          botCollide(b);
+          if (!b.alive || race.ended) continue;
+          // About as often as a human fills the attack meter
+          if (race.simT > 8) {
+            b.atkT -= s;
+            if (b.atkT <= 0) {
+              b.atkT = rand(16, 26) - b.skIdx * 3;
+              launch(b.slot, 3);
+            }
+          }
+        }
+      }
+
+      function botCollide(b) {
+        const bit = 1 << b.slot;
+        for (const m of meteors) {
+          if (m.ambient || m.warn > 0 || (m.gone & bit) || (m.tgt !== undefined && m.tgt !== b.slot)) continue;
+          const hr = m.kind === "bullet" ? m.r : m.r * 0.8;
+          if (Math.abs(m.y - baseY) > hr + pHit || Math.abs(m.x - b.x) > hr + pHit) continue;
+          if (b.invuln <= 0 && Math.hypot(m.x - b.x, m.y - baseY) < pHit + hr) {
+            m.gone |= bit;
+            hitBot(b);
+            if (!b.alive) return;
+          }
+        }
+        for (const bm of beams) {
+          if (bm.fired && b.invuln <= 0 && Math.abs(b.x - bm.x) < bm.w / 2 + pHit * 0.6) {
+            hitBot(b);
+            if (!b.alive) return;
+          }
+        }
+      }
+
+      function hitBot(b) {
+        b.hull--;
+        b.invuln = 1.6;
+        sparks(b.x, baseY, COLORS[b.slot], 12, 160);
+        if (b.hull > 0) return;
+        knockedOut(b.slot, race.simT);
+        botsCheckEnd();
+      }
+
+      function botsCheckEnd() {
+        if (!race || race.ended) return;
+        const meIn = racer(me).alive, botsIn = race.racers.some(r => r.bot && r.alive);
+        if (meIn && botsIn) return;
+        finishRace(ranking(race.simT), 0);
+      }
+
+      // ----- Housekeeping -----
+      function netTick(dt) {
+        if ((kind !== "host" && kind !== "guest") || (state !== "playing" && state !== "vsStart")) return;
+        race.sendT -= dt;
+        if (race.sendT > 0) return;
+        race.sendT = SEND_EVERY;
+        const msg = { t: "st", r: race.id, m: +clock().toFixed(3), x: +((player.x - fieldX) / fieldW).toFixed(4),
+          f: (run.pu.shield > 0 ? 1 : 0) | (run.invuln > 0 ? 2 : 0) };
+        if (kind === "guest") send(msg);
+        else { msg.p = me; sendAll(msg); }
+      }
+
+      function onVisibility(hidden) {
+        const now = performance.now();
+        if (hidden) { hiddenAt = now; return; }
+        // Bot races simply wait for the player
+        if (kind === "bots" && race && !race.ended && hiddenAt) race.start += now - hiddenAt;
+        hiddenAt = 0;
+      }
+
+      setInterval(() => {
+        const now = performance.now();
+        if (kind === "guest") {
+          if (now - lastPing > (racing ? 2000 : 1000)) ping();
+          if (now - lastHost > AFK) lost("lost");
+        } else if (kind === "host") {
+          for (const q of players) {
+            if (!q || !q.conn) continue;
+            if (now - q.seen > AFK) { drop(q.conn); continue; }
+            const rc = racer(q.slot);
+            if (race && !race.ended && rc && rc.alive && clock() > 2 && now - q.lastState > AFK) hostOut(q.slot, clock());
+          }
+          if (qm && !racing && autoAt && now >= autoAt && count() >= 2) hostStart();
+          if (rematchAt && now >= rematchAt && !racing && state === "vsOver") {
+            rematchAt = 0;
+            if (count() >= 2) hostStart();
+          }
+        }
+        // A page in the background can't steer: a few seconds away drops the pilot out of an online race
+        if (kind !== "bots" && race && !race.ended && hiddenAt && now - hiddenAt > 5000 && (state === "playing" || state === "vsStart")) die();
+        if (state === "lobby") lobbyStatus();
+        else if (state === "vsOver") resultStatus();
+      }, 250);
+
+      // ----- Buttons -----
+      $("quickBtn").addEventListener("click", () => { Sound.click(); quickMatch(); });
+      $("createBtn").addEventListener("click", () => { Sound.click(); createRoom(); });
+      $("joinBtn").addEventListener("click", () => {
+        Sound.click();
+        const row = $("joinRow");
+        row.hidden = !row.hidden;
+        if (!row.hidden) {
+          const inp = $("codeInput");
+          inp.value = "";
+          inp.focus();
+        }
+      });
+      $("codeInput").addEventListener("input", e => {
+        const t = e.target, v = t.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4);
+        if (t.value !== v) t.value = v;
+      });
+      $("codeInput").addEventListener("keydown", e => {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        e.stopPropagation();
+        joinRoom($("codeInput").value);
+      });
+      $("codeGo").addEventListener("click", () => { Sound.click(); joinRoom($("codeInput").value); });
+      $("botsBtn").addEventListener("click", () => { Sound.click(); practice(false); });
+      $("pilotRoll").addEventListener("click", () => {
+        Sound.click();
+        rollName();
+        $("pilotName").textContent = myName();
+      });
+      $("onlineBack").addEventListener("click", () => { Sound.click(); leaveSession(); showMenu(); });
+      $("inviteBtn").addEventListener("click", () => { Sound.click(); invite(); });
+      $("startBtn").addEventListener("click", () => { Sound.click(); hostStart(); });
+      $("lobbyBots").addEventListener("click", () => { Sound.click(); practice(false); });
+      $("lobbyLeave").addEventListener("click", () => { Sound.click(); showOnline(); });
+      $("rematchBtn").addEventListener("click", () => { if (state === "vsOver") { Sound.click(); rematch(); } });
+      $("vsLeave").addEventListener("click", () => { Sound.click(); showOnline(); });
+      window.addEventListener("pagehide", () => { if (kind === "host" || kind === "guest") leaveSession(); });
+
+      return {
+        racing: () => !!race && run.mode === "versus" && (state === "vsStart" || state === "playing" || state === "dying" || state === "vsSpec"),
+        duel: () => !!race && !race.ended && run.mode === "versus" && race.racers.length > 2 && race.racers.filter(r => r.alive).length === 2,
+        me: () => me,
+        update: tick, draw, hud: hudTick, eliminated, afterDeath: watch, blast: raceBlast, charge: addCharge,
+        raceMenu, leave, enterKey, onVisibility, inviteCode, joinInvite, instant, setCrazyUser,
+        open: () => showOnline(), create: createRoom
+      };
+    })();
 
     // ---------- World ambience ----------
     // Each world has its own faint background life (dust, distant streaks, snow,
@@ -3853,9 +5754,13 @@
 
     function drawMeteors() {
       if (!meteors.length) return;
+      // In an online race: rocks already gone for this ship, and rocks sent to other
+      // ships, aren't drawn
+      const me = run.mode === "versus" ? Vs.me() : -1, bit = me >= 0 ? 1 << me : 0;
+      const hidden = m => bit && ((m.gone & bit) || (m.tgt !== undefined && m.tgt !== me));
       ctx.globalCompositeOperation = "lighter";
       for (const m of meteors) {
-        if (m.warn > 0) continue;
+        if (m.warn > 0 || hidden(m)) continue;
         if (m.kind === "bullet") {
           ctx.globalAlpha = 0.9;
           ctx.drawImage(glow("#ff4fa3"), m.x - 16, m.y - 16, 32, 32);
@@ -3872,14 +5777,16 @@
       }
       ctx.globalCompositeOperation = "source-over";
       for (const m of meteors) {
+        if (hidden(m)) continue;
         if (m.warn > 0) {
-          // Warning marker at the top edge for an incoming comet
+          // Warning marker at the top edge for an incoming comet, or a rival's rock (in their colour)
           if (Math.floor(T * 12) % 2 === 0) {
-            ctx.fillStyle = "#8ff0ff";
+            const s = m.atk ? 11 : 8;
+            ctx.fillStyle = m.atk ? m.warnColor : "#8ff0ff";
             ctx.beginPath();
-            ctx.moveTo(m.x - 8, safeTop + 4);
-            ctx.lineTo(m.x + 8, safeTop + 4);
-            ctx.lineTo(m.x, safeTop + 16);
+            ctx.moveTo(m.x - s, safeTop + 4);
+            ctx.lineTo(m.x + s, safeTop + 4);
+            ctx.lineTo(m.x, safeTop + 4 + s * 1.5);
             ctx.closePath();
             ctx.fill();
           }
@@ -4140,15 +6047,16 @@
     }
 
     function drawPlayer() {
-      if (state !== "playing" && state !== "countdown" && state !== "paused" && state !== "won") return;
+      const raceShip = state === "vsStart" || (state === "vsOver" && run.hull > 0);
+      if (state !== "playing" && state !== "countdown" && state !== "paused" && state !== "won" && !raceShip) return;
       const sk = skin();
       ctx.globalCompositeOperation = "lighter";
       ctx.globalAlpha = 0.35;
       ctx.drawImage(glow(sk.glow), player.x - 50, player.y - 44, 100, 100);
       ctx.globalCompositeOperation = "source-over";
-      const blink = run.invuln > 0 && Math.floor(T * 14) % 2 === 0;
+      const blink = run.invuln > 0 && run.invuln < 10 && Math.floor(T * 14) % 2 === 0;
       ctx.globalAlpha = blink ? 0.3 : 1;
-      drawShip(ctx, player.x, player.y, SHIP_SCALE, sk, player.tilt, T);
+      drawShip(ctx, player.x, player.y, shipScale, sk, player.tilt, T);
       ctx.globalAlpha = 1;
 
       if (run.pu.magnet > 0) {
@@ -4202,7 +6110,7 @@
         for (const p of particles) {
           if (!p.add !== !pass) continue;
           const a = p.life / p.max;
-          ctx.globalAlpha = a;
+          ctx.globalAlpha = p.alpha ? a * p.alpha : a;
           ctx.fillStyle = p.color;
           if (p.rect) {
             const w = p.size * 2 * Math.abs(Math.cos(T * 9 + p.x * 0.05));
@@ -4281,7 +6189,7 @@
       if (!active.length) return;
       const w = 76, h = 22, gap = 8;
       let x = W / 2 - (active.length * w + (active.length - 1) * gap) / 2;
-      const y = safeTop + (boss ? 196 : 104);
+      const y = safeTop + (boss ? 196 : run.mode === "versus" ? 122 : 104);
       for (const k of active) {
         const def = POWERUPS[k];
         const f = clamp(run.pu[k] / (def.duration * powerMult()), 0, 1);
@@ -4426,6 +6334,7 @@
       drawBoss();
       drawUfos();
       drawMeteors();
+      if (run.mode === "versus") Vs.draw();
       drawPlayer();
       drawParticles();
       drawTexts();
@@ -4535,6 +6444,14 @@
         applySettings(sdk.game.settings);
         sdk.game.addSettingsChangeListener(applySettings);
       } catch (e) {}
+      // Online races show the player's CrazyGames name, and friends' invites open their room
+      try {
+        if (sdk.user.isUserAccountAvailable) {
+          sdk.user.getUser().then(u => Vs.setCrazyUser(u)).catch(() => {});
+          sdk.user.addAuthListener(u => Vs.setCrazyUser(u));
+        }
+      } catch (e) {}
+      try { sdk.game.addJoinRoomListener(p => Vs.joinInvite(p && p.room)); } catch (e) {}
       // CrazyGames asks for "No thanks" to look exactly like the ad button
       $("skipBtn").className = $("reviveBtn").className;
       if (state === "playing" || state === "countdown") setGameplay(true);
@@ -4543,7 +6460,14 @@
 
     updateMuteButtons();
     // New players land straight in their first sector; returning players get the menu.
-    crazyReady.then(() => { if (plays === 0) startLevel(1, 1); else showMenu(); });
+    // An invite link (or CrazyGames' "play with friends") goes straight to the room instead.
+    crazyReady.then(() => {
+      const invite = Vs.inviteCode();
+      if (invite) Vs.joinInvite(invite);
+      else if (Vs.instant()) Vs.create();
+      else if (plays === 0) startLevel(1, 1);
+      else showMenu();
+    });
     requestAnimationFrame(frame);
   })();
   </script>
