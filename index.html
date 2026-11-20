@@ -588,7 +588,151 @@
     }
     .btn.vs svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; flex: none; }
     #onlineBtn { font-size: 17px; padding: 12px 24px; min-width: 240px; }
-    input { font: inherit; user-select: text; -webkit-user-select: text; }
+    input, textarea { font: inherit; user-select: text; -webkit-user-select: text; }
+
+    /* ---------- Star skills ---------- */
+    #skills { background: rgba(24,26,32,.96); }
+    .skills-panel { gap: 10px; }
+    .skills-top { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; width: 100%; max-width: 420px; }
+    .skills-top .back { justify-self: start; padding: 8px 4px; }
+    .skills-top .chip { justify-self: end; }
+    .skills-body { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+    .skills-side { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; max-width: 360px; }
+    .tree-wrap { position: relative; flex: none; }
+    .tree { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+    .tree-lines { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+    .tree-lines line { stroke: #646b78; stroke-width: 3; stroke-linecap: round; }
+    .tree-lines line.on { stroke: #3fc8ff; stroke-width: 4; filter: drop-shadow(0 0 4px rgba(63,200,255,.8)); }
+    .sk {
+      position: absolute;
+      width: 56px;
+      height: 56px;
+      margin: -28px 0 0 -28px;
+      padding: 0;
+      border-radius: 12px;
+      border: 2px solid #6b7280;
+      background: linear-gradient(180deg, #59606c, #40454f);
+      color: #ffffff;
+      box-shadow: 0 4px 0 #23262c, 0 6px 14px rgba(0,0,0,.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font: inherit;
+    }
+    .sk > svg { width: 26px; height: 26px; fill: currentColor; }
+    .sk.root { width: 70px; height: 70px; margin: -35px 0 0 -35px; border-radius: 16px; }
+    .sk.root > svg { width: 34px; height: 34px; fill: #ffd34d; }
+    .sk.locked { opacity: .42; }
+    .sk.owned {
+      border-color: #3fc8ff;
+      background: linear-gradient(180deg, #3b5669, #2b3d4c);
+      box-shadow: 0 0 0 2px rgba(63,200,255,.3), 0 0 18px rgba(63,200,255,.55), 0 4px 0 #1b2a36;
+    }
+    .sk.sel::after { content: ""; position: absolute; inset: -8px; border-radius: 17px; border: 2px solid rgba(255,255,255,.9); pointer-events: none; }
+    .sk.root.sel::after { border-radius: 21px; }
+    .sk .tier { position: absolute; top: 3px; left: 5px; font-size: 10px; font-weight: 900; font-style: normal; color: rgba(255,255,255,.75); }
+    .sk .tag {
+      position: absolute;
+      left: 50%;
+      top: 100%;
+      transform: translate(-50%, -7px);
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #22252b;
+      border: 1px solid rgba(255,255,255,.18);
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+      color: #e6edf3;
+    }
+    .sk .tag svg { width: 10px; height: 10px; fill: #ffd34d; }
+    .sk.can .tag { border-color: #ffd34d; color: #ffe08a; box-shadow: 0 0 8px rgba(255,211,77,.4); }
+    .sk.owned .tag { display: none; }
+    .sk .tick {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 19px;
+      height: 19px;
+      border-radius: 50%;
+      background: #3fc8ff;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 6px rgba(63,200,255,.9);
+    }
+    .sk .tick svg { width: 12px; height: 12px; fill: none; stroke: #0b1a24; stroke-width: 3.4; stroke-linecap: round; stroke-linejoin: round; }
+    .sk.owned .tick { display: flex; }
+    .sk.just { animation: skPop .6s ease-out; }
+    @keyframes skPop { 30% { transform: scale(1.28); } }
+    .skill-card {
+      width: 100%;
+      text-align: left;
+      background: #4a505b;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 12px;
+      padding: 10px 14px 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.35);
+    }
+    .sc-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .sc-head b { font-size: 17px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+    .sc-head span { display: inline-flex; align-items: center; gap: 4px; font-size: 17px; font-weight: 900; color: #ffd34d; white-space: nowrap; }
+    .sc-head span svg { width: 15px; height: 15px; fill: currentColor; }
+    #scText { font-size: 14px; font-weight: 600; color: #eef2f6; line-height: 1.35; margin-top: 4px; }
+    .sc-state { font-size: 12px; font-weight: 800; color: #c3cad4; margin-top: 6px; line-height: 1.35; }
+    .sc-state.ok { color: #7ee0ff; }
+    #scLearn svg { width: 17px; height: 17px; fill: currentColor; }
+    .badge.pts { background: linear-gradient(180deg, #ffd34d, #e0a210); color: #3a2600; display: inline-flex; align-items: center; gap: 2px; }
+    .badge.pts svg { width: 10px; height: 10px; fill: currentColor; }
+    .cells i.st { background: #ffd34d; box-shadow: 0 0 6px rgba(255,211,77,.7); }
+    .menu .row .btn.sec { padding-left: 18px; padding-right: 18px; }
+    @media (max-width: 380px) {
+      #endlessBtn small { display: none; }
+      .menu .row .btn.sec { padding-left: 14px; padding-right: 14px; }
+    }
+    @media (orientation: landscape) and (min-width: 600px) {
+      .skills-body { flex-direction: row; justify-content: center; align-items: center; column-gap: 22px; }
+      .skills-side { width: 270px; flex: none; }
+      .skills-top { max-width: 860px; }
+    }
+    /* Short screens: a slimmer card leaves more room for the tree */
+    @media (max-height: 700px) {
+      .skills-panel, .skills-body, .skills-side { gap: 6px; }
+      .skill-card { padding: 8px 12px 9px; }
+      #scText { font-size: 13px; }
+      #scLearn { padding: 11px 22px; font-size: 16px; }
+      #skillsReset { padding: 4px 12px; font-size: 14px; }
+    }
+    @media (orientation: landscape) and (min-width: 600px) and (max-height: 480px) {
+      .skills-side { width: 200px; }
+      .skills-top .back { padding: 4px; }
+    }
+
+    /* ---------- Updates and backups ---------- */
+    .pill.update { background: linear-gradient(180deg, #ffd34d, #e0a210); color: #3a2600; box-shadow: 0 6px 20px rgba(255,200,60,.3); }
+    .save-btn svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+    .code-box {
+      width: 100%;
+      max-width: 340px;
+      height: 66px;
+      resize: none;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.35);
+      color: #cfe6ff;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 11px;
+      line-height: 1.35;
+      padding: 8px 10px;
+      outline: none;
+      word-break: break-all;
+    }
+    .code-box:focus { border-color: #58a6ff; }
+    .code-box::placeholder { color: rgba(255,255,255,.3); font-family: inherit; font-size: 13px; }
     .pilot {
       display: flex;
       align-items: center;
@@ -756,6 +900,8 @@
       .slot { min-height: 36px; padding-top: 2px; padding-bottom: 2px; }
       .slot canvas { width: 28px; height: 28px; }
       #codeInput { height: 44px; font-size: 22px; }
+      .code-box { height: 40px; padding-top: 5px; padding-bottom: 5px; }
+      #backup .sub { font-size: 13px; max-width: 460px; }
       .panel { gap: 7px; }
       .title { font-size: 34px; }
       #menuShip { display: none; }
@@ -815,6 +961,7 @@
   <div id="countdown"></div>
 
   <div id="menu" class="overlay menu"><div class="panel">
+    <button class="pill update" id="updateBtn" hidden></button>
     <div class="title"><span class="t1">METEOR</span><span class="t2">SWERVE</span></div>
     <div class="stats">
       <div class="stat"><small>STARS</small><b><span class="ico-star" data-icon="star"></span><span id="menuStars">0</span></b></div>
@@ -825,14 +972,48 @@
     <button class="btn vs" id="onlineBtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>Online race <span class="badge new" id="onlineNew" hidden>NEW</span></button>
     <div class="row">
       <button class="btn sec" id="hangarBtn">Hangar <span class="badge new" id="hangarNew" hidden>NEW</span></button>
+      <button class="btn sec" id="skillsBtn">Skills <span class="badge pts" id="skillsPts" hidden></span></button>
       <button class="btn sec" id="endlessBtn">Endless</button>
     </div>
     <div class="menu-foot">
       <button class="icon-btn mute-btn" aria-label="Toggle sound"></button>
       <button class="icon-btn music-btn" aria-label="Toggle music"></button>
+      <button class="icon-btn save-btn" id="backupBtn" aria-label="Progress backup"><svg viewBox="0 0 24 24"><path d="M5 3.5h11l4.5 4.5v11a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19V5A1.5 1.5 0 0 1 5 3.5z"/><path d="M7.5 3.5v5h8v-5M7.5 20.5v-6.5h9v6.5"/></svg></button>
       <button class="pill" id="freeCoinsBtn"></button>
     </div>
     <p class="hint" id="menuHint">Drag anywhere to steer · grab coins · beat the bosses</p>
+    <p class="ver" id="menuVer"></p>
+  </div></div>
+
+  <div id="skills" class="overlay"><div class="panel skills-panel">
+    <div class="skills-top">
+      <button class="btn ghost back" id="skillsBack">‹ Back</button>
+      <div class="h2">Skills</div>
+      <div class="chip" title="Stars to spend"><span class="ico-star" data-icon="star"></span><span id="skillPts">0</span></div>
+    </div>
+    <div class="skills-body">
+      <div class="tree-wrap" id="treeWrap"><div class="tree" id="tree"><svg class="tree-lines" id="treeLines"></svg></div></div>
+      <div class="skills-side">
+        <div class="skill-card">
+          <div class="sc-head"><b id="scName"></b><span id="scCost"></span></div>
+          <p id="scText"></p>
+          <p class="sc-state" id="scState"></p>
+        </div>
+        <button class="btn gold" id="scLearn">Learn</button>
+        <button class="btn ghost" id="skillsReset">Reset skills</button>
+      </div>
+    </div>
+  </div></div>
+
+  <div id="backup" class="overlay menu"><div class="panel">
+    <div class="h1">Progress backup</div>
+    <div class="sub">Your progress is saved in this browser. Copy your backup code and keep it somewhere safe, like your notes. Paste it here on any phone or browser to bring your progress back.</div>
+    <textarea class="code-box" id="backupCode" readonly spellcheck="false" aria-label="Your backup code"></textarea>
+    <button class="btn" id="backupCopy">Copy my code</button>
+    <textarea class="code-box" id="restoreCode" spellcheck="false" autocomplete="off" placeholder="Paste a backup code here" aria-label="Backup code to restore"></textarea>
+    <button class="btn sec" id="restoreBtn">Restore this code</button>
+    <p class="tip" id="backupMsg" hidden></p>
+    <button class="btn ghost" id="backupBack">‹ Menu</button>
   </div></div>
 
   <div id="daily" class="overlay"><div class="panel">
@@ -859,6 +1040,7 @@
     <div class="row">
       <button class="btn ghost" id="mapBack">Menu</button>
       <button class="btn ghost" id="mapHangar">Hangar</button>
+      <button class="btn ghost" id="mapSkills">Skills <span class="badge pts" id="mapSkillsPts" hidden></span></button>
     </div>
   </div></div>
 
@@ -1038,7 +1220,7 @@
       <button class="btn ghost" id="quitBtn">Quit</button>
     </div>
     <p class="hint" id="pauseNote" hidden>Online races keep going while this is open.</p>
-    <p class="ver">Meteor Swerve 2.5</p>
+    <p class="ver" id="pauseVer"></p>
   </div></div>
 
   <script>
@@ -1046,6 +1228,9 @@
     "use strict";
 
     // ---------- Config ----------
+    // Shown on the menu and the pause screen. Bump it with every release, together with
+    // version.json (the website compares the two to offer a one-tap update).
+    const GAME_VERSION = "2.7";
     const AD_DIRECT_LINK = "https://uplcm.com/4/12131180";
     const CONTINUE_SECONDS = 5;
     const FREE_COINS = 40;                  // the free-coins ad's pay at the very start; it grows with progress
@@ -1116,6 +1301,60 @@
       { id: "shield", name: "Starter shield", icon: ICON_SHIELD, prices: [1000],
         text: l => l < 1 ? "Start every run with a shield" : "Every run starts shielded" }
     ];
+
+    // Star skills: every star earned is a skill point to spend on this tree. Spent stars
+    // still count for opening worlds and for the star rewards. The whole tree costs 144,
+    // the number of stars in the game. Positions are cells on a 5 x 7 grid around the centre.
+    const SKI = {
+      clock: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 7v5.4l3.6 2.2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      shields: '<svg viewBox="0 0 24 24"><path d="M9 3l6 2.6v4.4c0 3.8-2.6 6.5-6 7.9-3.4-1.4-6-4.1-6-7.9V5.6z" opacity=".5"/><path d="M15 6l6 2.6v4.4c0 3.8-2.6 6.5-6 7.9-3.4-1.4-6-4.1-6-7.9V8.6z"/></svg>',
+      heart: '<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.4-4.5-9.2-9.1C1.5 8.1 3.5 4.6 7 4.6c2.1 0 3.6 1.1 5 2.9 1.4-1.8 2.9-2.9 5-2.9 3.5 0 5.5 3.5 4.2 6.8-1.8 4.6-9.2 9.1-9.2 9.1z"/></svg>',
+      coin: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 7.3l1.4 2.9 3.2.4-2.3 2.2.6 3.2-2.9-1.6-2.9 1.6.6-3.2-2.3-2.2 3.2-.4z"/></svg>',
+      crown: '<svg viewBox="0 0 24 24"><path d="M3 7.5l4.6 4.2L12 4.5l4.4 7.2L21 7.5 19.2 17H4.8z"/><rect x="4.8" y="18.5" width="14.4" height="2.3" rx="1.1"/></svg>',
+      coins: '<svg viewBox="0 0 24 24"><ellipse cx="12" cy="6.3" rx="7" ry="3"/><path d="M5 9.3c0 1.7 3.1 3 7 3s7-1.3 7-3v2.8c0 1.7-3.1 3-7 3s-7-1.3-7-3zm0 5.6c0 1.7 3.1 3 7 3s7-1.3 7-3v2.6c0 1.7-3.1 3-7 3s-7-1.3-7-3z"/></svg>',
+      chute: '<svg viewBox="0 0 24 24"><path d="M2.5 10.5a9.5 7.5 0 0 1 19 0z"/><path d="M3.5 10.5l6 5.5M20.5 10.5l-6 5.5M12 10.5V16" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="8.5" y="15.5" width="7" height="6" rx="1.2"/></svg>',
+      burst: '<svg viewBox="0 0 24 24"><path d="M12 1.5l2.2 6.1 6.3-2-3.9 5.3 5.3 3.4-6.5.5.4 6.5L12 16.8l-3.8 4.5.4-6.5-6.5-.5 5.3-3.4-3.9-5.3 6.3 2z"/></svg>',
+      burst2: '<svg viewBox="0 0 24 24"><path d="M9 2.5l1.6 4.4 4.5-1.4-2.8 3.8 3.8 2.4-4.7.4.3 4.6L9 13.4l-2.7 3.3.3-4.6-4.7-.4 3.8-2.4L2.9 5.5l4.5 1.4z"/><path d="M17.3 11.5l1.1 2.9 3-.9-1.8 2.5 2.5 1.6-3 .3.2 3-1.9-2.2-1.9 2.2.2-3-3-.3 2.5-1.6-1.8-2.5 3 .9z"/></svg>',
+      target: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="2.8"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5" stroke="currentColor" stroke-width="2.2"/></svg>',
+      chain: '<svg viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9.6 14.4l4.8-4.8"/><path d="M8.3 11.2l-2.4 2.4a3.4 3.4 0 0 0 4.8 4.8l2.4-2.4"/><path d="M15.7 12.8l2.4-2.4a3.4 3.4 0 0 0-4.8-4.8l-2.4 2.4"/></g></svg>',
+      flame: '<svg viewBox="0 0 24 24"><path d="M12 1.8c1.1 3.6 5.6 5.8 5.6 11.3a5.6 5.6 0 0 1-11.2 0c0-2.7 1.4-4.3 2.7-5.4.1 1.9.9 3.1 2 3.6C10.5 8.4 11 4.8 12 1.8z"/></svg>',
+      bars: '<svg viewBox="0 0 24 24"><rect x="3" y="14" width="4.2" height="7" rx="1"/><rect x="9.9" y="9" width="4.2" height="12" rx="1"/><rect x="16.8" y="3" width="4.2" height="18" rx="1"/></svg>',
+      radar: '<svg viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="4.3"/></g><path d="M12 12l6.3-6.3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="16" cy="9" r="1.8"/></svg>',
+      swirl: '<svg viewBox="0 0 24 24"><path d="M13.5 12a1.5 1.5 0 1 1-1.5-1.5 3.6 3.6 0 0 1 3.6 3.6A5.6 5.6 0 0 1 10 19.7a7.6 7.6 0 0 1-7.6-7.6A9.6 9.6 0 0 1 12 2.5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>',
+      hourglass: '<svg viewBox="0 0 24 24"><path d="M6.5 2.8h11v1.8c0 3.1-2.5 5.3-4.3 7.4 1.8 2.1 4.3 4.3 4.3 7.4v1.8h-11v-1.8c0-3.1 2.5-5.3 4.3-7.4C9 9.9 6.5 7.7 6.5 4.6z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.2 19.4c.6-1.6 1.7-2.5 2.8-3.2 1.1.7 2.2 1.6 2.8 3.2z"/></svg>'
+    };
+    const SKILL_TREE = [
+      { id: "root", at: [0, 0], cost: 0, name: "Star Pilot", icon: ICON_STAR,
+        text: "Every star you earn is a skill point to spend here. Spent stars still count for opening worlds." },
+      // Armor: up
+      { id: "a1", parent: "root", at: [0, -1], cost: 2, tier: "I", name: "Tough Plating", icon: ICON_ARMOR, text: "+1 hull on every ship." },
+      { id: "a2", parent: "a1", at: [1, -2], cost: 4, name: "Quick Recovery", icon: SKI.clock, text: "After a hit, your ship stays safe 50% longer." },
+      { id: "a3", parent: "a2", at: [1, -3], cost: 7, name: "Double Shield", icon: SKI.shields, text: "Shields block two hits instead of one." },
+      { id: "a4", parent: "a2", at: [2, -3], cost: 10, tier: "II", name: "Reinforced Hull", icon: ICON_ARMOR, text: "+1 more hull on every ship." },
+      { id: "a5", parent: "a3", at: [0, -3], cost: 16, name: "Last Stand", icon: SKI.heart, text: "Once per run, a hit that would destroy your ship leaves it flying on its last bit of hull." },
+      // Fortune: right
+      { id: "f1", parent: "root", at: [1, 0], cost: 2, tier: "I", name: "Lucky Strike", icon: SKI.coin, text: "+10% coins from everything you pick up." },
+      { id: "f2", parent: "f1", at: [2, 0], cost: 4, name: "Long Reach", icon: ICON_MAGNET, text: "Coins fly to your ship from farther away." },
+      { id: "f3", parent: "f2", at: [2, -1], cost: 7, name: "Mastery", icon: SKI.crown, text: "Sectors where you have all 3 stars pay 30% more when you clear them." },
+      { id: "f4", parent: "f2", at: [2, 1], cost: 8, name: "Boss Bounty", icon: ICON_SKULL, text: "Beating a boss pays 50% more coins." },
+      { id: "f5", parent: "f4", at: [2, 2], cost: 12, tier: "II", name: "Golden Touch", icon: SKI.coins, text: "+15% more coins from everything you pick up." },
+      // Power-ups: down
+      { id: "p1", parent: "root", at: [0, 1], cost: 2, name: "Long Fuse", icon: ICON_POWER, text: "Power-ups last 25% longer." },
+      { id: "p2", parent: "p1", at: [0, 2], cost: 5, name: "Supply Drops", icon: SKI.chute, text: "Power-ups show up 25% more often." },
+      { id: "p3", parent: "p2", at: [0, 3], cost: 7, name: "Big Bang", icon: SKI.burst, text: "Every rock a blast destroys pays 2 coins instead of 1." },
+      { id: "p4", parent: "p2", at: [1, 3], cost: 11, name: "Blast Lover", icon: SKI.burst2, text: "Blast power-ups turn up twice as often." },
+      // Close calls: down-left
+      { id: "r1", parent: "root", at: [-1, 1], cost: 2, name: "Steady Hands", icon: SKI.target, text: "Close calls count from a little farther away." },
+      { id: "r2", parent: "r1", at: [-2, 1], cost: 5, name: "Chain Keeper", icon: SKI.chain, text: "Close-call combos last one second longer." },
+      { id: "r3", parent: "r2", at: [-2, 2], cost: 8, name: "Daredevil", icon: SKI.flame, text: "Close calls pay double." },
+      { id: "r4", parent: "r3", at: [-2, 3], cost: 12, name: "Combo Master", icon: SKI.bars, text: "Close-call combos climb all the way to x15." },
+      // Radar: up-left
+      { id: "d1", parent: "root", at: [-1, -1], cost: 3, name: "Early Warning", icon: SKI.radar, text: "Comets and lasers warn you a moment sooner." },
+      { id: "d2", parent: "d1", at: [-2, -1], cost: 6, name: "Gravity Damper", icon: SKI.swirl, text: "Black holes pull your ship 40% less." },
+      { id: "d3", parent: "d2", at: [-2, -2], cost: 11, name: "Calm Bosses", icon: SKI.hourglass, text: "Bosses wait longer between their attacks." }
+    ];
+    const SKILL_BY_ID = {};
+    SKILL_TREE.forEach(s => { SKILL_BY_ID[s.id] = s; });
 
     // Each world has its own colours, a new kind of danger and a boss.
     const WORLDS = [
@@ -1300,7 +1539,11 @@
 
     // levelStars holds a bitmask per sector: 1 cleared, 2 coin star, 4 no-damage star.
     let best, wallet, owned, selectedSkin, plays, freeCoinsAt, levelStars, upgrades, guards, trailsOwned, selectedTrail;
+    let skillsOwned = new Set(["root"]);
     function loadSave() {
+      const sk = store.get("meteorSkills", []);
+      skillsOwned = new Set(["root"]);
+      if (Array.isArray(sk)) for (const id of sk) if (SKILL_BY_ID[id]) skillsOwned.add(id);
       best = Number(store.get("meteorHighScore", 0)) || 0;
       wallet = Number(store.get("meteorCoins", 0)) || 0;
       guards = clamp(Math.floor(Number(store.get("meteorGuards", 0)) || 0), 0, GUARD_MAX);
@@ -1332,6 +1575,11 @@
     const cleared = id => (starsOf(id) & 1) === 1;
     const starCount = id => popcount(starsOf(id));
     const totalStars = () => Object.keys(levelStars).reduce((s, k) => s + popcount(levelStars[k]), 0);
+    // Star skills: points are stars earned minus the stars spent on skills
+    const spentStars = () => { let s = 0; for (const id of skillsOwned) s += SKILL_BY_ID[id].cost; return s; };
+    const skillPoints = () => totalStars() - spentStars();
+    const saveSkills = () => store.set("meteorSkills", [...skillsOwned].filter(id => id !== "root"));
+    const skillHull = () => (skillsOwned.has("a1") ? 1 : 0) + (skillsOwned.has("a4") ? 1 : 0);
     const bossBeaten = w => cleared(w + "-" + LEVELS_PER_WORLD);
     const worldUnlocked = w => w === 1 || (bossBeaten(w - 1) && totalStars() >= STAR_GATES[w - 1]);
     const levelUnlocked = (w, i) => worldUnlocked(w) && (i === 1 || cleared(w + "-" + (i - 1)));
@@ -1351,10 +1599,13 @@
     // In an online race every ship flies the same (looks and trails still show)
     const inRace = () => run.mode === "versus";
     const hasPerk = p => !inRace() && (skin().perk === p || (skin().perk === "star" && p !== "phase"));
-    const maxHull = () => skin().hull + upgrades.hull;
-    const coinMult = () => hasPerk("midas") ? 2 : hasPerk("lucky") ? 1.25 : 1;
-    const powerMult = () => inRace() ? 1 : 1 + 0.25 * upgrades.power + (hasPerk("power") ? 0.5 : 0);
-    const magnetRadius = () => inRace() ? 0 : Math.max([0, 55, 85, 120][upgrades.magnet], hasPerk("magnet") ? 110 : 0);
+    // Star skills count everywhere except online races (maxHull is only used outside them)
+    const skill = id => skillsOwned.has(id) && !inRace();
+    const maxHull = () => skin().hull + upgrades.hull + skillHull();
+    const coinMult = () => (hasPerk("midas") ? 2 : hasPerk("lucky") ? 1.25 : 1) * (1 + (skill("f1") ? 0.1 : 0) + (skill("f5") ? 0.15 : 0));
+    const powerMult = () => inRace() ? 1 : 1 + 0.25 * upgrades.power + (hasPerk("power") ? 0.5 : 0) + (skill("p1") ? 0.25 : 0);
+    const magnetRadius = () => inRace() ? 0 : Math.max([0, 55, 85, 120][upgrades.magnet], hasPerk("magnet") ? 110 : 0) + (skill("f2") ? 45 : 0);
+    const recoverMult = () => skill("a2") ? 1.5 : 1;
 
     // Star rewards (a ship and a trail) join the hangar as soon as the player has
     // enough stars. Returns notes about anything new.
@@ -1773,6 +2024,7 @@
       buildBackground();
       previewCanvas.width = previewCanvas.height = Math.round(130 * DPR);
       menuShipCanvas.width = menuShipCanvas.height = Math.round(130 * DPR);
+      if (state === "skills") layoutTree();
     }
 
     // ---------- Pre-rendered sprites ----------
@@ -2061,7 +2313,7 @@
     let boss = null;
     let banner = null;
     let midgameBusy = false;
-    const AMBIENT = new Set(["menu", "map", "hangar", "ending", "boot", "daily", "online", "lobby"]);
+    const AMBIENT = new Set(["menu", "map", "hangar", "ending", "boot", "daily", "online", "lobby", "backup", "skills"]);
 
     function newRun(mode, lvl) {
       const hull = maxHull();
@@ -2071,6 +2323,7 @@
         coins: 0, coinAcc: 0, coinsSpawned: 0, coinsPicked: 0,
         hull, maxHull: hull, damaged: false, phaseUsed: false,
         guard: false, guardUsed: false, guardAd: false, combo: 0, comboAt: -99,
+        shieldHits: 1, lastStand: false,
         revived: false, doubled: false, rewarded: false, moved: false, tutorial: false,
         spawnT: 0.9, coinT: 1.2, powerT: rand(7, 11),
         cometT: rand(2, 4), laserT: rand(3, 5), wellT: rand(4, 7), ufoT: rand(4, 7),
@@ -2103,7 +2356,7 @@
     document.querySelectorAll("[data-icon=star]").forEach(el => { el.innerHTML = ICON_STAR; });
 
     const screens = {};
-    ["menu", "map", "hangar", "continue", "adwait", "clear", "fail", "gameover", "ending", "pause", "daily", "online", "lobby", "vsResult"].forEach(n => { screens[n] = $(n); });
+    ["menu", "map", "hangar", "continue", "adwait", "clear", "fail", "gameover", "ending", "pause", "daily", "online", "lobby", "vsResult", "backup", "skills"].forEach(n => { screens[n] = $(n); });
 
     function showScreen(name, readyDelay) {
       const el = screens[name];
@@ -2152,7 +2405,10 @@
       shipScale = SHIP_SCALE;
       setPalette(mode === "level" ? lvl.w : 1);
       if (cachesWiped()) cachesLost = true;
-      if (upgrades.shield) run.pu.shield = POWERUPS.shield.duration * powerMult();
+      if (upgrades.shield) {
+        run.pu.shield = POWERUPS.shield.duration * powerMult();
+        run.shieldHits = skill("a3") ? 2 : 1;
+      }
       // A star guard comes along only where the no-hit star is still to be won,
       // and is used up only if it actually blocks a hit.
       run.guard = mode === "level" && guards > 0 && needsNoHitStar(lvl);
@@ -2218,6 +2474,7 @@
       enterBreak("menu");
       setPalette(1);
       refreshMenu();
+      checkForUpdate();
       showScreen("menu", 250);
       const day = plays > 0 ? dailyDue() : 0;
       if (day) showDaily(day);
@@ -2421,8 +2678,10 @@
       const prev = starsOf(lvl.id), fresh = bits & ~prev;
       levelStars[lvl.id] = prev | bits;
       store.set("meteorStars", levelStars);
-      const bonus = (prev & 1 ? Math.round(lvl.coinBonus / 2) : lvl.coinBonus) + popcount(fresh) * 10 * lvl.w;
-      grantCoins(bonus);
+      let bonus = (prev & 1 ? Math.round(lvl.coinBonus / 2) : lvl.coinBonus) + popcount(fresh) * 10 * lvl.w;
+      if (lvl.boss && skill("f4")) bonus *= 1.5;                   // Boss Bounty
+      if ((prev | bits) === 7 && skill("f3")) bonus *= 1.3;        // Mastery
+      grantCoins(Math.round(bonus));
       const rewards = unlockStarRewards();
       const note = $("clearNote");
       const guardSaved = run.guardUsed && (fresh & 4);
@@ -2724,6 +2983,7 @@
         lastFrame = performance.now();
         // Back in view: check the cached drawings survived the time away
         if (cachesWiped()) cachesLost = true;
+        if (state === "menu") checkForUpdate();
         if (adPending && adPending.hidden && adPending.opened) {
           const ad = adPending;
           setTimeout(() => { if (adPending === ad) finishAd(); }, 400);
@@ -2737,6 +2997,7 @@
       // Points returning players to the star guards and trails added to the hangar
       $("hangarNew").hidden = !!store.get("meteorSeenShop", false);
       $("onlineNew").hidden = !!store.get("meteorSeenVs", false, true);
+      updateSkillBadges();
       $("menuStars").textContent = totalStars();
       $("menuCoins").textContent = wallet;
       const [fw, fi] = frontier();
@@ -2822,10 +3083,303 @@
       coinBurst();
     }
 
+    // ---------- Version and updates ----------
+    $("menuVer").textContent = "Version " + GAME_VERSION;
+    $("pauseVer").textContent = "Meteor Swerve " + GAME_VERSION;
+
+    // The website looks for a newer version now and then and offers a one-tap update, so
+    // nobody needs to reinstall the home-screen app or clear the site's data to get one
+    // (either of those erases the progress saved in the browser). Updates never touch the
+    // save itself. CrazyGames delivers new versions on its own.
+    let newVersion = "", updateCheckAt = 0;
+    function newerVersion(a, b) {
+      const x = a.split(".").map(Number), y = b.split(".").map(Number);
+      for (let i = 0; i < Math.max(x.length, y.length); i++) {
+        const d = (x[i] || 0) - (y[i] || 0);
+        if (d) return d > 0;
+      }
+      return false;
+    }
+    function checkForUpdate() {
+      if (newVersion || Date.now() < updateCheckAt || (crazy && crazy.environment === "crazygames")) return;
+      updateCheckAt = Date.now() + 5 * 60 * 1000;
+      fetch("version.json?t=" + Date.now(), { cache: "no-store" })
+        .then(r => (r.ok ? r.json() : null))
+        .then(d => {
+          const v = d && typeof d.version === "string" ? d.version : "";
+          if (!/^\d+(\.\d+){0,3}$/.test(v) || !newerVersion(v, GAME_VERSION)) return;
+          newVersion = v;
+          const b = $("updateBtn");
+          b.textContent = "Version " + v + " is out · Tap to update";
+          b.hidden = false;
+        })
+        .catch(() => {});
+    }
+
+    // ---------- Progress backup ----------
+    // Progress lives in this browser only. A backup code carries it to another phone or
+    // browser (an iPhone's home-screen app and Safari keep separate saves), or brings it
+    // back after the site's data was cleared. CrazyGames saves follow the player's account.
+    const BACKUP_KEYS = ["meteorHighScore", "meteorCoins", "meteorGuards", "meteorTrails", "meteorTrail", "meteorSkinsOwned",
+      "meteorSkin", "meteorPlays", "meteorStars", "meteorUpgrades", "meteorDaily", "meteorVs", "meteorSeenShop", "meteorSkills"];
+    let restorePending = "";
+
+    function hash36(s) {
+      let h = 2166136261;
+      for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+      return (h >>> 0).toString(36);
+    }
+
+    function backupCode() {
+      const d = {};
+      for (const k of BACKUP_KEYS) {
+        const v = store.get(k, null);
+        if (v !== null) d[k] = v;
+      }
+      const json = JSON.stringify({ v: 1, d });
+      const bytes = new TextEncoder().encode(json);
+      let bin = "";
+      for (const b of bytes) bin += String.fromCharCode(b);
+      return "MSW1." + btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "") + "." + hash36(json);
+    }
+
+    // The saved data inside a backup code, checked and tidied, or null if the code is broken
+    function readBackup(text) {
+      const m = /^MSW1\.([A-Za-z0-9_-]+)\.([0-9a-z]+)$/.exec(String(text || "").replace(/\s+/g, ""));
+      if (!m) return null;
+      let o;
+      try {
+        const bin = atob(m[1].replace(/-/g, "+").replace(/_/g, "/"));
+        const json = new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0)));
+        if (hash36(json) !== m[2]) return null;
+        o = JSON.parse(json);
+      } catch (e) { return null; }
+      const d = o && o.v === 1 && o.d && typeof o.d === "object" ? o.d : null;
+      if (!d) return null;
+      const whole = (v, max) => Number.isFinite(v) ? clamp(Math.floor(v), 0, max) : 0;
+      const list = (a, all) => Array.isArray(a) ? [...new Set(a.filter(i => Number.isInteger(i) && all[i]))] : [];
+      const stars = {};
+      if (d.meteorStars && typeof d.meteorStars === "object") {
+        for (const k in d.meteorStars) {
+          if (/^[1-6]-[1-8]$/.test(k) && Number.isInteger(d.meteorStars[k])) stars[k] = d.meteorStars[k] & 7;
+        }
+      }
+      const up = {};
+      for (const u of UPGRADES) up[u.id] = whole(d.meteorUpgrades && d.meteorUpgrades[u.id], u.prices.length);
+      const vs = d.meteorVs && typeof d.meteorVs === "object" ? d.meteorVs : {};
+      const daily = d.meteorDaily && typeof d.meteorDaily === "object" && typeof d.meteorDaily.last === "string"
+        ? { last: d.meteorDaily.last.slice(0, 12), streak: whole(d.meteorDaily.streak, 7) } : null;
+      return {
+        meteorHighScore: whole(d.meteorHighScore, 1e9),
+        meteorCoins: whole(d.meteorCoins, 1e9),
+        meteorGuards: whole(d.meteorGuards, GUARD_MAX),
+        meteorTrails: list(d.meteorTrails, TRAILS),
+        meteorTrail: whole(d.meteorTrail, TRAILS.length - 1),
+        meteorSkinsOwned: list(d.meteorSkinsOwned, SHIPS),
+        meteorSkin: whole(d.meteorSkin, SHIPS.length - 1),
+        meteorPlays: whole(d.meteorPlays, 1e9),
+        meteorStars: stars,
+        meteorUpgrades: up,
+        meteorDaily: daily,
+        meteorVs: { races: whole(vs.races, 1e6), wins: whole(vs.wins, 1e6), botWins: whole(vs.botWins, 1e6) },
+        meteorSeenShop: d.meteorSeenShop === true ? true : null,
+        meteorSkills: Array.isArray(d.meteorSkills)
+          ? [...new Set(d.meteorSkills.filter(id => typeof id === "string" && SKILL_BY_ID[id] && id !== "root"))] : []
+      };
+    }
+
+    // Replaces this browser's progress with a backup's
+    function applyBackup(d) {
+      for (const k in d) if (d[k] !== null) store.set(k, d[k]);
+      loadSave();
+      unlockStarRewards();
+      viewSkin = selectedSkin;
+      viewTrail = selectedTrail;
+      refreshMenu();
+    }
+
+    function setBackupMsg(t) {
+      const m = $("backupMsg");
+      m.textContent = t;
+      m.hidden = !t;
+    }
+
+    function showBackup() {
+      enterBreak("backup");
+      $("backupCode").value = backupCode();
+      $("restoreCode").value = "";
+      restorePending = "";
+      $("restoreBtn").textContent = "Restore this code";
+      setBackupMsg("");
+      showScreen("backup", 200);
+    }
+
+    // Copies text to the clipboard; false if the browser won't allow it
+    async function copyText(t) {
+      try { await navigator.clipboard.writeText(t); return true; } catch (e) {}
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = t;
+        ta.style.cssText = "position:fixed;opacity:0;user-select:text;-webkit-user-select:text";
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        ta.remove();
+        return ok;
+      } catch (e) { return false; }
+    }
+
+    // ---------- Star skills screen ----------
+    // A tree of skills around a centre node. Tapping a skill shows what it does; a learned
+    // skill glows and its link lights up. The tree scales to fit the screen and turns on its
+    // side on landscape screens, so every skill stays big enough to tap.
+    const SK_STEP = 84;                                   // grid step between skills
+    const TREE_W = 4 * SK_STEP + 104, TREE_H = 6 * SK_STEP + 112;
+    const ICON_CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+    const skillNodes = {}, skillLinks = {};
+    let skillSel = "root", skillsFrom = "menu", resetArmedUntil = 0;
+
+    (function buildSkillTree() {
+      const tree = $("tree"), svg = $("treeLines");
+      for (const s of SKILL_TREE) {
+        if (!s.parent) continue;
+        skillLinks[s.id] = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        svg.appendChild(skillLinks[s.id]);
+      }
+      for (const s of SKILL_TREE) {
+        const b = document.createElement("button");
+        b.className = "sk" + (s.parent ? "" : " root");
+        b.dataset.id = s.id;
+        b.setAttribute("aria-label", s.name);
+        b.innerHTML = (s.tier ? '<i class="tier">' + s.tier + "</i>" : "") + s.icon +
+          (s.cost ? '<span class="tag">' + ICON_STAR + s.cost + "</span>" : "") + '<span class="tick">' + ICON_CHECK + "</span>";
+        tree.appendChild(b);
+        skillNodes[s.id] = b;
+      }
+    })();
+
+    function skillState(id) {
+      const s = SKILL_BY_ID[id];
+      if (skillsOwned.has(id)) return "owned";
+      if (!skillsOwned.has(s.parent)) return "locked";
+      return skillPoints() >= s.cost ? "can" : "open";
+    }
+
+    // Something worth looking at first: a skill the player can learn now, if any
+    function firstSkill() {
+      const s = SKILL_TREE.find(n => skillState(n.id) === "can") || SKILL_TREE.find(n => skillState(n.id) === "open");
+      return s ? s.id : "root";
+    }
+
+    function updateSkillBadges() {
+      const can = SKILL_TREE.some(s => skillState(s.id) === "can");
+      for (const id of ["skillsPts", "mapSkillsPts"]) {
+        const el = $(id);
+        el.hidden = !can;
+        if (can) el.innerHTML = ICON_STAR + Math.max(0, skillPoints());
+      }
+    }
+
+    function renderSkills() {
+      $("skillPts").textContent = Math.max(0, skillPoints());
+      for (const s of SKILL_TREE) {
+        const st = skillState(s.id), b = skillNodes[s.id];
+        b.classList.toggle("owned", st === "owned");
+        b.classList.toggle("locked", st === "locked");
+        b.classList.toggle("can", st === "can");
+        b.classList.toggle("sel", s.id === skillSel);
+        if (skillLinks[s.id]) skillLinks[s.id].classList.toggle("on", st === "owned");
+      }
+      skillCard(skillSel);
+      const reset = $("skillsReset");
+      reset.hidden = skillsOwned.size <= 1;
+      reset.textContent = Date.now() < resetArmedUntil ? "Tap again: get all " + spentStars() + " stars back" : "Reset skills";
+    }
+
+    function skillCard(id) {
+      const s = SKILL_BY_ID[id], st = skillState(id), pts = skillPoints();
+      $("scName").textContent = s.name;
+      $("scCost").innerHTML = s.cost ? ICON_STAR + s.cost : "";
+      $("scText").textContent = s.text;
+      const state = $("scState"), learn = $("scLearn");
+      state.className = "sc-state" + (st === "owned" && s.parent ? " ok" : "");
+      if (!s.parent) {
+        state.textContent = "You've earned " + totalStars() + " of " + TOTAL_STARS + " stars and have " + Math.max(0, pts) +
+          " to spend. Collect more by getting all 3 stars in sectors.";
+      } else if (st === "owned") state.textContent = "✓ Learned";
+      else if (st === "locked") state.textContent = "Learn " + SKILL_BY_ID[s.parent].name + " first.";
+      else if (st === "open") state.textContent = "You need " + (s.cost - pts) + " more star" + (s.cost - pts === 1 ? "" : "s") + ".";
+      else state.textContent = "Ready to learn.";
+      learn.hidden = !s.parent || st === "owned";
+      learn.disabled = st !== "can";
+      learn.innerHTML = "Learn for " + ICON_STAR + s.cost;
+    }
+
+    // Fits the tree into the space left over by the header and the skill card
+    function layoutTree() {
+      const land = W > H && W >= 600;
+      const tw = land ? TREE_H : TREE_W, th = land ? TREE_W : TREE_H;
+      const cs = getComputedStyle(screens.skills);
+      const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+      const top = document.querySelector(".skills-top").offsetHeight;
+      const side = document.querySelector(".skills-side");
+      const availW = Math.min(W, 1100) - 40 - (land ? side.offsetWidth + 22 : 0);
+      const availH = H - padY - top - 12 - (land ? 0 : side.offsetHeight + 12) - 4;
+      const k = clamp(Math.min(availW / tw, availH / th), 0.42, 1.25);
+      const wrap = $("treeWrap"), tree = $("tree"), svg = $("treeLines");
+      wrap.style.width = Math.floor(tw * k) + "px";
+      wrap.style.height = Math.floor(th * k) + "px";
+      tree.style.width = tw + "px";
+      tree.style.height = th + "px";
+      tree.style.transform = "scale(" + k + ")";
+      svg.setAttribute("width", tw);
+      svg.setAttribute("height", th);
+      const pos = {};
+      for (const s of SKILL_TREE) {
+        const [c, r] = s.at;
+        const x = tw / 2 + (land ? r : c) * SK_STEP, y = th / 2 + (land ? c : r) * SK_STEP - 6;
+        pos[s.id] = [x, y];
+        skillNodes[s.id].style.left = x + "px";
+        skillNodes[s.id].style.top = y + "px";
+      }
+      for (const id in skillLinks) {
+        const a = pos[SKILL_BY_ID[id].parent], b = pos[id], ln = skillLinks[id];
+        ln.setAttribute("x1", a[0]);
+        ln.setAttribute("y1", a[1]);
+        ln.setAttribute("x2", b[0]);
+        ln.setAttribute("y2", b[1]);
+      }
+    }
+
+    function showSkills(from) {
+      enterBreak("skills");
+      skillsFrom = from || "menu";
+      skillSel = firstSkill();
+      resetArmedUntil = 0;
+      renderSkills();
+      showScreen("skills", 200);
+      layoutTree();
+    }
+
+    function learnSkill(id) {
+      if (skillState(id) !== "can") return;
+      skillsOwned.add(id);
+      saveSkills();
+      Sound.power();
+      vibrate(30);
+      const b = skillNodes[id];
+      b.classList.remove("just");
+      void b.offsetWidth;
+      b.classList.add("just");
+      renderSkills();
+      track("skill-" + id);
+    }
+
     // ---------- Galaxy map ----------
     function renderMap() {
       const w = viewWorld, world = WORLDS[w - 1];
       setPalette(w);
+      updateSkillBadges();
       $("worldNum").textContent = "WORLD " + w;
       $("worldName").textContent = world.name;
       let s = 0;
@@ -2885,7 +3439,7 @@
       }
       $("skinDots").innerHTML = SHIPS.map((_, i) =>
         '<i class="' + (i === viewSkin ? "cur" : owned.includes(i) ? "own" : "") + '"></i>').join("");
-      const cells = '<i></i>'.repeat(s.hull) + '<i class="up"></i>'.repeat(upgrades.hull);
+      const cells = '<i></i>'.repeat(s.hull) + '<i class="up"></i>'.repeat(upgrades.hull) + '<i class="st"></i>'.repeat(skillHull());
       $("shipStats").innerHTML = "<div><small>HULL</small><span class=\"cells\">" + cells + "</span></div><div>" + s.perkText + "</div>";
 
       // Trails: browsing to an owned one equips it; a locked one can be bought here
@@ -3001,6 +3555,83 @@
     const on = (id, fn) => $(id).addEventListener("click", fn);
     on("playBtn", () => { Sound.click(); showMap(); });
     on("onlineBtn", () => { Sound.click(); Vs.open(); });
+    // A fresh address skips any cached copy of the old page; the progress stays where it is
+    on("updateBtn", () => { location.replace(location.pathname + "?v=" + encodeURIComponent(newVersion)); });
+    on("backupBtn", () => { Sound.click(); showBackup(); });
+    on("skillsBtn", () => { Sound.click(); showSkills("menu"); });
+    on("mapSkills", () => { Sound.click(); showSkills("map"); });
+    on("skillsBack", () => { Sound.click(); if (skillsFrom === "map") showMap(viewWorld); else showMenu(); });
+    on("scLearn", () => learnSkill(skillSel));
+    on("skillsReset", () => {
+      Sound.click();
+      if (Date.now() >= resetArmedUntil) {
+        resetArmedUntil = Date.now() + 4000;
+        setTimeout(() => { if (state === "skills") renderSkills(); }, 4100);
+      } else {
+        skillsOwned = new Set(["root"]);
+        saveSkills();
+        resetArmedUntil = 0;
+        skillSel = "root";
+      }
+      renderSkills();
+    });
+    $("tree").addEventListener("click", e => {
+      const b = e.target.closest(".sk");
+      if (!b) return;
+      Sound.click();
+      skillSel = b.dataset.id;
+      renderSkills();
+    });
+    // With a mouse, pointing at a skill previews it in the card
+    $("tree").addEventListener("pointerover", e => {
+      const b = e.pointerType === "mouse" && e.target.closest(".sk");
+      if (b) skillCard(b.dataset.id);
+    });
+    $("tree").addEventListener("pointerout", e => {
+      const b = e.pointerType === "mouse" && e.target.closest(".sk");
+      if (b && !b.contains(e.relatedTarget)) skillCard(skillSel);
+    });
+    on("backupBack", () => { Sound.click(); showMenu(); });
+    $("backupCode").addEventListener("focus", e => e.target.select());
+    on("backupCopy", async () => {
+      Sound.click();
+      const box = $("backupCode");
+      box.value = backupCode();
+      const ok = await copyText(box.value);
+      if (!ok) { box.focus(); box.select(); }
+      setBackupMsg(ok ? "Copied! Keep it somewhere safe, like your notes app." : "Select the code above and copy it.");
+    });
+    $("restoreCode").addEventListener("input", () => {
+      restorePending = "";
+      $("restoreBtn").textContent = "Restore this code";
+      setBackupMsg("");
+    });
+    on("restoreBtn", () => {
+      Sound.click();
+      const text = $("restoreCode").value.replace(/\s+/g, "");
+      const d = readBackup(text);
+      if (!d) {
+        restorePending = "";
+        setBackupMsg(text ? "That code doesn't look right. Copy the whole code and try again." : "Paste a backup code into the box first.");
+        return;
+      }
+      // Restoring replaces this browser's progress, so it takes a second tap
+      if (restorePending !== text) {
+        restorePending = text;
+        const stars = Object.values(d.meteorStars).reduce((s, v) => s + popcount(v), 0);
+        $("restoreBtn").textContent = "Yes, restore it";
+        setBackupMsg("This code has " + d.meteorCoins + " coins and " + stars + " stars. Restoring replaces the progress in this browser.");
+        return;
+      }
+      applyBackup(d);
+      restorePending = "";
+      $("restoreCode").value = "";
+      $("restoreBtn").textContent = "Restore this code";
+      $("backupCode").value = backupCode();
+      setBackupMsg("Progress restored!");
+      Sound.power();
+      coinBurst();
+    });
     on("hangarBtn", () => { Sound.click(); showHangar("menu"); });
     on("endlessBtn", () => { Sound.click(); startEndless(); });
     on("worldPrev", () => changeWorld(-1));
@@ -3125,6 +3756,8 @@
 
     window.addEventListener("keydown", e => {
       Sound.unlock();
+      // Typing in a text box (room code, backup code) is just typing
+      if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
       const onButton = e.target && e.target.tagName === "BUTTON";
       if (e.code.startsWith("Arrow") || (e.code === "Space" && !onButton)) e.preventDefault();
       if (adPending || midgameBusy) return;
@@ -3226,7 +3859,7 @@
       const r = rand(8, 10.5) * kScale();
       if (x === undefined) x = fieldX + rand(r + 20, fieldW - r - 20);
       const vy = H * rand(0.78, 0.95) * (1 + Math.min(run.time, 150) * 0.002);
-      addMeteor({ kind: "comet", x, y: -r * 2, r, vx: rand(-0.16, 0.16) * vy, vy, warn: 0.55, vr: 0 });
+      addMeteor({ kind: "comet", x, y: -r * 2, r, vx: rand(-0.16, 0.16) * vy, vy, warn: 0.55 + (skill("d1") ? 0.3 : 0), vr: 0 });
     }
 
     function spawnBullet(x, y, vx, vy) {
@@ -3234,7 +3867,7 @@
     }
 
     function spawnBeam(x, warn, fire) {
-      beams.push({ x: clamp(x === undefined ? fieldX + rand(40, fieldW - 40) : x, fieldX + 20, fieldX + fieldW - 20), w: 24, warn: warn || 1.15, fire: fire || 0.5, t: 0, fired: false });
+      beams.push({ x: clamp(x === undefined ? fieldX + rand(40, fieldW - 40) : x, fieldX + 20, fieldX + fieldW - 20), w: 24, warn: (warn || 1.15) + (skill("d1") ? 0.3 : 0), fire: fire || 0.5, t: 0, fired: false });
       Sound.laserWarn();
     }
 
@@ -3265,7 +3898,8 @@
     }
 
     function spawnPowerUp() {
-      const roll = Math.random();
+      // Shield, magnet, slow-mo and blast; Blast Lover doubles the blast's share
+      const roll = Math.random() * (skill("p4") ? 1.16 : 1);
       const type = roll < 0.34 ? "shield" : roll < 0.64 ? "magnet" : roll < 0.84 ? "slow" : "blast";
       powerups.push({ type, x: fieldX + rand(40, fieldW - 40), y: -24, vy: H * 0.3, ph: Math.random() * TAU });
     }
@@ -3414,10 +4048,10 @@
         const list = BOSS_ATTACKS[b.kind - 1];
         const len = ATTACKS[list[b.step % list.length]](b);
         b.step++;
-        b.nextT = b.t + len + (1.9 - 0.1 * b.kind);
+        b.nextT = b.t + len + (1.9 - 0.1 * b.kind) + (skill("d3") ? 0.5 : 0);
       }
       // The Singularity tugs the ship towards it the whole fight
-      if (b.kind === 5) pullShip(Math.sign(b.x - player.x) * Math.min(55 * wdt, Math.abs(b.x - player.x)));
+      if (b.kind === 5) pullShip(Math.sign(b.x - player.x) * Math.min(55 * (skill("d2") ? 0.6 : 1) * wdt, Math.abs(b.x - player.x)));
     }
 
     // ---------- Effects ----------
@@ -3489,8 +4123,9 @@
       vibrate([40, 30, 80]);
       addText(player.x, player.y - 48, POWERUPS.blast.label, POWERUPS.blast.color, 24);
       if (rocks) {
-        addPickupCoins(rocks);
-        addText(player.x, player.y - 76, "+" + rocks, "#ffd34d", 18);
+        const pay = rocks * (skill("p3") ? 2 : 1);     // Big Bang
+        addPickupCoins(pay);
+        addText(player.x, player.y - 76, "+" + pay, "#ffd34d", 18);
       }
     }
 
@@ -3498,6 +4133,7 @@
       const def = POWERUPS[p.type];
       if (p.type === "blast") { blast(); return; }
       run.pu[p.type] = def.duration * powerMult();
+      if (p.type === "shield") run.shieldHits = skill("a3") ? 2 : 1;   // Double Shield
       Sound.power();
       vibrate(30);
       rings.push({ x: player.x, y: player.y, r: 10, vr: 260, life: 0.45, max: 0.45, color: def.color, w: 3 });
@@ -3505,13 +4141,15 @@
     }
 
     function shieldHit(src) {
-      run.pu.shield = 0;
-      run.invuln = 1;
+      // With Double Shield a shield takes two hits before it breaks
+      run.shieldHits = (run.shieldHits || 1) - 1;
+      if (run.shieldHits <= 0) run.pu.shield = 0;
+      run.invuln = 1 * recoverMult();
       explosion(src.x, src.y, ["#58e1ff", "#ffffff", "#ff7b54"], 26);
       shake = 9;
       Sound.shieldBreak();
       vibrate(60);
-      addText(player.x, player.y - 48, "BLOCKED!", "#58e1ff", 20);
+      addText(player.x, player.y - 48, run.pu.shield > 0 ? "BLOCKED! 1 LEFT" : "BLOCKED!", "#58e1ff", 20);
     }
 
     function guardHit(src) {
@@ -3519,7 +4157,7 @@
       run.guardUsed = true;
       guards = Math.max(0, guards - 1);
       saveGuards();
-      run.invuln = 1.2;
+      run.invuln = 1.2 * recoverMult();
       explosion(src.x, src.y, ["#ffd34d", "#ffffff", "#ffb347"], 26);
       rings.push({ x: player.x, y: player.y, r: 14, vr: 320, life: 0.5, max: 0.5, color: "#ffd34d", w: 4 });
       shake = 9;
@@ -3543,12 +4181,26 @@
         Sound.power();
         return false;
       }
-      run.hull--;
       const starLost = !run.damaged && run.mode === "level" && needsNoHitStar(run.lvl);
+      // Last Stand: once per run, the hit that would destroy the ship leaves it on its last bit of hull
+      if (run.hull <= 1 && skill("a5") && !run.lastStand) {
+        run.lastStand = true;
+        run.damaged = true;
+        run.invuln = 2.2 * recoverMult();
+        shake = 14;
+        explosion(src.x, src.y, ["#ffffff", "#ff9ad5", "#ff6fb5"], 26);
+        rings.push({ x: player.x, y: player.y, r: 14, vr: 320, life: 0.6, max: 0.6, color: "#ff6fb5", w: 4 });
+        Sound.shieldBreak();
+        vibrate([60, 30, 60]);
+        addText(player.x, player.y - 48, "LAST STAND!", "#ff9ad5", 22);
+        if (starLost) addText(player.x, player.y - 74, "NO-HIT STAR LOST", "#c9b3d9", 13);
+        return true;
+      }
+      run.hull--;
       run.damaged = true;
       renderHull();
       if (run.hull <= 0) { die(); return true; }
-      run.invuln = 1.6;
+      run.invuln = 1.6 * recoverMult();
       shake = 12;
       explosion(src.x, src.y, ["#ffffff", "#ffd166", "#ff7b54"], 20);
       Sound.hit();
@@ -3562,26 +4214,28 @@
     // worth more. Any hit breaks the chain.
     const COMBO_WINDOW = 2.5;
     function nearMiss(m) {
-      run.combo = T - run.comboAt < COMBO_WINDOW ? Math.min(run.combo + 1, 10) : 1;
+      // Chain Keeper lengthens the chain, Combo Master raises its cap, Daredevil doubles the pay
+      const chainTime = COMBO_WINDOW + (skill("r2") ? 1 : 0), cap = skill("r4") ? 15 : 10, pay = skill("r3") ? 2 : 1;
+      run.combo = T - run.comboAt < chainTime ? Math.min(run.combo + 1, cap) : 1;
       run.comboAt = T;
       const c = run.combo;
       Sound.nearMiss(c);
-      const color = c >= 6 ? "#ff6bd6" : c >= 3 ? "#ffd34d" : "#7ee0ff";
-      const x = player.x + (m.x < player.x ? 36 : -36), size = 16 + Math.min(c - 1, 6) * 1.5;
+      const color = c >= 11 ? "#ff8a5c" : c >= 6 ? "#ff6bd6" : c >= 3 ? "#ffd34d" : "#7ee0ff";
+      const x = player.x + (m.x < player.x ? 36 : -36), size = 16 + Math.min(c - 1, 8) * 1.5;
       const label = c > 1 ? "CLOSE x" + c + "! +" : "CLOSE! +";
       if (run.mode === "endless") {
-        run.score += 3 * c;
-        addText(x, player.y - 30, label + 3 * c, color, size);
+        run.score += 3 * c * pay;
+        addText(x, player.y - 30, label + 3 * c * pay, color, size);
       } else if (run.mode === "versus") {
         // In a race close calls charge the attack meter (a chain of three or more charges double)
         addText(x, player.y - 30, c > 1 ? "CLOSE x" + c + "!" : "CLOSE!", color, size);
         Vs.charge(c >= 3 ? 2 : 1);
       } else {
-        addPickupCoins(c);
-        addText(x, player.y - 30, label + c, color, size);
+        addPickupCoins(c * pay);
+        addText(x, player.y - 30, label + c * pay, color, size);
       }
       sparks((player.x + m.x) / 2, player.y, color, 6 + c, 140 + c * 10);
-      if (c === 5 || c === 10) rings.push({ x: player.x, y: player.y, r: 16, vr: 260, life: 0.45, max: 0.45, color, w: 3 });
+      if (c % 5 === 0) rings.push({ x: player.x, y: player.y, r: 16, vr: 260, life: 0.45, max: 0.45, color, w: 3 });
     }
 
     // ---------- Update ----------
@@ -3667,7 +4321,7 @@
       run.powerT -= wdt;
       if (run.powerT <= 0) {
         spawnPowerUp();
-        run.powerT = rand(12, 18);
+        run.powerT = rand(12, 18) * (skill("p2") ? 0.75 : 1);     // Supply Drops
       }
       if (bossFight) return;
       if (mx.comet) {
@@ -3736,7 +4390,7 @@
           if (Math.abs(dy) < pHit + hr + 24) m.minGap = Math.min(m.minGap, gap);
           if (!m.passed && m.y - hr > player.y + pHit) {
             m.passed = true;
-            if (m.minGap >= 0 && m.minGap < 14 && run.invuln <= 0 && state === "playing") nearMiss(m);
+            if (m.minGap >= 0 && m.minGap < (skill("r1") ? 20 : 14) && run.invuln <= 0 && state === "playing") nearMiss(m);
           }
         }
         if (m.y - m.r * 1.5 > H) meteors.splice(i, 1);
@@ -3817,7 +4471,7 @@
         }
         if (playing) {
           const dx = w.x - player.x, dy = w.y - player.y, d = Math.hypot(dx, dy);
-          if (d < w.reach * 1.6) pullShip(Math.sign(dx) * 130 * (1 - d / (w.reach * 1.6)) * wdt);
+          if (d < w.reach * 1.6) pullShip(Math.sign(dx) * 130 * (skill("d2") ? 0.6 : 1) * (1 - d / (w.reach * 1.6)) * wdt);
           if (d < w.r * 0.8 + pHit) hitPlayer(w);
         }
         if (w.y > H + 60) wells.splice(i, 1);
@@ -4520,20 +5174,6 @@
 
       function crazyLeft() {
         try { if (crazy) crazy.game.leftRoom(); } catch (e) {}
-      }
-
-      async function copyText(t) {
-        try { await navigator.clipboard.writeText(t); return true; } catch (e) {}
-        try {
-          const ta = document.createElement("textarea");
-          ta.value = t;
-          ta.style.cssText = "position:fixed;opacity:0;user-select:text;-webkit-user-select:text";
-          document.body.appendChild(ta);
-          ta.select();
-          const ok = document.execCommand("copy");
-          ta.remove();
-          return ok;
-        } catch (e) { return false; }
       }
 
       async function invite() {
@@ -6454,6 +7094,8 @@
       try { sdk.game.addJoinRoomListener(p => Vs.joinInvite(p && p.room)); } catch (e) {}
       // CrazyGames asks for "No thanks" to look exactly like the ad button
       $("skipBtn").className = $("reviveBtn").className;
+      // CrazyGames keeps saves with the player's account and updates the game itself
+      if (env === "crazygames") $("backupBtn").hidden = true;
       if (state === "playing" || state === "countdown") setGameplay(true);
     }
     const crazyReady = initCrazyGames().finally(() => { crazySettled = true; });
