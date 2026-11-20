@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
@@ -1230,7 +1231,7 @@
     // ---------- Config ----------
     // Shown on the menu and the pause screen. Bump it with every release, together with
     // version.json (the website compares the two to offer a one-tap update).
-    const GAME_VERSION = "2.7";
+    const GAME_VERSION = "2.9";
     const AD_DIRECT_LINK = "https://uplcm.com/4/12131180";
     const CONTINUE_SECONDS = 5;
     const FREE_COINS = 40;                  // the free-coins ad's pay at the very start; it grows with progress
@@ -1555,6 +1556,7 @@
       if (!trailsOwned.includes(selectedTrail)) selectedTrail = 0;
       owned = store.get("meteorSkinsOwned", [0]);
       if (!Array.isArray(owned)) owned = [0];
+      owned = owned.filter(i => Number.isInteger(i) && SHIPS[i]);
       if (!owned.includes(0)) owned.push(0);
       selectedSkin = Number(store.get("meteorSkin", 0)) || 0;
       if (!owned.includes(selectedSkin)) selectedSkin = 0;
@@ -2861,7 +2863,7 @@
         } catch (e) { failAd(null); }
         return;
       }
-      if (!AD_DIRECT_LINK) { failAd(null); return; }
+      if (!AD_DIRECT_LINK || adsOff) { failAd(adsOff ? { code: "adsDisabled" } : null); return; }
       showAdWait("Opening ad…", "Come back to the game when you're done<br>to get your reward.", true);
       ad.opened = true;
       try { window.open(AD_DIRECT_LINK, "_blank", "noopener"); } catch (e) {}
@@ -4285,14 +4287,16 @@
         else return;
       }
       const level = run.mode === "level";
+      // Slow-mo only slows the dangers: the sector's progress, the endless score and the
+      // difficulty clock keep full speed, so slowing down never holds the player back
       if (level) {
-        run.elapsed += wdt;
+        run.elapsed += dt;
         const p = clamp(run.elapsed / run.lvl.duration, 0, 1);
         run.time = run.lvl.t0 + (run.lvl.t1 - run.lvl.t0) * p;
         if (p >= 1) { winLevel(); return; }
       } else {
-        run.time += wdt;
-        run.score += wdt * 10;
+        run.time += dt;
+        run.score += dt * 10;
         // Endless mode tours the worlds as it gets harder
         const stage = clamp(1 + Math.floor(run.time / 50), 1, WORLDS.length);
         if (WORLDS[stage - 1] !== palette) {
@@ -4308,17 +4312,19 @@
       const mx = curMix();
       const bossFight = level && run.lvl.boss;
       const busy = mx.comet + mx.splitter + mx.laser + mx.well + mx.ufo;
+      // Dangers arrive on the slowed clock (so slowed rocks don't pile up); coins and
+      // power-ups keep coming at full speed
       run.spawnT -= wdt;
       while (run.spawnT <= 0) {
         spawnMeteor(false);
         run.spawnT += meteorInterval() * (1 + 0.28 * busy) * (bossFight ? 2.4 : 1);
       }
-      run.coinT -= wdt;
+      run.coinT -= dt;
       if (run.coinT <= 0) {
         spawnCoins();
         run.coinT = rand(1.8, 2.8);
       }
-      run.powerT -= wdt;
+      run.powerT -= dt;
       if (run.powerT <= 0) {
         spawnPowerUp();
         run.powerT = rand(12, 18) * (skill("p2") ? 0.75 : 1);     // Supply Drops
@@ -4351,7 +4357,9 @@
       }
     }
 
-    function updateWorld(wdt) {
+    // wdt moves the dangers (slowed by slow-mo); cdt moves coins and power-ups, which
+    // slow-mo leaves at full speed
+    function updateWorld(wdt, cdt = wdt) {
       const playing = state === "playing";
       // Online races share every rock, so one that hits (or is blasted by) a ship is only
       // marked gone for that ship; rocks a rival sent are meant for one ship alone.
@@ -4400,12 +4408,12 @@
       const passive = playing ? magnetRadius() : 0;
       for (let i = coins.length - 1; i >= 0; i--) {
         const c = coins[i];
-        c.y += c.vy * wdt;
+        c.y += c.vy * cdt;
         if (playing) {
           let dx = player.x - c.x, dy = player.y - c.y, d = Math.hypot(dx, dy);
           if ((magnetPu && d < 190) || d < passive) c.mag = true;
           if (c.mag) {
-            const step = Math.min(1, 900 * wdt / Math.max(d, 1));
+            const step = Math.min(1, 900 * cdt / Math.max(d, 1));
             c.x += dx * step;
             c.y += dy * step;
             d = Math.hypot(player.x - c.x, player.y - c.y);
@@ -4421,7 +4429,7 @@
 
       for (let i = powerups.length - 1; i >= 0; i--) {
         const p = powerups[i];
-        p.y += p.vy * wdt;
+        p.y += p.vy * cdt;
         if (playing && Math.hypot(player.x - p.x, player.y - p.y) < pHit + 26) {
           collectPower(p);
           powerups.splice(i, 1);
@@ -4565,6 +4573,8 @@
       Sound.setMusic(Math.max(0, WORLDS.indexOf(palette)), flying ? (boss || Vs.duel() ? 2 : 1) : 0);
       if (state === "paused" || state === "adwait") return;
 
+      // Slow-mo: wdt is the dangers' clock (half speed while it lasts); everything else
+      // (the ship, progress, score, coins, power-ups, the starfield) runs on dt
       const slowTarget = state === "playing" && run.pu.slow > 0 ? 0.5 : 1;
       timeScale += (slowTarget - timeScale) * Math.min(1, dt * 6);
       const wdt = dt * timeScale;
@@ -4575,10 +4585,10 @@
         : (state === "playing" || state === "countdown" || state === "won") ? 1 + Math.min(run.time, 150) / 150 * 2
         : 0.8;
       for (const s of stars) {
-        s.y += s.sp * H * starSpeed * wdt;
+        s.y += s.sp * H * starSpeed * dt;
         if (s.y > H) { s.y -= H + 4; s.x = Math.random() * W; }
       }
-      updateAmbience(wdt);
+      updateAmbience(dt);
 
       if (Vs.racing()) {
         // The race clock drives the shared storm, not the frame time
@@ -4598,7 +4608,7 @@
         } else if (state === "won") {
           updateWon(dt);
         }
-        updateWorld(wdt);
+        updateWorld(wdt, dt);
         updateHazards(dt, wdt);
         if (boss) updateBoss(dt, wdt);
       }
@@ -4618,12 +4628,17 @@
     const Vs = (() => {
       const PROTO = 1;
       const MAX = 4;
-      const PREFIX = "meteorswerve-v" + PROTO + "-";   // our ids on the shared PeerJS server
+      // Our ids on the shared PeerJS server. Copies running on this computer for testing get
+      // their own, so they never meet (or block) players on the real game.
+      const TESTING = /^(localhost|127\.|\[::1\]|0\.0\.0\.0)/.test(location.hostname) || !location.hostname;
+      const PREFIX = "meteorswerve-v" + PROTO + (TESTING ? "-dev" : "") + "-";
+      const QM_SPOTS = 3;                // public quick-match waiting spots
       const COLORS = ["#58e1ff", "#ffb347", "#ff6bd6", "#9dff5c"];
       const HULL = 3;
       const CHARGE = 5;                 // the attack meter's size
       const SEND_EVERY = 1 / 15;        // seconds between position updates
-      const VIEW_DELAY = 0.12;          // rivals are drawn this far in the past, so they glide
+      const RELAY_EVERY = 1 / 10;       // ...over a relayed link (relay traffic counts against its monthly allowance)
+      const VIEW_DELAY = 0.12;          // rivals are drawn at least this far in the past, so they glide
       const LEAD_IN = 4;                // seconds from "go" to the start, so everyone's countdown lines up
       const AFK = 8000;                 // ms without a word before a player counts as gone
       const LETTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -4640,11 +4655,29 @@
         { look: 0.6, react: 0.2, speed: 0.95, noise: 20, margin: 2, lapse: 0.25 },
         { look: 0.65, react: 0.18, speed: 1.0, noise: 18, margin: 2, lapse: 0.21 }
       ];
-      const PEER_OPTS = {
-        debug: 0,
-        secure: true,
-        config: { iceServers: [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" }] }
-      };
+      // Players connect directly when their networks allow it. When they don't (often a home
+      // Wi-Fi and a phone on mobile data), a relay (TURN) server passes the traffic along:
+      // Metered's free plan (app "meteorswerve", 500 MB a month, usage on its dashboard;
+      // UDP and TCP on ports 80 and 443, plus TLS on 443 for the strictest networks).
+      // The relay login is kept encoded (make-relay-code.ps1, next to the website folder,
+      // makes it), so bots that comb public code for free TURN logins don't pick it up.
+      // Relayed traffic counts against the allowance, so relayed links send less often.
+      const STUN_SERVERS = [{ urls: "stun:stun.l.google.com:19302" }];
+      const RELAY = "CFUQUEw+UQMQABhfFBsKEBcJXQUAHhccXRoABhMXFhNLERdfS0dHXlQRBgULSBEJHBUEHlgXFhsEC1gIFgMAABMBXRQESE5VTAMXExgWAxgXBksREAdHXlQRBgULSBEJHBUEHlgXFhsEC1gIFgMAABMBXRQESEJRQFVJUAIQARkWSBEJHBUEHlgXFhsEC1gIFgMAABMBXRQESEJRQEgRABcLAAcKAAJYBxQVUCtJURlHSFQASxEBEU4EERNdFkIHRBEGRUdXEkAAQRBHX1UGUExHNQ4PKAciAzMiRhQxIUBKNlQY";
+      let iceList = null;
+      function iceServers() {
+        if (iceList) return iceList;
+        let relay = [];
+        try {
+          const b = atob(RELAY), k = "swerve";
+          let s = "";
+          for (let i = 0; i < b.length; i++) s += String.fromCharCode(b.charCodeAt(i) ^ k.charCodeAt(i % k.length));
+          const o = JSON.parse(s);
+          if (Array.isArray(o.u) && typeof o.n === "string" && typeof o.c === "string") relay = [{ urls: o.u, username: o.n, credential: o.c }];
+        } catch (e) {}
+        return (iceList = STUN_SERVERS.concat(relay));
+      }
+      const hasRelay = () => !!RELAY;
       const ERRORS = {
         unavailable: "No room with that code. Check the letters and try again.",
         full: "That room is full.",
@@ -4659,6 +4692,11 @@
         nomatch: "No pilots found right now. Try again, invite a friend, or race the bots."
       };
       const NAME_OK = /^[A-Za-z0-9 ._-]{1,20}$/;
+      // A rival's name must be one this game makes up (from the word lists) or look like a
+      // CrazyGames username ("SingingCheese.TLDWM"): a tampered game can't show other
+      // players sentences or links.
+      const WORD_NAME = new RegExp("^(" + ADJ.join("|") + ") (" + NOUN.join("|") + ") [1-9][0-9]?$");
+      const CRAZY_NAME = /^[A-Za-z0-9_]{2,20}(\.[A-Z0-9]{2,10})?$/;
 
       let kind = null;                  // "host" | "guest" | "bots" while in a room or a bot race
       let sess = 0;                     // bumped by every new action, so stale async steps stop
@@ -4678,6 +4716,12 @@
       let listDirty = false;
       let pilot = store.get("meteorPilot", "", true);
       let crazyName = "";
+      // Guards against tampered games: links still introducing themselves to our room, the
+      // host's message rate, and quick-match hosts that let pilots in but never start
+      const knocking = new Set();
+      let lastGoId = 0, lastGoAt = 0, joinedAt = 0, joinedSpot = "", inAt = 0, inN = 0, relayCheckAt = 0;
+      let lobbyDrawn = 0, lobbyDirty = false, lobbyCount = 0;
+      const badSpots = new Map();       // spot id -> skipped until (ms)
 
       const pick = a => a[Math.floor(Math.random() * a.length)];
       const count = () => players.filter(Boolean).length;
@@ -4693,14 +4737,16 @@
         pilot = pick(ADJ) + " " + pick(NOUN) + " " + (1 + Math.floor(Math.random() * 99));
         store.set("meteorPilot", pilot, true);
       }
-      if (typeof pilot !== "string" || !NAME_OK.test(pilot)) rollName();
+      const nameOk = n => typeof n === "string" && NAME_OK.test(n) && (WORD_NAME.test(n) || CRAZY_NAME.test(n));
+      const cleanName = (n, slot) => nameOk(typeof n === "string" ? n.trim() : n) ? n.trim() : "Pilot " + (slot + 1);
+      if (!WORD_NAME.test(pilot)) rollName();
       const myName = () => crazyName || pilot;
-      const cleanName = (n, slot) => typeof n === "string" && NAME_OK.test(n.trim()) ? n.trim() : "Pilot " + (slot + 1);
       const cleanShip = s => Number.isInteger(s) && SHIPS[s] ? s : 0;
       const cleanTrail = r => Number.isInteger(r) && TRAILS[r] ? r : 0;
 
       function setCrazyUser(u) {
-        crazyName = u && typeof u.username === "string" && NAME_OK.test(u.username) ? u.username : "";
+        // A name the other players' games would turn down shows as a made-up one instead
+        crazyName = u && nameOk(u.username) ? u.username : "";
         if (state === "online") {
           $("pilotName").textContent = myName();
           $("pilotRoll").hidden = !!crazyName;
@@ -4730,10 +4776,11 @@
       }
 
       // A peer registered with the introduction server, under a given id or a random one
-      function newPeer(id) {
+      async function newPeer(id) {
+        const opts = { debug: 0, secure: true, config: { iceServers: iceServers() } };
         return new Promise((resolve, reject) => {
           let p, done = false;
-          try { p = id ? new window.Peer(id, PEER_OPTS) : new window.Peer(PEER_OPTS); }
+          try { p = id ? new window.Peer(id, opts) : new window.Peer(opts); }
           catch (e) { reject("browser"); return; }
           const end = (ok, why) => {
             if (done) return;
@@ -4754,7 +4801,7 @@
 
       // Knocks on a room host's door. Resolves "ok" once let in (the session is then set
       // up), or with the reason it didn't work.
-      function knock(p, id, token) {
+      function knock(p, id, token, ms = 20000) {
         return new Promise(resolve => {
           let done = false, conn = null;
           const end = why => {
@@ -4770,7 +4817,8 @@
             if (t === "peer-unavailable") end("unavailable");
             else if (t !== "webrtc") end("network");
           };
-          const timer = setTimeout(() => end("timeout"), 12000);
+          // Long enough for slow mobile networks and for a relay to be set up
+          const timer = setTimeout(() => end("timeout"), ms);
           p.on("error", onErr);
           try { conn = p.connect(id, { reliable: true, serialization: "json" }); } catch (e) { conn = null; }
           if (!conn) { end("network"); return; }
@@ -4800,6 +4848,38 @@
           if (q && q.conn && q.conn !== except) { try { if (q.conn.open) q.conn.send(msg); } catch (e) {} }
         }
       }
+      // A pilot's position to every guest but one; relayed guests get each pilot's at most 10 times a second
+      function sendState(msg, except) {
+        const now = performance.now();
+        for (const q of players) {
+          const c = q && q.conn;
+          if (!c || c === except || !c.open) continue;
+          if (c.vsRelay) {
+            const all = c.vsTok || (c.vsTok = {});
+            const b = all[msg.p] || (all[msg.p] = { tok: 1, at: now });
+            b.tok = Math.min(1.5, b.tok + (now - b.at) / (RELAY_EVERY * 1000));
+            b.at = now;
+            if (b.tok < 1) continue;
+            b.tok -= 1;
+          }
+          try { c.send(msg); } catch (e) {}
+        }
+      }
+
+      // Does this link go through the relay? Checked every few seconds by the housekeeping timer.
+      function checkRelay(conn) {
+        const pc = conn && conn.peerConnection;
+        if (!pc || typeof pc.getStats !== "function" || !conn.open) return;
+        pc.getStats().then(stats => {
+          let pair = null;
+          stats.forEach(s => { if (!pair && s.type === "transport" && s.selectedCandidatePairId) pair = stats.get(s.selectedCandidatePairId); });
+          if (!pair) stats.forEach(s => { if (!pair && s.type === "candidate-pair" && s.selected) pair = s; });
+          if (!pair) stats.forEach(s => { if (!pair && s.type === "candidate-pair" && s.nominated && s.state === "succeeded") pair = s; });
+          if (!pair) return;
+          const a = stats.get(pair.localCandidateId), b = stats.get(pair.remoteCandidateId);
+          conn.vsRelay = !!((a && a.candidateType === "relay") || (b && b.candidateType === "relay"));
+        }).catch(() => {});
+      }
 
       // ----- Guest side -----
       function joined(p, conn, msg) {
@@ -4809,14 +4889,16 @@
         hostConn = conn;
         me = clamp(msg.me | 0, 1, MAX - 1);
         code = typeof msg.code === "string" && /^[A-Z]{4}$/.test(msg.code) ? msg.code : "";
-        roomTag = typeof msg.tag === "string" ? msg.tag.slice(0, 24) : code;
+        roomTag = typeof msg.tag === "string" && /^[A-Za-z0-9]{1,24}$/.test(msg.tag) ? msg.tag : code;
         qm = !!msg.qm;
         players = [];
         racing = false;
         race = null;
         clockSamples = [];
         offset = 0;
-        lastHost = performance.now();
+        lastHost = joinedAt = performance.now();
+        lastGoId = lastGoAt = inN = lobbyCount = 0;
+        lobbyDirty = false;
         lobbyCdAt = 0;
         // A few quick clock readings before any race can start
         for (let i = 0; i < 4; i++) setTimeout(() => { if (hostConn === conn) ping(); }, i * 150);
@@ -4841,26 +4923,46 @@
 
       function guestData(msg) {
         if (!msg || typeof msg !== "object" || kind !== "guest") return;
-        lastHost = performance.now();
+        const now = performance.now();
+        // A host sending far more than any real game does (even catching up after a stall): leave
+        if (!(now - inAt <= 1000)) { inAt = now; inN = 0; }
+        if (++inN > 1500) { lost("lost"); return; }
+        lastHost = now;
         const r = race;
         switch (msg.t) {
           case "lb": takeLobby(msg); break;
           case "po": clockSample(msg); break;
-          case "go":
-            if (Array.isArray(msg.ps) && msg.ps.includes(me) && isFinite(msg.at)) {
-              beginRace({ id: msg.id | 0, seed: msg.seed | 0, world: clamp(msg.w | 0, 1, WORLDS.length), start: msg.at - offset, roster: msg.ps });
-            }
+          case "go": {
+            // Each start is a new race, and starts come at most one every two seconds
+            const id = msg.id | 0, at = num(msg.at);
+            if (!Array.isArray(msg.ps) || msg.ps.length > MAX || !msg.ps.includes(me) || !isFinite(at)) break;
+            if (id <= lastGoId || now - lastGoAt < 2000) break;
+            lastGoId = id;
+            lastGoAt = now;
+            // The start on this device's clock. Without a clock reading yet (or with an odd
+            // one), the race starts about LEAD_IN seconds from now, as the host's does.
+            let start = at - offset;
+            if (!clockSamples.length || !(start - now > -3000 && start - now < (LEAD_IN + 6) * 1000)) start = now + LEAD_IN * 1000 - 150;
+            beginRace({ id, seed: msg.seed | 0, world: clamp(msg.w | 0, 1, WORLDS.length), start, roster: msg.ps });
             break;
+          }
           case "st": if (r && msg.r === r.id) sample(msg.p | 0, num(msg.m), num(msg.x), msg.f | 0); break;
           case "de": if (r && msg.r === r.id) knockedOut(msg.p | 0, num(msg.m)); break;
-          case "at": if (r && msg.r === r.id) incoming(me, msg.p | 0, clamp(msg.k | 0, 1, 4)); break;
-          case "en": if (r && msg.r === r.id) finishRace(msg.rk, num(msg.nx)); break;
+          case "at": {
+            if (!r || msg.r !== r.id) break;
+            // At most one attack from each rival every 0.6 s
+            const from = msg.p | 0, last = r.atkFrom || (r.atkFrom = {});
+            if (now - (last[from] || 0) < 600) break;
+            last[from] = now;
+            incoming(me, from, clamp(msg.k | 0, 1, 4));
+            break;
+          }
+          case "en": if (r && msg.r === r.id) finishRace(msg.rk, clamp(num(msg.nx) || 0, 0, 30)); break;
           case "by": lost("hostLeft"); break;
         }
       }
 
       function takeLobby(msg) {
-        const before = count();
         players = [];
         for (const q of Array.isArray(msg.ps) ? msg.ps.slice(0, MAX) : []) {
           const slot = q ? q.p | 0 : -1;
@@ -4869,11 +4971,22 @@
         }
         racing = !!msg.race;
         aliveNow = clamp(msg.al | 0, 0, MAX);
-        lobbyCdAt = num(msg.cd) > 0 ? performance.now() + msg.cd * 1000 : 0;
+        const cd = num(msg.cd);
+        lobbyCdAt = cd > 0 ? performance.now() + Math.min(cd, 30) * 1000 : 0;
+        // Redrawn at most a few times a second, however often the host sends
+        lobbyDirty = true;
+        if (performance.now() - lobbyDrawn > 150) flushLobby();
+      }
+
+      function flushLobby() {
+        lobbyDirty = false;
+        lobbyDrawn = performance.now();
+        const n = count();
         if (state === "lobby") {
           renderLobby();
-          if (count() > before && before) Sound.click();
+          if (n > lobbyCount && lobbyCount) Sound.click();
         } else if (state === "vsOver") resultStatus();
+        lobbyCount = n;
         crazyRoom();
       }
 
@@ -4892,10 +5005,26 @@
         race = null;
         autoAt = rematchAt = 0;
         searchStart = performance.now();
+        knocking.clear();
         p.on("connection", conn => {
+          // Only a few strangers may be introducing themselves at once (a flood of links would
+          // swamp this device); the rest are turned away
+          if (peer !== p || knocking.size >= 4) { try { conn.close(); } catch (e) {} return; }
+          knocking.add(conn);
+          conn.vsN = 0;
           conn.on("data", msg => { if (peer === p) hostData(conn, msg); });
-          conn.on("close", () => { if (peer === p) drop(conn); });
-          conn.on("error", () => { if (peer === p) drop(conn); });
+          conn.on("close", () => { knocking.delete(conn); if (peer === p) drop(conn); });
+          conn.on("error", () => { knocking.delete(conn); if (peer === p) drop(conn); });
+          // Not in the room 22 s later: the link never came up, or it never said who it is
+          setTimeout(() => {
+            if (!knocking.has(conn)) return;
+            knocking.delete(conn);
+            if (peer === p && !conn.open) {
+              note("A pilot tried to join but couldn't connect. " + (hasRelay()
+                ? "Their network may be blocking it." : "Your networks may block direct connections."), 9000);
+            }
+            try { conn.close(); } catch (e) {}
+          }, 22000);
         });
         p.on("disconnected", () => {
           // Lost touch with the introduction server: keep a private room findable by its code
@@ -4909,6 +5038,8 @@
 
       function welcome(conn, msg, now) {
         const refuse = why => {
+          if (conn.vsRefused) return;
+          conn.vsRefused = true;
           try { conn.send({ t: "no", why }); } catch (e) {}
           setTimeout(() => { try { conn.close(); } catch (e) {} }, 600);
         };
@@ -4917,6 +5048,7 @@
         let slot = -1;
         for (let i = 1; i < MAX; i++) if (!players[i]) { slot = i; break; }
         if (slot < 0) { refuse("full"); return; }
+        knocking.delete(conn);
         players[slot] = { slot, name: cleanName(msg.n, slot), ship: cleanShip(msg.s), trail: cleanTrail(msg.r), bot: false, conn, seen: now, lastState: now, lastAtk: 0 };
         conn.vsSlot = slot;
         try { conn.send({ t: "wl", me: slot, code, tag: roomTag, qm }); } catch (e) {}
@@ -4931,22 +5063,35 @@
         const now = performance.now();
         const q = players[conn.vsSlot];
         if (!q || q.conn !== conn) {
+          // A stranger gets a few messages to say hello in, no more
+          if (++conn.vsN > 20) { knocking.delete(conn); try { conn.close(); } catch (e) {} return; }
           if (msg.t === "hi") welcome(conn, msg, now);
           return;
         }
+        // Far more messages than a real game sends (even catching up after a stall): drop that pilot
+        if (!(now - q.winAt <= 1000)) { q.winAt = now; q.winN = 0; }
+        if (++q.winN > 400) { drop(conn); return; }
         q.seen = now;
         const r = race;
         switch (msg.t) {
           case "pi":
-            try { conn.send({ t: "po", c: msg.c, h: now }); } catch (e) {}
+            // Clock readings: a few a second at most, and only a number comes back
+            if (now - (q.lastPong || 0) < 100) break;
+            q.lastPong = now;
+            try { conn.send({ t: "po", c: num(msg.c), h: now }); } catch (e) {}
             break;
           case "st": {
             if (!r || msg.r !== r.id || r.ended) break;
             const m = num(msg.m), x = num(msg.x);
-            if (!isFinite(m) || !isFinite(x)) break;
+            if (!isFinite(m) || !isFinite(x) || m < -LEAD_IN - 2 || m > clock() + 5) break;
+            // Positions come 15 times a second; anything much faster isn't passed on
+            q.stTok = Math.min(10, (q.stTok === undefined ? 10 : q.stTok) + (now - (q.stAt || now)) * 0.02);
+            q.stAt = now;
+            if (q.stTok < 1) break;
+            q.stTok -= 1;
             q.lastState = now;
             sample(q.slot, m, x, msg.f | 0);
-            sendAll({ t: "st", r: r.id, p: q.slot, m, x: clamp(x, 0, 1), f: msg.f & 3 }, conn);
+            sendState({ t: "st", r: r.id, p: q.slot, m, x: clamp(x, 0, 1), f: msg.f & 3 }, conn);
             break;
           }
           case "de":
@@ -5056,8 +5201,11 @@
         showOnline(ERRORS[why] || ERRORS.network);
       }
 
-      // Quick match: join whoever is waiting at one of three public spots, or wait there
-      // ourselves. The waiting host frees the spot when its race starts.
+      // Quick match: there are a few public waiting spots. First look at every spot for a
+      // pilot already waiting and join the first one that answers; only if nobody does, wait
+      // at the first empty spot. (Taking the first empty spot straight away could leave two
+      // pilots waiting at different spots, never meeting.) A waiting host frees its spot
+      // when its race starts.
       async function quickMatch() {
         leaveSession();
         const token = sess;
@@ -5066,29 +5214,48 @@
         try {
           await loadLib();
           if (token !== sess) return;
-          const p = await newPeer(null);
+          let p = await newPeer(null);
           if (token !== sess) { p.destroy(); return; }
           searchPeer = p;
-          for (let round = 0, tries = 0; round < 2; round++) {
-            for (let s = 1; s <= 3 && tries < 14; s++, tries++) {
+          let unreachable = 0;
+          for (let round = 0; round < 3; round++) {
+            let free = 0;
+            for (let s = 1; s <= QM_SPOTS; s++) {
               const id = PREFIX + "qm" + s;
-              const r = await knock(p, id, token);
+              if ((badSpots.get(id) || 0) > performance.now()) continue;   // its host never started a race
+              const r = await knock(p, id, token, 14000);
               if (token !== sess) return;
-              if (r === "ok") return;
+              if (r === "ok") { joinedSpot = id; return; }
               if (r === "network") throw "network";
-              if (r !== "unavailable") continue;     // busy, full or unreachable: try the next spot
-              try {
-                const hp = await newPeer(id);
-                if (token !== sess) { hp.destroy(); return; }
-                searchPeer = null;
-                p.destroy();
-                becomeHost(hp, { qm: true });
-                return;
-              } catch (e) {
-                if (token !== sess) return;
-                if (e === "taken") { s--; continue; }     // someone just took the spot: join them instead
-                throw e;
+              if (r === "unavailable") {
+                if (!free) free = s;
+              } else if (r === "timeout") {
+                // Someone is waiting there, but no connection came up. A failed attempt can leave
+                // this link to the introduction server stuck, so carry on with a fresh one.
+                unreachable++;
+                try { p.destroy(); } catch (e) {}
+                p = await newPeer(null);
+                if (token !== sess) { p.destroy(); return; }
+                searchPeer = p;
               }
+              // busy (racing) or full: look at the next spot
+            }
+            if (!free) continue;            // every spot is taken: look again
+            try {
+              const hp = await newPeer(PREFIX + "qm" + free);
+              if (token !== sess) { hp.destroy(); return; }
+              searchPeer = null;
+              p.destroy();
+              becomeHost(hp, { qm: true });
+              if (unreachable) {
+                note("Found a pilot but couldn't connect to them. " + (hasRelay()
+                  ? "One of your networks may be blocking it." : "Your networks may block direct connections."), 15000);
+              }
+              return;
+            } catch (e) {
+              if (token !== sess) return;
+              if (e !== "taken") throw e;
+              // Someone took that spot a moment ago: look again, and join them
             }
           }
           throw "nomatch";
@@ -5196,6 +5363,13 @@
         lobbyStatus();
       }
 
+      // A message in the lobby's status line for a while
+      function note(text, ms) {
+        flashMsg = text;
+        flashUntil = performance.now() + ms;
+        if (state === "lobby") lobbyStatus();
+      }
+
       // Back out of any room or race, quietly
       function leaveSession() {
         sess++;
@@ -5211,11 +5385,12 @@
         players = [];
         racing = false;
         race = null;
-        code = roomTag = "";
+        code = roomTag = joinedSpot = "";
         qm = open = false;
         autoAt = rematchAt = lobbyCdAt = aliveNow = 0;
-        forced = false;
+        forced = lobbyDirty = false;
         flashUntil = 0;
+        knocking.clear();
       }
 
       function lost(why) {
@@ -5655,6 +5830,10 @@
         let x = rc.x;
         if (target === me) {
           if (state !== "playing") return;
+          // However many attacks arrive, only so many red rocks come down at once
+          let live = 0;
+          for (const m of meteors) if (m.atk && m.tgt === me) live++;
+          if (live >= 24) return;
           x = player.x;
           addText(W / 2, safeTop + 128, "INCOMING FROM " + src.name.toUpperCase() + "!", COLORS[from], 14);
           Sound.incoming();
@@ -5720,6 +5899,7 @@
       function knockedOut(slot, t) {
         const rc = racer(slot);
         if (!rc || !rc.alive) return;
+        if (isFinite(t)) t = clamp(t, 0, Math.max(0, clock()) + 1);
         if (slot === me) {
           // The host counted us out (we went quiet too long): go up in flames here too
           if (state === "playing" || state === "vsStart") { forced = true; die(); }
@@ -5744,7 +5924,7 @@
           if (!Array.isArray(e)) continue;
           const rc = racer(e[0] | 0);
           if (!rc || rows.some(x => x.slot === rc.slot)) continue;
-          rows.push({ slot: rc.slot, place: clamp(e[1] | 0, 1, MAX), time: Math.max(0, num(e[2]) || 0) });
+          rows.push({ slot: rc.slot, place: clamp(e[1] | 0, 1, MAX), time: clamp(num(e[2]) || 0, 0, Math.max(0, clock()) + 5) });
         }
         for (const rc of race.racers) {
           if (!rows.some(x => x.slot === rc.slot)) rows.push({ slot: rc.slot, place: rows.length + 1, time: rc.deadAt || 0 });
@@ -5834,6 +6014,11 @@
         if (!rc || slot === me || !isFinite(m) || !isFinite(x)) return;
         const b = rc.samples;
         if (b.length && m <= b[b.length - 1].m) return;
+        // How far apart updates arrive (relayed links send fewer), so the rival is drawn far enough behind to glide
+        if (b.length) {
+          const g = Math.min(0.5, m - b[b.length - 1].m);
+          rc.gap = rc.gap ? rc.gap * 0.85 + g * 0.15 : g;
+        }
         b.push({ m, x: clamp(x, 0, 1), f: f & 3 });
         if (b.length > 40) b.shift();
       }
@@ -5850,7 +6035,7 @@
       }
 
       function ghosts(dt) {
-        const t = clock() - VIEW_DELAY;
+        const now = clock();
         for (const rc of race.racers) {
           if (rc.slot === me || !rc.alive) continue;
           let vx;
@@ -5859,7 +6044,7 @@
             rc.gf = rc.invuln > 0 ? 2 : 0;
             vx = rc.vx;
           } else {
-            const g = ghostAt(rc, t);
+            const g = ghostAt(rc, now - clamp((rc.gap || 0) * 1.8, VIEW_DELAY, 0.3));
             rc.gx = fx(g.u);
             rc.gf = g.f;
             vx = g.v * fieldW;
@@ -6111,11 +6296,12 @@
         if ((kind !== "host" && kind !== "guest") || (state !== "playing" && state !== "vsStart")) return;
         race.sendT -= dt;
         if (race.sendT > 0) return;
-        race.sendT = SEND_EVERY;
+        // A guest on a relayed link sends less often; the host thins what goes to relayed guests
+        race.sendT = kind === "guest" && hostConn && hostConn.vsRelay ? RELAY_EVERY : SEND_EVERY;
         const msg = { t: "st", r: race.id, m: +clock().toFixed(3), x: +((player.x - fieldX) / fieldW).toFixed(4),
           f: (run.pu.shield > 0 ? 1 : 0) | (run.invuln > 0 ? 2 : 0) };
         if (kind === "guest") send(msg);
-        else { msg.p = me; sendAll(msg); }
+        else { msg.p = me; sendState(msg); }
       }
 
       function onVisibility(hidden) {
@@ -6129,8 +6315,17 @@
       setInterval(() => {
         const now = performance.now();
         if (kind === "guest") {
-          if (now - lastPing > (racing ? 2000 : 1000)) ping();
+          // Clock readings: less often over the relay, whose traffic counts against its allowance
+          if (now - lastPing > (hostConn && hostConn.vsRelay ? 2500 : racing ? 2000 : 1000)) ping();
           if (now - lastHost > AFK) lost("lost");
+          else if (qm && state === "lobby" && !racing && !race && now - joinedAt > 45000) {
+            // A quick match starts seconds after a second pilot arrives. This one let us in but
+            // never started (a broken or tampered game): skip that spot for a while, look again.
+            if (joinedSpot) badSpots.set(joinedSpot, now + 5 * 60 * 1000);
+            quickMatch();
+            note("That match never started, so looking for another…", 8000);
+            return;
+          }
         } else if (kind === "host") {
           for (const q of players) {
             if (!q || !q.conn) continue;
@@ -6144,6 +6339,13 @@
             if (count() >= 2) hostStart();
           }
         }
+        // Which links go through the relay (they're sent less)
+        if ((kind === "host" || kind === "guest") && now - relayCheckAt > 4000) {
+          relayCheckAt = now;
+          if (kind === "guest") checkRelay(hostConn);
+          else for (const q of players) if (q && q.conn) checkRelay(q.conn);
+        }
+        if (lobbyDirty) flushLobby();
         // A page in the background can't steer: a few seconds away drops the pilot out of an online race
         if (kind !== "bots" && race && !race.ended && hiddenAt && now - hiddenAt > 5000 && (state === "playing" || state === "vsStart")) die();
         if (state === "lobby") lobbyStatus();
@@ -7063,6 +7265,13 @@
       } catch (e) {}
       const env = sdk && sdk.environment;
       if (env !== "crazygames" && env !== "local") {
+        // Another website showing this game inside its own page: no ads there, so nobody can
+        // pass off taps on their page as ad visits (that could get the ad account banned)
+        if (AD_DIRECT_LINK && window.top !== window.self) {
+          let foreign = false;
+          try { void window.top.location.href; } catch (e) { foreign = true; }
+          if (foreign) switchAdsOff();
+        }
         loadAnalytics();
         return;
       }
