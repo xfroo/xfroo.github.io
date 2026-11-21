@@ -283,6 +283,10 @@
     .pill.mini svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; flex: none; }
     .pill.mini .badge { padding: 2px 6px; }
     @media (max-height: 760px) { #menuHint { display: none; } }
+    .linkbtn { font: inherit; color: inherit; background: none; border: 0; padding: 8px 3px; text-decoration: underline; cursor: pointer; }
+    .langs { display: flex; flex-direction: column; gap: 10px; width: min(300px, calc(100vw - 48px)); }
+    .langs .btn.sec { width: 100%; }
+    .langs .btn.cur { box-shadow: inset 0 0 0 2px var(--gold); }
 
     /* ---------- Toasts and missions ---------- */
     #toast {
@@ -1162,7 +1166,7 @@
       <button class="pill" id="freeCoinsBtn"></button>
     </div>
     <p class="hint" id="menuHint">Drag anywhere to steer · grab coins · beat the bosses</p>
-    <p class="ver"><span id="menuVer"></span><span id="siteLinks" hidden> · <a href="about.html" target="_blank" rel="noopener">About</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy</a></span></p>
+    <p class="ver"><span id="menuVer"></span><span id="siteLinks" hidden> · <a href="about.html" target="_blank" rel="noopener">About</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy</a></span> · <button class="linkbtn" id="langBtn" aria-label="Language"></button></p>
   </div></div>
 
   <div id="skills" class="overlay"><div class="panel skills-panel">
@@ -1194,6 +1198,12 @@
     <button class="btn sec" id="restoreBtn">Restore this code</button>
     <p class="tip" id="backupMsg" hidden></p>
     <button class="btn ghost" id="backupBack">‹ Menu</button>
+  </div></div>
+
+  <div id="lang" class="overlay menu"><div class="panel">
+    <div class="h1">Language</div>
+    <div class="langs" id="langList"></div>
+    <button class="btn ghost" id="langBack">‹ Menu</button>
   </div></div>
 
   <div id="missions" class="overlay menu"><div class="panel">
@@ -1435,6 +1445,7 @@
     <p class="ver" id="pauseVer"></p>
   </div></div>
 
+  <script src="lang.js"></script>
   <script>
   (() => {
     "use strict";
@@ -1442,7 +1453,7 @@
     // ---------- Config ----------
     // Shown on the menu and the pause screen. Bump it with every release, together with
     // version.json (the website compares the two to offer a one-tap update).
-    const GAME_VERSION = "3.2";
+    const GAME_VERSION = "3.3";
     // A link that opens an ad in a new tab, for the rewards on the game's own website.
     // Empty for now: Monetag's link (removed in 2.9.1) sent players to adult and scam pages.
     // Without a link the reward buttons are hidden on the website; CrazyGames uses its own ads.
@@ -1457,6 +1468,39 @@
       let out = (d && d[s]) || s;
       if (v) out = out.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m));
       return out;
+    }
+    // Languages (lang.js holds the translations): the player's own choice from the menu, else
+    // the browser's language, else English. Hebrew reads right to left.
+    const LANG_NAMES = { en: "English", es: "Español", pt: "Português", fr: "Français", de: "Deutsch", he: "עברית" };
+    Object.assign(LANGS, window.MS_LANGS || {});
+    const langList = () => Object.keys(LANG_NAMES).filter(k => k === "en" || LANGS[k]);
+    lang = (() => {
+      try {
+        const s = JSON.parse(localStorage.getItem("meteorLang") || "null");
+        if (langList().includes(s)) return s;
+      } catch (e) {}
+      for (const c of [].concat(navigator.languages || [], navigator.language || [])) {
+        let k = String(c).toLowerCase().slice(0, 2);
+        if (k === "iw") k = "he";
+        if (k === "en") return "en";
+        if (langList().includes(k)) return k;
+      }
+      return "en";
+    })();
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === "he" ? "rtl" : "ltr";
+    // The page's own text (buttons, titles, labels): translated once, here at the start
+    if (lang !== "en") {
+      const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+        const tag = n.parentNode && n.parentNode.nodeName;
+        if (tag === "SCRIPT" || tag === "STYLE") continue;
+        const s = n.nodeValue.trim();
+        if (s && /[A-Za-z]/.test(s)) { const tr = t(s); if (tr !== s) n.nodeValue = n.nodeValue.replace(s, tr); }
+      }
+      document.querySelectorAll("[aria-label],[placeholder],[title]").forEach(el => {
+        for (const a of ["aria-label", "placeholder", "title"]) if (el.hasAttribute(a)) el.setAttribute(a, t(el.getAttribute(a)));
+      });
     }
 
     // A copy running on this computer (localhost or a test page): test-only switches work there
@@ -1526,13 +1570,13 @@
 
     const UPGRADES = [
       { id: "hull",   name: "Armor plating",  icon: ICON_ARMOR,  prices: [500, 2000],
-        text: l => l < 2 ? "+1 hull on every ship" : "Maxed: +2 hull" },
+        text: l => l < 2 ? t("+1 hull on every ship") : t("Maxed: +2 hull") },
       { id: "magnet", name: "Coin magnet",    icon: ICON_MAGNET, prices: [150, 450, 1200],
-        text: l => l < 3 ? (l ? "Pulls coins from farther" : "Pulls in nearby coins") : "Maxed: widest pull" },
+        text: l => l < 3 ? (l ? t("Pulls coins from farther") : t("Pulls in nearby coins")) : t("Maxed: widest pull") },
       { id: "power",  name: "Power cells",    icon: ICON_POWER,  prices: [200, 600, 1500],
-        text: l => l < 3 ? "Power-ups last 25% longer" : "Maxed: +75% power-up time" },
+        text: l => l < 3 ? t("Power-ups last 25% longer") : t("Maxed: +75% power-up time") },
       { id: "shield", name: "Starter shield", icon: ICON_SHIELD, prices: [1000],
-        text: l => l < 1 ? "Start every run with a shield" : "Every run starts shielded" }
+        text: l => l < 1 ? t("Start every run with a shield") : t("Every run starts shielded") }
     ];
 
     // Star skills: every star earned is a skill point to spend on this tree. Spent stars
@@ -1848,13 +1892,13 @@
       SHIPS.forEach((s, i) => {
         if (s.stars && !owned.includes(i) && totalStars() >= s.stars) {
           owned.push(i);
-          fresh.push("New ship unlocked: " + s.name + "!");
+          fresh.push(t("New ship unlocked: {name}!", { name: s.name }));
         }
       });
-      TRAILS.forEach((t, i) => {
-        if (t.stars && !trailsOwned.includes(i) && totalStars() >= t.stars) {
+      TRAILS.forEach((tr, i) => {
+        if (tr.stars && !trailsOwned.includes(i) && totalStars() >= tr.stars) {
           trailsOwned.push(i);
-          fresh.push("New trail unlocked: " + t.name + "!");
+          fresh.push(t("New trail unlocked: {name}!", { name: t(tr.name) }));
         }
       });
       if (fresh.length) {
@@ -2183,7 +2227,7 @@
     const bgCanvas = newCanvas(1, 1);
     const bgCtx = bgCanvas.getContext("2d");
     const isCoarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
-    if (!isCoarse) $("menuHint").textContent = "Move the mouse to steer · grab coins · beat the bosses";
+    if (!isCoarse) $("menuHint").textContent = t("Move the mouse to steer · grab coins · beat the bosses");
 
     let W = 0, H = 0, DPR = 1;
     let fieldX = 0, fieldW = 0;           // play area (capped width so desktop plays like a phone)
@@ -2620,7 +2664,7 @@
     let boss = null;
     let banner = null;
     let midgameBusy = false;
-    const AMBIENT = new Set(["menu", "map", "hangar", "ending", "boot", "daily", "online", "lobby", "backup", "skills", "missions", "winter"]);
+    const AMBIENT = new Set(["menu", "map", "hangar", "ending", "boot", "daily", "online", "lobby", "backup", "skills", "missions", "winter", "lang"]);
 
     function newRun(mode, lvl) {
       const hull = maxHull();
@@ -2663,7 +2707,7 @@
     document.querySelectorAll("[data-icon=star]").forEach(el => { el.innerHTML = ICON_STAR; });
 
     const screens = {};
-    ["menu", "map", "hangar", "continue", "adwait", "clear", "fail", "gameover", "ending", "pause", "daily", "online", "lobby", "vsResult", "backup", "skills", "missions", "dailyResult", "winter"].forEach(n => { screens[n] = $(n); });
+    ["menu", "map", "hangar", "continue", "adwait", "clear", "fail", "gameover", "ending", "pause", "daily", "online", "lobby", "vsResult", "backup", "skills", "missions", "dailyResult", "winter", "lang"].forEach(n => { screens[n] = $(n); });
 
     function showScreen(name, readyDelay) {
       const el = screens[name];
@@ -2736,23 +2780,23 @@
       const lvl = levelDef(w, i);
       prepareRun("level", lvl);
       const world = WORLDS[w - 1];
-      $("lvlName").textContent = lvl.boss ? world.boss.toUpperCase() : "SECTOR " + lvl.id;
+      $("lvlName").textContent = lvl.boss ? t(world.boss).toUpperCase() : t("SECTOR {id}", { id: lvl.id });
       progBar.classList.toggle("boss", lvl.boss);
       progFill.style.width = lvl.boss ? "100%" : "0%";
       if (lvl.boss) {
         startBoss(lvl);
-        showBanner("WARNING", world.boss + " approaching", "#ff5a5a", true);
+        showBanner(t("WARNING"), t("{boss} approaching", { boss: t(world.boss) }), "#ff5a5a", true);
         Sound.alarm();
       } else if (!run.tutorial) {
-        showBanner(lvl.id, world.name, world.accent);
+        showBanner(lvl.id, t(world.name), world.accent);
       }
       track("level-" + lvl.id);
     }
 
     function startEndless() {
       prepareRun("endless", null);
-      hudBest.textContent = "BEST " + best;
-      showBanner("ENDLESS", "How far can you go?", "#ffd34d");
+      hudBest.textContent = t("BEST {n}", { n: best });
+      showBanner(t("ENDLESS"), t("How far can you go?"), "#ffd34d");
       track("endless");
     }
 
@@ -2812,9 +2856,9 @@
       $("endStars").textContent = totalStars() + "/" + TOTAL_STARS;
       $("endCoins").textContent = wallet;
       const star = SHIPS.find(s => s.stars), starOwned = owned.includes(SHIPS.indexOf(star));
-      $("endGoal").textContent = !starOwned ? "Next goal: collect " + star.stars + " stars to unlock the secret ship, " + star.name + "."
-        : totalStars() < TOTAL_STARS ? "Next goal: all " + TOTAL_STARS + " stars. Can you get them?"
-        : "Every star collected. You're a legend!";
+      $("endGoal").textContent = !starOwned ? t("Next goal: collect {n} stars to unlock the secret ship, {ship}.", { n: star.stars, ship: star.name })
+        : totalStars() < TOTAL_STARS ? t("Next goal: all {n} stars. Can you get them?", { n: TOTAL_STARS })
+        : t("Every star collected. You're a legend!");
       showScreen("ending", 700);
       confetti();
       Sound.clear();
@@ -2853,8 +2897,8 @@
       contLeft = CONTINUE_SECONDS;
       hud.classList.remove("show");
       $("contSub").textContent = run.mode === "level"
-        ? "Sector " + run.lvl.id + " · " + Math.round(clamp(run.elapsed / run.lvl.duration, 0, 1) * 100) + "% of the way"
-        : "Score " + Math.floor(run.score);
+        ? t("Sector {id}", { id: run.lvl.id }) + " · " + t("{p}% of the way", { p: Math.round(clamp(run.elapsed / run.lvl.duration, 0, 1) * 100) })
+        : t("Score {n}", { n: Math.floor(run.score) });
       updateRing();
       showScreen("continue", 300);
       track("continue-offered");
@@ -2890,7 +2934,7 @@
       btn.dataset.kind = guard ? "guard" : "double";
       btn.hidden = adsOff || (!guard && run.coins <= 0);
       btn.disabled = false;
-      btn.querySelector(".dl").textContent = guard ? "Free star guard" : "Double coins (+" + run.coins + ")";
+      btn.querySelector(".dl").textContent = guard ? t("Free star guard") : t("Double coins (+{n})", { n: run.coins });
     }
 
     function showGameOver() {
@@ -2917,16 +2961,16 @@
       hideScreen("continue");
       hud.classList.remove("show");
       const p = clamp(run.elapsed / run.lvl.duration, 0, 1);
-      $("failSub").textContent = "Sector " + run.lvl.id + " · " + Math.round(p * 100) + "% of the way";
+      $("failSub").textContent = t("Sector {id}", { id: run.lvl.id }) + " · " + t("{p}% of the way", { p: Math.round(p * 100) });
       $("failFill").style.width = (p * 100).toFixed(1) + "%";
       $("failCoins").textContent = "+" + run.coins;
       setDoubleButton("fail");
       const canBuy = canAffordSomething();
       $("failHangar").classList.toggle("glow", canBuy);
-      $("failTip").textContent = canBuy ? "You have enough coins for an upgrade. A tougher ship gets you further!"
-        : needsNoHitStar(run.lvl) && !guards && wallet >= GUARD_PRICE ? "Star guards block a hit, so one mistake won't cost you the no-hit star. Get them in the Hangar."
-        : run.lvl.boss ? "Bosses repeat their attacks in the same order. Learn the pattern!"
-        : WORLD_TIPS[run.lvl.w - 1];
+      $("failTip").textContent = canBuy ? t("You have enough coins for an upgrade. A tougher ship gets you further!")
+        : needsNoHitStar(run.lvl) && !guards && wallet >= GUARD_PRICE ? t("Star guards block a hit, so one mistake won't cost you the no-hit star. Get them in the Hangar.")
+        : run.lvl.boss ? t("Bosses repeat their attacks in the same order. Learn the pattern!")
+        : t(WORLD_TIPS[run.lvl.w - 1]);
       showScreen("fail", 650);
       track("fail-" + run.lvl.id);
     }
@@ -2948,9 +2992,9 @@
       if (boss) {
         boss.dying = true;
         boss.boomT = 0;
-        showBanner("BOSS DEFEATED", WORLDS[run.lvl.w - 1].boss, "#ffd34d");
+        showBanner(t("BOSS DEFEATED"), t(WORLDS[run.lvl.w - 1].boss), "#ffd34d");
       } else {
-        showBanner("SECTOR CLEAR", "", "#ffd34d");
+        showBanner(t("SECTOR CLEAR"), "", "#ffd34d");
         Sound.clear();
       }
     }
@@ -2998,10 +3042,10 @@
       const note = $("clearNote");
       const guardSaved = run.guardUsed && (fresh & 4);
       note.hidden = !rewards.length && !guardSaved;
-      note.textContent = rewards.length ? rewards.join(" ") : guardSaved ? "Your star guard saved the no-hit star!" : "";
-      $("clearTitle").textContent = lvl.boss ? "Boss defeated!" : "Sector clear!";
-      $("clearSub").textContent = WORLDS[lvl.w - 1].name + " · " + lvl.id;
-      const caps = ["Clear", "Coins " + Math.round(ratio * 100) + "%", "No damage"];
+      note.textContent = rewards.length ? rewards.join(" ") : guardSaved ? t("Your star guard saved the no-hit star!") : "";
+      $("clearTitle").textContent = lvl.boss ? t("Boss defeated!") : t("Sector clear!");
+      $("clearSub").textContent = t(WORLDS[lvl.w - 1].name) + " · " + lvl.id;
+      const caps = [t("Clear"), t("Coins {p}%", { p: Math.round(ratio * 100) }), t("No damage")];
       $("clearStars").innerHTML = [1, 2, 4].map((m, i) =>
         '<div class="star-slot' + (bits & m ? " on" : "") + (fresh & m ? " fresh" : "") +
         '" style="animation-delay:' + (0.3 + i * 0.3) + 's">' + ICON_STAR + "<small>" + caps[i] + "</small></div>").join("");
@@ -3009,7 +3053,7 @@
       $("clearCoins").textContent = "+" + run.coins;
       setDoubleButton("clear");
       const n = nextLevel(lvl.w, lvl.i);
-      $("nextBtn").textContent = !n ? "Finish" : lvl.boss ? "Next world" : "Next";
+      $("nextBtn").textContent = !n ? t("Finish") : lvl.boss ? t("Next world") : t("Next");
       showScreen("clear", 800);
       track("clear-" + lvl.id);
     }
@@ -3039,9 +3083,9 @@
       if (!fromTabSwitch) setGameplay(false);
       drag = null;
       keys = {};
-      $("pauseTitle").textContent = "Paused";
-      $("resumeBtn").textContent = "Resume";
-      $("quitBtn").textContent = "Quit";
+      $("pauseTitle").textContent = t("Paused");
+      $("resumeBtn").textContent = t("Resume");
+      $("quitBtn").textContent = t("Quit");
       $("restartBtn").hidden = false;
       $("pauseNote").hidden = true;
       showScreen("pause", 200);
@@ -3089,7 +3133,7 @@
         popCountdown(n);
         Sound.beep(false);
       } else {
-        popCountdown("GO!");
+        popCountdown(t("GO!"));
         Sound.beep(true);
         state = "playing";
         run.invuln = Math.max(run.invuln, cdInvuln);
@@ -3177,7 +3221,7 @@
       track("ad-" + kind);
       if (crazySettled) startAd(ad);
       else {
-        showAdWait("Loading ad…", "", true);
+        showAdWait(t("Loading ad…"), "", true);
         crazyReady.then(() => startAd(ad));
       }
     }
@@ -3185,7 +3229,7 @@
     function startAd(ad) {
       if (adPending !== ad) return;
       if (crazy) {
-        showAdWait("Loading ad…", "", true);
+        showAdWait(t("Loading ad…"), "", true);
         try {
           crazy.ad.requestAd("rewarded", {
             adStarted: () => Sound.setAdMuted(true),
@@ -3221,7 +3265,7 @@
         return;
       }
       if (!AD_DIRECT_LINK || adsOff) { failAd(adsOff ? { code: "adsDisabled" } : null); return; }
-      showAdWait("Opening ad…", "Come back to the game when you're done<br>to get your reward.", true);
+      showAdWait(t("Opening ad…"), esc(t("Come back to the game when you're done to get your reward.")), true);
       ad.opened = true;
       try { window.open(AD_DIRECT_LINK, "_blank", "noopener"); } catch (e) {}
       setTimeout(() => {
@@ -3247,10 +3291,10 @@
       const code = (err && err.code) || "";
       if (code.startsWith("adsDisabled")) {
         switchAdsOff();
-        showAdWait("Ads are off for now", "This bonus isn't available yet.", false);
-      } else if (code === "adblock") showAdWait("Ad blocked", "Turn off your ad blocker to earn rewards.", false);
+        showAdWait(t("Ads are off for now"), esc(t("This bonus isn't available yet.")), false);
+      } else if (code === "adblock") showAdWait(t("Ad blocked"), esc(t("Turn off your ad blocker to earn rewards.")), false);
       else if (code === "dismissed") showAdWait(t("Ad closed early"), esc(t("Watch the whole ad to get the reward.")), false);
-      else showAdWait("No ad available", "Please try again later.", false);
+      else showAdWait(t("No ad available"), esc(t("Please try again later.")), false);
       setTimeout(() => {
         if (adPending !== ad) return;
         adPending = null;
@@ -3276,7 +3320,7 @@
         const btn = DOUBLE_BTN[ad.screen];
         if (btn) {
           btn.disabled = true;
-          btn.querySelector(".dl").textContent = "Coins doubled!";
+          btn.querySelector(".dl").textContent = t("Coins doubled!");
         }
         const label = { over: "goCoins", clear: "clearCoins", fail: "failCoins" }[ad.screen];
         if (label) $(label).textContent = "+" + extra * 2;
@@ -3290,9 +3334,9 @@
         const btn = DOUBLE_BTN[ad.screen];
         if (btn) {
           btn.disabled = true;
-          btn.querySelector(".dl").textContent = "Star guard added! (" + guards + ")";
+          btn.querySelector(".dl").textContent = t("Star guard added! ({n})", { n: guards });
         }
-        if (ad.screen === "fail") $("failTip").textContent = "Your star guard will block the first hit on your next try.";
+        if (ad.screen === "fail") $("failTip").textContent = t("Your star guard will block the first hit on your next try.");
         Sound.power();
       } else if (ad.kind === "coins") {
         wallet += ad.coins;
@@ -3370,8 +3414,8 @@
       $("menuStars").textContent = totalStars();
       $("menuCoins").textContent = wallet;
       const [fw, fi] = frontier();
-      $("playBtn").textContent = totalStars() && levelUnlocked(fw, fi) && !cleared(fw + "-" + fi) ? "PLAY " + fw + "-" + fi : "PLAY";
-      $("endlessBtn").innerHTML = "Endless" + (best ? " <small>" + best + "</small>" : "");
+      $("playBtn").textContent = totalStars() && levelUnlocked(fw, fi) && !cleared(fw + "-" + fi) ? t("PLAY") + " " + fw + "-" + fi : t("PLAY");
+      $("endlessBtn").innerHTML = t("Endless") + (best ? " <small>" + best + "</small>" : "");
       const ready = missionsReady(), mb = $("missionsBadge");
       mb.hidden = !ready;
       mb.textContent = ready;
@@ -3396,7 +3440,7 @@
       const left = freeCoinsAt - Date.now();
       if (left > 0) {
         const secs = Math.ceil(left / 1000);
-        const label = "Free coins in " + Math.floor(secs / 60) + ":" + String(secs % 60).padStart(2, "0");
+        const label = t("Free coins in {time}", { time: Math.floor(secs / 60) + ":" + String(secs % 60).padStart(2, "0") });
         if (label !== freeKey) {
           freeKey = label;
           freeCoinsBtn.disabled = true;
@@ -3405,7 +3449,7 @@
       } else if (freeKey !== "ready") {
         freeKey = "ready";
         freeCoinsBtn.disabled = false;
-        freeCoinsBtn.innerHTML = '<span class="badge">AD</span> +' + freeCoinsAmount() + ' <i class="coin"></i>';
+        freeCoinsBtn.innerHTML = '<span class="badge">' + t("AD") + '</span> +' + freeCoinsAmount() + ' <i class="coin"></i>';
       }
     }
 
@@ -3433,12 +3477,12 @@
     function showDaily(day) {
       dailyDay = day;
       state = "daily";
-      $("dailySub").textContent = "Day " + day + " of 7 · come back tomorrow for more";
+      $("dailySub").textContent = t("Day {n} of 7 · come back tomorrow for more", { n: day });
       $("dailyDays").innerHTML = DAILY.map((_, i) => {
         const d = i + 1, r = dailyReward(d, 1);
         const what = r.coins ? '<i class="coin"></i>' + r.coins : ICON_GUARD + "×" + r.guards;
         return '<div class="day' + (d < day ? " done" : d === day ? " today" : "") + (d === 7 ? " big" : "") +
-          '"><small>DAY ' + d + "</small><b>" + what + "</b></div>";
+          '"><small>' + esc(t("DAY {n}", { n: d })) + "</small><b>" + what + "</b></div>";
       }).join("");
       const dbl = $("dailyDouble");
       dbl.hidden = adsOff;
@@ -3710,7 +3754,7 @@
     }
 
     // ---------- Version and updates ----------
-    $("menuVer").textContent = "Version " + GAME_VERSION;
+    $("menuVer").textContent = t("Version {v}", { v: GAME_VERSION });
     $("pauseVer").textContent = "Meteor Swerve " + GAME_VERSION;
 
     // The website looks for a newer version now and then and offers a one-tap update, so
@@ -3736,7 +3780,7 @@
           if (!/^\d+(\.\d+){0,3}$/.test(v) || !newerVersion(v, GAME_VERSION)) return;
           newVersion = v;
           const b = $("updateBtn");
-          b.textContent = "Version " + v + " is out · Tap to update";
+          b.textContent = t("Version {v} is out · Tap to update", { v });
           b.hidden = false;
         })
         .catch(() => {});
@@ -3835,7 +3879,7 @@
       $("backupCode").value = backupCode();
       $("restoreCode").value = "";
       restorePending = "";
-      $("restoreBtn").textContent = "Restore this code";
+      $("restoreBtn").textContent = t("Restore this code");
       setBackupMsg("");
       showScreen("backup", 200);
     }
@@ -3876,7 +3920,7 @@
         const b = document.createElement("button");
         b.className = "sk" + (s.parent ? "" : " root");
         b.dataset.id = s.id;
-        b.setAttribute("aria-label", s.name);
+        b.setAttribute("aria-label", t(s.name));
         b.innerHTML = (s.tier ? '<i class="tier">' + s.tier + "</i>" : "") + s.icon +
           (s.cost ? '<span class="tag">' + ICON_STAR + s.cost + "</span>" : "") + '<span class="tick">' + ICON_CHECK + "</span>";
         tree.appendChild(b);
@@ -3919,26 +3963,26 @@
       skillCard(skillSel);
       const reset = $("skillsReset");
       reset.hidden = skillsOwned.size <= 1;
-      reset.textContent = Date.now() < resetArmedUntil ? "Tap again: get all " + spentStars() + " stars back" : "Reset skills";
+      reset.textContent = Date.now() < resetArmedUntil ? t("Tap again: get all {n} stars back", { n: spentStars() }) : t("Reset skills");
     }
 
     function skillCard(id) {
       const s = SKILL_BY_ID[id], st = skillState(id), pts = skillPoints();
-      $("scName").textContent = s.name;
+      $("scName").textContent = t(s.name);
       $("scCost").innerHTML = s.cost ? ICON_STAR + s.cost : "";
-      $("scText").textContent = s.text;
+      $("scText").textContent = t(s.text);
       const state = $("scState"), learn = $("scLearn");
       state.className = "sc-state" + (st === "owned" && s.parent ? " ok" : "");
       if (!s.parent) {
-        state.textContent = "You've earned " + totalStars() + " of " + TOTAL_STARS + " stars and have " + Math.max(0, pts) +
-          " to spend. Collect more by getting all 3 stars in sectors.";
-      } else if (st === "owned") state.textContent = "✓ Learned";
-      else if (st === "locked") state.textContent = "Learn " + SKILL_BY_ID[s.parent].name + " first.";
-      else if (st === "open") state.textContent = "You need " + (s.cost - pts) + " more star" + (s.cost - pts === 1 ? "" : "s") + ".";
-      else state.textContent = "Ready to learn.";
+        state.textContent = t("You've earned {got} of {all} stars and have {pts} to spend. Collect more by getting all 3 stars in sectors.",
+          { got: totalStars(), all: TOTAL_STARS, pts: Math.max(0, pts) });
+      } else if (st === "owned") state.textContent = t("✓ Learned");
+      else if (st === "locked") state.textContent = t("Learn {name} first.", { name: t(SKILL_BY_ID[s.parent].name) });
+      else if (st === "open") state.textContent = s.cost - pts === 1 ? t("You need 1 more star.") : t("You need {n} more stars.", { n: s.cost - pts });
+      else state.textContent = t("Ready to learn.");
       learn.hidden = !s.parent || st === "owned";
       learn.disabled = st !== "can";
-      learn.innerHTML = "Learn for " + ICON_STAR + s.cost;
+      learn.innerHTML = esc(t("Learn for")) + " " + ICON_STAR + s.cost;
     }
 
     // Fits the tree into the space left over by the header and the skill card
@@ -4006,12 +4050,12 @@
       const w = viewWorld, world = WORLDS[w - 1];
       setPalette(w);
       updateSkillBadges();
-      $("worldNum").textContent = "WORLD " + w;
-      $("worldName").textContent = world.name;
+      $("worldNum").textContent = t("WORLD {n}", { n: w });
+      $("worldName").textContent = t(world.name);
       let s = 0;
       for (let i = 1; i <= LEVELS_PER_WORLD; i++) s += starCount(w + "-" + i);
       $("worldStars").innerHTML = ICON_STAR + " " + s + "/" + LEVELS_PER_WORLD * 3;
-      $("worldInfo").innerHTML = (w > 1 ? "New danger: <b>" + HAZARD_NAMES[w - 2] + "</b> · " : "") + "Boss: <b>" + world.boss + "</b>";
+      $("worldInfo").innerHTML = (w > 1 ? esc(t("New danger:")) + " <b>" + esc(t(HAZARD_NAMES[w - 2])) + "</b> · " : "") + esc(t("Boss:")) + " <b>" + esc(t(world.boss)) + "</b>";
       $("worldPrev").disabled = w === 1;
       $("worldNext").disabled = w === WORLDS.length;
       const [fw, fi] = frontier();
@@ -4022,17 +4066,17 @@
         const label = !open ? ICON_LOCK : i === LEVELS_PER_WORLD ? ICON_SKULL : i;
         const st = [1, 2, 4].map(m => '<i class="' + (bits & m ? "on" : "") + '">' + ICON_STAR + "</i>").join("");
         html += '<button class="' + cls + '" data-i="' + i + '"' + (open ? "" : " disabled") +
-          ' aria-label="Sector ' + id + '"><span class="n">' + label + '</span><span class="st">' + st + "</span></button>";
+          ' aria-label="' + esc(t("Sector {id}", { id })) + '"><span class="n">' + label + '</span><span class="st">' + st + "</span></button>";
       }
       levelGrid.innerHTML = html;
       const lock = $("worldLock");
       lock.hidden = worldUnlocked(w);
       if (!lock.hidden) {
         const need = STAR_GATES[w - 1], have = totalStars();
-        const boss = WORLDS[w - 2].boss;
-        lock.textContent = !bossBeaten(w - 1) && have < need ? "Defeat " + boss + " and collect " + need + " stars to open this world"
-          : !bossBeaten(w - 1) ? "Defeat " + boss + " to open this world"
-          : "Collect " + need + " stars to open this world (you have " + have + "). Replay sectors to earn the ones you missed.";
+        const boss = t(WORLDS[w - 2].boss);
+        lock.textContent = !bossBeaten(w - 1) && have < need ? t("Defeat {boss} and collect {n} stars to open this world", { boss, n: need })
+          : !bossBeaten(w - 1) ? t("Defeat {boss} to open this world", { boss })
+          : t("Collect {n} stars to open this world (you have {have}). Replay sectors to earn the ones you missed.", { n: need, have });
       }
     }
 
@@ -4056,17 +4100,17 @@
       $("skinName").textContent = s.name;
       skinStatus.className = isOwned ? "owned" : "";
       unlockBtn.hidden = isOwned || !!s.stars;
-      if (isOwned) skinStatus.innerHTML = "✓ Selected";
-      else if (s.stars) skinStatus.innerHTML = ICON_LOCK + "Collect " + s.stars + " stars<br>You have " + totalStars();
+      if (isOwned) skinStatus.innerHTML = esc(t("✓ Selected"));
+      else if (s.stars) skinStatus.innerHTML = ICON_LOCK + esc(t("Collect {n} stars", { n: s.stars })) + "<br>" + esc(t("You have {n}", { n: totalStars() }));
       else {
-        skinStatus.innerHTML = ICON_LOCK + (wallet >= s.price ? "Locked" : "Need " + (s.price - wallet) + " more");
+        skinStatus.innerHTML = ICON_LOCK + esc(wallet >= s.price ? t("Locked") : t("Need {n} more", { n: s.price - wallet }));
         unlockBtn.disabled = wallet < s.price;
-        unlockBtn.innerHTML = 'Unlock <i class="coin"></i> ' + s.price;
+        unlockBtn.innerHTML = esc(t("Unlock")) + ' <i class="coin"></i> ' + s.price;
       }
       $("skinDots").innerHTML = SHIPS.map((_, i) =>
         '<i class="' + (i === viewSkin ? "cur" : owned.includes(i) ? "own" : "") + '"></i>').join("");
       const cells = '<i></i>'.repeat(s.hull) + '<i class="up"></i>'.repeat(upgrades.hull) + '<i class="st"></i>'.repeat(skillHull());
-      $("shipStats").innerHTML = "<div><small>HULL</small><span class=\"cells\">" + cells + "</span></div><div>" + s.perkText + "</div>";
+      $("shipStats").innerHTML = "<div><small>" + esc(t("HULL")) + "</small><span class=\"cells\">" + cells + "</span></div><div>" + esc(t(s.perkText)) + "</div>";
 
       // Trails: browsing to an owned one equips it; a locked one can be bought here
       const tr = TRAILS[viewTrail], trOwned = trailsOwned.includes(viewTrail);
@@ -4075,7 +4119,7 @@
         store.set("meteorTrail", selectedTrail);
       }
       $("trailRow").hidden = !isOwned;
-      $("trailName").textContent = tr.name;
+      $("trailName").textContent = t(tr.name);
       $("trailSwatch").style.background = trailSwatch(tr, isOwned ? s : skin());
       const ts = $("trailStatus");
       ts.className = trOwned ? "owned" : "";
@@ -4083,21 +4127,22 @@
       trailBtn.hidden = !isOwned || trOwned || !!tr.stars || !!tr.event;
       if (!trailBtn.hidden) {
         trailBtn.disabled = wallet < tr.price;
-        trailBtn.innerHTML = 'Unlock trail <i class="coin"></i> ' + tr.price;
+        trailBtn.innerHTML = esc(t("Unlock trail")) + ' <i class="coin"></i> ' + tr.price;
       }
-      const guardBuy = guards >= GUARD_MAX ? '<button class="upg-buy" disabled>MAX</button>'
+      const MAXB = '<button class="upg-buy" disabled>' + esc(t("MAX")) + "</button>";
+      const guardBuy = guards >= GUARD_MAX ? MAXB
         : '<button class="upg-buy" data-u="guard"' + (wallet >= GUARD_PRICE ? "" : " disabled") + '><i class="coin"></i>' + GUARD_PRICE + "</button>";
-      const guardRow = '<div class="upg supply"><span class="upg-ico">' + ICON_GUARD + '</span><div class="upg-txt"><b>Star guard <em>×' + guards +
-        "</em></b><small>Blocks a hit in a sector where you still need the no-hit star</small></div>" + guardBuy + "</div>";
+      const guardRow = '<div class="upg supply"><span class="upg-ico">' + ICON_GUARD + '</span><div class="upg-txt"><b>' + esc(t("Star guard")) + " <em>×" + guards +
+        "</em></b><small>" + esc(t("Blocks a hit in a sector where you still need the no-hit star")) + "</small></div>" + guardBuy + "</div>";
       // Maxed upgrades fold into one line, so late in the game the shop stays short
       const allMaxed = UPGRADES.every(u => upgrades[u.id] >= u.prices.length);
-      $("upgradeList").innerHTML = guardRow + (allMaxed ? '<div class="upg-done">✓ All upgrades maxed</div>' : UPGRADES.map(u => {
+      $("upgradeList").innerHTML = guardRow + (allMaxed ? '<div class="upg-done">' + esc(t("✓ All upgrades maxed")) + "</div>" : UPGRADES.map(u => {
         const lvl = upgrades[u.id], max = u.prices.length, price = u.prices[lvl];
         const pips = Array.from({ length: max }, (_, i) => '<i class="' + (i < lvl ? "on" : "") + '"></i>').join("");
-        const buy = lvl >= max ? '<button class="upg-buy" disabled>MAX</button>'
+        const buy = lvl >= max ? MAXB
           : '<button class="upg-buy" data-u="' + u.id + '"' + (wallet >= price ? "" : " disabled") + '><i class="coin"></i>' + price + "</button>";
-        return '<div class="upg"><span class="upg-ico">' + u.icon + '</span><div class="upg-txt"><b>' + u.name +
-          "</b><small>" + u.text(lvl) + '</small><span class="pips">' + pips + "</span></div>" + buy + "</div>";
+        return '<div class="upg"><span class="upg-ico">' + u.icon + '</span><div class="upg-txt"><b>' + esc(t(u.name)) +
+          "</b><small>" + esc(u.text(lvl)) + '</small><span class="pips">' + pips + "</span></div>" + buy + "</div>";
       }).join(""));
     }
 
@@ -4190,6 +4235,24 @@
     on("dailyRunBtn", () => { Sound.click(); Vs.daily(); });
     dailyChallengeOn = true;
     $("dailyRunBtn").hidden = false;
+    // Language: the menu shows the current one; picking another reloads the game in it
+    $("langBtn").textContent = LANG_NAMES[lang];
+    on("langBtn", () => {
+      Sound.click();
+      enterBreak("lang");
+      $("langList").innerHTML = langList().map(k => '<button class="btn sec' + (k === lang ? " cur" : "") + '" data-lang="' + k + '" lang="' + k + '"' +
+        (k === "he" ? ' dir="rtl"' : "") + ">" + LANG_NAMES[k] + "</button>").join("");
+      showScreen("lang", 200);
+    });
+    $("langList").addEventListener("click", e => {
+      const b = e.target.closest("[data-lang]");
+      if (!b || state !== "lang") return;
+      Sound.click();
+      store.set("meteorLang", b.dataset.lang, true);
+      if (b.dataset.lang === lang) { showMenu(); return; }
+      location.reload();
+    });
+    on("langBack", () => { Sound.click(); showMenu(); });
     on("winterBtn", () => { Sound.click(); showWinter(); });
     on("wPlay", () => { Sound.click(); showMap(); });
     on("wBack", () => { Sound.click(); showMenu(); });
@@ -4240,11 +4303,11 @@
       box.value = backupCode();
       const ok = await copyText(box.value);
       if (!ok) { box.focus(); box.select(); }
-      setBackupMsg(ok ? "Copied! Keep it somewhere safe, like your notes app." : "Select the code above and copy it.");
+      setBackupMsg(ok ? t("Copied! Keep it somewhere safe, like your notes app.") : t("Select the code above and copy it."));
     });
     $("restoreCode").addEventListener("input", () => {
       restorePending = "";
-      $("restoreBtn").textContent = "Restore this code";
+      $("restoreBtn").textContent = t("Restore this code");
       setBackupMsg("");
     });
     on("restoreBtn", () => {
@@ -4253,23 +4316,23 @@
       const d = readBackup(text);
       if (!d) {
         restorePending = "";
-        setBackupMsg(text ? "That code doesn't look right. Copy the whole code and try again." : "Paste a backup code into the box first.");
+        setBackupMsg(text ? t("That code doesn't look right. Copy the whole code and try again.") : t("Paste a backup code into the box first."));
         return;
       }
       // Restoring replaces this browser's progress, so it takes a second tap
       if (restorePending !== text) {
         restorePending = text;
         const stars = Object.values(d.meteorStars).reduce((s, v) => s + popcount(v), 0);
-        $("restoreBtn").textContent = "Yes, restore it";
-        setBackupMsg("This code has " + d.meteorCoins + " coins and " + stars + " stars. Restoring replaces the progress in this browser.");
+        $("restoreBtn").textContent = t("Yes, restore it");
+        setBackupMsg(t("This code has {coins} coins and {stars} stars. Restoring replaces the progress in this browser.", { coins: d.meteorCoins, stars }));
         return;
       }
       applyBackup(d);
       restorePending = "";
       $("restoreCode").value = "";
-      $("restoreBtn").textContent = "Restore this code";
+      $("restoreBtn").textContent = t("Restore this code");
       $("backupCode").value = backupCode();
-      setBackupMsg("Progress restored!");
+      setBackupMsg(t("Progress restored!"));
       Sound.power();
       coinBurst();
     });
@@ -4764,7 +4827,7 @@
       shake = Math.max(shake, 14);
       Sound.blast();
       vibrate([40, 30, 80]);
-      addText(player.x, player.y - 48, POWERUPS.blast.label, POWERUPS.blast.color, 24);
+      addText(player.x, player.y - 48, t(POWERUPS.blast.label), POWERUPS.blast.color, 24);
       if (rocks) {
         const pay = rocks * (skill("p3") ? 2 : 1);     // Big Bang
         addPickupCoins(pay);
@@ -4781,7 +4844,7 @@
       Sound.power();
       vibrate(30);
       rings.push({ x: player.x, y: player.y, r: 10, vr: 260, life: 0.45, max: 0.45, color: def.color, w: 3 });
-      addText(player.x, player.y - 48, def.label, def.color, 22);
+      addText(player.x, player.y - 48, t(def.label), def.color, 22);
     }
 
     function shieldHit(src) {
@@ -4793,7 +4856,7 @@
       shake = 9;
       Sound.shieldBreak();
       vibrate(60);
-      addText(player.x, player.y - 48, run.pu.shield > 0 ? "BLOCKED! 1 LEFT" : "BLOCKED!", "#58e1ff", 20);
+      addText(player.x, player.y - 48, run.pu.shield > 0 ? t("BLOCKED! 1 LEFT") : t("BLOCKED!"), "#58e1ff", 20);
     }
 
     function guardHit(src) {
@@ -4807,7 +4870,7 @@
       shake = 9;
       Sound.shieldBreak();
       vibrate(60);
-      addText(player.x, player.y - 48, "GUARDED!", "#ffd34d", 20);
+      addText(player.x, player.y - 48, t("GUARDED!"), "#ffd34d", 20);
       renderHull();
     }
 
@@ -4821,7 +4884,7 @@
         run.phaseUsed = true;
         run.invuln = 1.5;
         rings.push({ x: player.x, y: player.y, r: 12, vr: 300, life: 0.5, max: 0.5, color: "#e6f0ff", w: 3 });
-        addText(player.x, player.y - 48, "PHASED!", "#e6f0ff", 22);
+        addText(player.x, player.y - 48, t("PHASED!"), "#e6f0ff", 22);
         Sound.power();
         return false;
       }
@@ -4836,8 +4899,8 @@
         rings.push({ x: player.x, y: player.y, r: 14, vr: 320, life: 0.6, max: 0.6, color: "#ff6fb5", w: 4 });
         Sound.shieldBreak();
         vibrate([60, 30, 60]);
-        addText(player.x, player.y - 48, "LAST STAND!", "#ff9ad5", 22);
-        if (starLost) addText(player.x, player.y - 74, "NO-HIT STAR LOST", "#c9b3d9", 13);
+        addText(player.x, player.y - 48, t("LAST STAND!"), "#ff9ad5", 22);
+        if (starLost) addText(player.x, player.y - 74, t("NO-HIT STAR LOST"), "#c9b3d9", 13);
         return true;
       }
       run.hull--;
@@ -4849,8 +4912,8 @@
       explosion(src.x, src.y, ["#ffffff", "#ffd166", "#ff7b54"], 20);
       Sound.hit();
       vibrate([60]);
-      addText(player.x, player.y - 48, "HULL -1", "#ff8a6a", 20);
-      if (starLost) addText(player.x, player.y - 74, "NO-HIT STAR LOST", "#c9b3d9", 13);
+      addText(player.x, player.y - 48, t("HULL -1"), "#ff8a6a", 20);
+      if (starLost) addText(player.x, player.y - 74, t("NO-HIT STAR LOST"), "#c9b3d9", 13);
       return true;
     }
 
@@ -4868,13 +4931,13 @@
       Sound.nearMiss(c);
       const color = c >= 11 ? "#ff8a5c" : c >= 6 ? "#ff6bd6" : c >= 3 ? "#ffd34d" : "#7ee0ff";
       const x = player.x + (m.x < player.x ? 36 : -36), size = 16 + Math.min(c - 1, 8) * 1.5;
-      const label = c > 1 ? "CLOSE x" + c + "! +" : "CLOSE! +";
+      const label = (c > 1 ? t("CLOSE x{n}!", { n: c }) : t("CLOSE!")) + " +";
       if (run.mode === "endless") {
         run.score += 3 * c * pay;
         addText(x, player.y - 30, label + 3 * c * pay, color, size);
       } else if (run.mode === "versus") {
         // In a race close calls charge the attack meter (a chain of three or more charges double)
-        addText(x, player.y - 30, c > 1 ? "CLOSE x" + c + "!" : "CLOSE!", color, size);
+        addText(x, player.y - 30, c > 1 ? t("CLOSE x{n}!", { n: c }) : t("CLOSE!"), color, size);
         Vs.charge(c >= 3 ? 2 : 1);
       } else {
         addPickupCoins(c * pay);
@@ -4997,7 +5060,7 @@
       }
       if (!level && !run.bestShown && run.bestAtStart > 0 && run.score > run.bestAtStart) {
         run.bestShown = true;
-        addText(W / 2, H * 0.32, "NEW BEST!", "#ffd34d", 30);
+        addText(W / 2, H * 0.32, t("NEW BEST!"), "#ffd34d", 30);
         Sound.best();
       }
     }
@@ -5494,6 +5557,12 @@
       const clock = () => race ? (performance.now() - race.start) / 1000 : 0;
       const num = v => typeof v === "number" && isFinite(v) ? v : NaN;
       const ordinal = n => n + (n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th");
+      // Finishing places and knock-out notes, in the player's language (a few race functions
+      // have their own "t", so these sit outside them)
+      const PLACES = ["1st place", "2nd place", "3rd place", "4th place"];
+      const placeName = n => t(PLACES[n - 1] || ordinal(n) + " place");
+      const elimBanner = place => showBanner(t("ELIMINATED"), placeName(place), "#ff6b6b");
+      const outText = (name, slot) => addText(W / 2, safeTop + 150, t("{name} is out!", { name }), COLORS[slot], 15);
       const fmt = s => { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
       const fx = u => fieldX + u * fieldW;
 
@@ -5503,7 +5572,7 @@
         store.set("meteorPilot", pilot, true);
       }
       const nameOk = n => typeof n === "string" && NAME_OK.test(n) && (WORD_NAME.test(n) || CRAZY_NAME.test(n));
-      const cleanName = (n, slot) => nameOk(typeof n === "string" ? n.trim() : n) ? n.trim() : "Pilot " + (slot + 1);
+      const cleanName = (n, slot) => nameOk(typeof n === "string" ? n.trim() : n) ? n.trim() : t("Pilot {n}", { n: slot + 1 });
       if (!WORD_NAME.test(pilot)) rollName();
       const myName = () => crazyName || pilot;
       const cleanShip = s => Number.isInteger(s) && SHIPS[s] ? s : 0;
@@ -5785,7 +5854,7 @@
             if (!knocking.has(conn)) return;
             knocking.delete(conn);
             if (peer === p && !conn.open) {
-              note("A pilot tried to join but couldn't connect. " + (hasRelay()
+              note(t("A pilot tried to join but couldn't connect.") + " " + t(hasRelay()
                 ? "Their network may be blocking it." : "Your networks may block direct connections."), 9000);
             }
             try { conn.close(); } catch (e) {}
@@ -6013,7 +6082,7 @@
               p.destroy();
               becomeHost(hp, { qm: true });
               if (unreachable) {
-                note("Found a pilot but couldn't connect to them. " + (hasRelay()
+                note(t("Found a pilot but couldn't connect to them.") + " " + t(hasRelay()
                   ? "One of your networks may be blocking it." : "Your networks may block direct connections."), 15000);
               }
               return;
@@ -6055,7 +6124,7 @@
         if (c.length !== 4) { showOnline("Room codes have 4 letters."); return; }
         leaveSession();
         const token = sess;
-        searching("JOINING", "Joining room " + c + "…");
+        searching("JOINING", t("Joining room {code}…", { code: c }));
         track("vs-join");
         try {
           await loadLib();
@@ -6117,13 +6186,13 @@
             if (typeof l === "string" && l) link = l;
           }
         } catch (e) {}
-        const text = "Race me in Meteor Swerve! Room code " + code;
+        const text = t("Race me in Meteor Swerve! Room code {code}", { code });
         if (navigator.share && isCoarse) {
           try { await navigator.share({ title: "Meteor Swerve", text, url: link }); return; }
           catch (e) { if (e && e.name === "AbortError") return; }
         }
         const ok = await copyText(link);
-        flashMsg = ok ? "Invite link copied! Send it to your friends." : "Share this link: " + link;
+        flashMsg = ok ? t("Invite link copied! Send it to your friends.") : t("Share this link: {link}", { link });
         flashUntil = performance.now() + (ok ? 3500 : 15000);
         lobbyStatus();
       }
@@ -6171,10 +6240,10 @@
         $("pilotName").textContent = myName();
         $("pilotRoll").hidden = !!crazyName;
         const s = stats();
-        $("vsStats").textContent = s.races ? "Online wins: " + s.wins + " of " + s.races + " races"
-          : s.botWins ? "Bot races won: " + s.botWins : "";
+        $("vsStats").textContent = s.races ? t("Online wins: {wins} of {races} races", { wins: s.wins, races: s.races })
+          : s.botWins ? t("Bot races won: {n}", { n: s.botWins }) : "";
         const m = $("onlineMsg");
-        m.textContent = msg || "";
+        m.textContent = msg ? t(msg) : "";
         m.hidden = !msg;
         $("joinRow").hidden = true;
         showScreen("online", 200);
@@ -6224,9 +6293,9 @@
           t.textContent = txt;
           row.appendChild(t);
         };
-        if (q.slot === me) tag("YOU");
-        if (q.bot) tag("BOT", "bot");
-        else if (q.slot === 0 && kind !== "bots") tag("HOST", "host");
+        if (q.slot === me) tag(t("YOU"));
+        if (q.bot) tag(t("BOT"), "bot");
+        else if (q.slot === 0 && kind !== "bots") tag(t("HOST"), "host");
         if (time !== undefined) {
           const t = document.createElement("span");
           t.className = "time";
@@ -6237,7 +6306,7 @@
       }
 
       function renderLobby() {
-        $("lobbyLabel").textContent = !kind ? searchLabel : qm ? "QUICK MATCH" : "ROOM CODE";
+        $("lobbyLabel").textContent = t(!kind ? searchLabel : qm ? "QUICK MATCH" : "ROOM CODE");
         $("lobbyCode").textContent = code;
         $("lobbyCode").hidden = !kind || qm || !code;
         $("inviteBtn").hidden = !kind || qm || !code;
@@ -6254,7 +6323,7 @@
             } else {
               const row = document.createElement("div");
               row.className = "slot empty";
-              row.textContent = "Waiting for a pilot…";
+              row.textContent = t("Waiting for a pilot…");
               box.appendChild(row);
             }
           }
@@ -6268,16 +6337,16 @@
         const now = performance.now(), n = count();
         let txt, spin = false;
         if (now < flashUntil) txt = flashMsg;
-        else if (!kind) { txt = searchText; spin = true; }
+        else if (!kind) { txt = t(searchText); spin = true; }
         else if (kind === "host") {
-          if (racing) txt = "Race in progress…";
-          else if (qm && n < 2) { txt = "Waiting for pilots to join…"; spin = true; }
-          else if (qm) txt = "Starting in " + Math.max(1, Math.ceil((autoAt - now) / 1000)) + "…";
-          else txt = n < 2 ? "Share the code with friends. Up to 4 pilots can race." : "Everyone in? Start the race!";
-        } else if (racing) txt = "A race is on (" + aliveNow + " still flying). You'll fly in the next one!";
-        else if (qm && lobbyCdAt) txt = "Starting in " + Math.max(1, Math.ceil((lobbyCdAt - now) / 1000)) + "…";
-        else if (qm) { txt = "Waiting for more pilots…"; spin = true; }
-        else txt = "Waiting for the host to start the race…";
+          if (racing) txt = t("Race in progress…");
+          else if (qm && n < 2) { txt = t("Waiting for pilots to join…"); spin = true; }
+          else if (qm) txt = t("Starting in {n}…", { n: Math.max(1, Math.ceil((autoAt - now) / 1000)) });
+          else txt = n < 2 ? t("Share the code with friends. Up to 4 pilots can race.") : t("Everyone in? Start the race!");
+        } else if (racing) txt = t("A race is on ({n} still flying). You'll fly in the next one!", { n: aliveNow });
+        else if (qm && lobbyCdAt) txt = t("Starting in {n}…", { n: Math.max(1, Math.ceil((lobbyCdAt - now) / 1000)) });
+        else if (qm) { txt = t("Waiting for more pilots…"); spin = true; }
+        else txt = t("Waiting for the host to start the race…");
         const st = $("lobbyStatus");
         if (st.textContent !== txt) {
           st.textContent = txt;
@@ -6291,11 +6360,11 @@
 
       function raceMenu() {
         const out = state !== "playing" && state !== "vsStart";
-        $("pauseTitle").textContent = kind === "bots" ? "Bot race" : "Online race";
-        $("resumeBtn").textContent = out ? "Keep watching" : "Keep flying";
-        $("quitBtn").textContent = "Leave race";
+        $("pauseTitle").textContent = t(kind === "bots" ? "Bot race" : "Online race");
+        $("resumeBtn").textContent = t(out ? "Keep watching" : "Keep flying");
+        $("quitBtn").textContent = t("Leave race");
         $("restartBtn").hidden = true;
-        $("pauseNote").textContent = kind === "bots" ? "The race keeps going while this is open." : "Online races keep going while this is open.";
+        $("pauseNote").textContent = t(kind === "bots" ? "The race keeps going while this is open." : "Online races keep going while this is open.");
         $("pauseNote").hidden = false;
         showScreen("pause", 150);
       }
@@ -6514,7 +6583,7 @@
           next: { rock: 0.8, coin: 1.2, power: 0, comet: 0.5, laser: 0.5 },
           beamEnds: [],
           racers: roster.map((slot, i) => {
-            const q = players[slot] || { name: "Pilot " + (slot + 1), ship: 0, trail: 0 };
+            const q = players[slot] || { name: t("Pilot {n}", { n: slot + 1 }), ship: 0, trail: 0 };
             return {
               slot, name: q.name, ship: q.ship, trail: q.trail, bot: !!q.bot, sk: q.sk, skIdx: q.skIdx || 0,
               alive: true, deadAt: 0, u0: lane(i), x: fx(lane(i)), tx: fx(lane(i)), vx: 0, tilt: 0,
@@ -6551,7 +6620,7 @@
             netTick(dt);
             return;
           }
-          popCountdown("GO!");
+          popCountdown(t("GO!"));
           Sound.beep(true);
           state = "playing";
         }
@@ -6698,7 +6767,7 @@
         if (race.beamEnds.length > 8) race.beamEnds = race.beamEnds.filter(e => e > now);
         if (!race.overtime && diff(now) >= 150) {
           race.overtime = true;
-          showBanner("OVERTIME", "The storm keeps growing", "#ff6b6b", true);
+          showBanner(t("OVERTIME"), t("The storm keeps growing"), "#ff6b6b", true);
           Sound.alarm();
         }
       }
@@ -6717,7 +6786,7 @@
         if (!race || race.ended) return;
         if (from === me) {
           race.lastAtk = performance.now();
-          addText(player.x, player.y - 66, "ATTACK SENT!", "#ff9f43", 18);
+          addText(player.x, player.y - 66, t("ATTACK SENT!"), "#ff9f43", 18);
           rings.push({ x: player.x, y: player.y, r: 16, vr: 420, life: 0.5, max: 0.5, color: "#ff9f43", w: 3 });
           Sound.attack();
           vibrate(25);
@@ -6742,7 +6811,7 @@
           for (const m of meteors) if (m.atk && m.tgt === me) live++;
           if (live >= 24) return;
           x = player.x;
-          addText(W / 2, safeTop + 128, "INCOMING FROM " + src.name.toUpperCase() + "!", COLORS[from], 14);
+          addText(W / 2, safeTop + 128, t("INCOMING FROM {name}!", { name: src.name.toUpperCase() }), COLORS[from], 14);
           Sound.incoming();
           vibrate(40);
         }
@@ -6774,7 +6843,7 @@
         shake = Math.max(shake, 14);
         Sound.blast();
         vibrate([40, 30, 80]);
-        addText(player.x, player.y - 44, POWERUPS.blast.label, POWERUPS.blast.color, 24);
+        addText(player.x, player.y - 44, t(POWERUPS.blast.label), POWERUPS.blast.color, 24);
         if (rocks) addPickupCoins(rocks);
         launch(me, 4);
       }
@@ -6789,7 +6858,7 @@
         listDirty = true;
         const left = race.racers.filter(r => r.alive).length;
         if (kind === "daily") dailyBanner(t);
-        else showBanner("ELIMINATED", ordinal(left + 1) + " place", "#ff6b6b");
+        else elimBanner(left + 1);
         if (kind === "guest") { if (!forced) send({ t: "de", r: race.id, m: t }); }
         else if (kind === "host") {
           sendAll({ t: "de", r: race.id, p: me, m: t });
@@ -6822,7 +6891,7 @@
         if (x !== undefined && state !== "vsOver") {
           explosion(x, baseY, [COLORS[slot], "#ffffff", "#ffd166"], 34);
           Sound.knockout();
-          addText(W / 2, safeTop + 150, rc.name + " is out!", COLORS[slot], 15);
+          outText(rc.name, slot);
         }
       }
 
@@ -6859,7 +6928,7 @@
         store.set("meteorVs", st);
         if (place === 1 && state === "playing") {
           run.invuln = 99;     // nothing can touch the winner now
-          showBanner("VICTORY!", "Last ship flying", "#ffd34d");
+          showBanner(t("VICTORY!"), t("Last ship flying"), "#ffd34d");
           confetti();
           Sound.best();
           happyTime();
@@ -6885,10 +6954,10 @@
         const rows = r.results, n = rows.length, place = r.place;
         const mine = rows.find(x => x.slot === me);
         const title = $("vsTitle");
-        title.textContent = place === 1 ? "Victory!" : ordinal(place) + " place";
+        title.textContent = place === 1 ? t("Victory!") : placeName(place);
         title.classList.toggle("gold", place === 1);
-        $("vsSub").textContent = place === 1 ? (n > 1 ? "Last ship flying out of " + n + "!" : "Last ship flying!")
-          : "You flew for " + fmt(mine ? mine.time : 0) + ".";
+        $("vsSub").textContent = place === 1 ? (n > 1 ? t("Last ship flying out of {n}!", { n }) : t("Last ship flying!"))
+          : t("You flew for {time}.", { time: fmt(mine ? mine.time : 0) });
         const box = $("vsStandings");
         box.textContent = "";
         for (const row of rows) {
@@ -6912,12 +6981,12 @@
         } else if (kind === "host") {
           btn.hidden = false;
           btn.disabled = n < 2;
-          if (n < 2) txt = qm || !code ? "Everyone else has left." : "Everyone else has left. Friends can still join with code " + code + ".";
+          if (n < 2) txt = qm || !code ? t("Everyone else has left.") : t("Everyone else has left. Friends can still join with code {code}.", { code });
         } else {
           btn.hidden = true;
-          txt = racing ? "The next race is starting…" : "Waiting for the host to start the next race…";
+          txt = t(racing ? "The next race is starting…" : "Waiting for the host to start the next race…");
         }
-        if (rematchAt && n >= 2 && !racing) txt = "Next race in " + Math.max(1, Math.ceil((rematchAt - performance.now()) / 1000)) + "…";
+        if (rematchAt && n >= 2 && !racing) txt = t("Next race in {n}…", { n: Math.max(1, Math.ceil((rematchAt - performance.now()) / 1000)) });
         next.hidden = !txt;
         if (next.textContent !== txt) next.textContent = txt;
       }
@@ -7018,7 +7087,7 @@
           label(rc.name, x, ty, col);
         }
         ctx.globalAlpha = 1;
-        if (state === "vsStart") label("YOU", player.x, player.y - 40 * shipScale, COLORS[me], 13);
+        if (state === "vsStart") label(t("YOU"), player.x, player.y - 40 * shipScale, COLORS[me], 13);
       }
 
       function hudTick() {
@@ -7029,7 +7098,7 @@
         const a = kind === "daily" ? fmt(secs) : r.racers.filter(x => x.alive).length + "/" + r.racers.length;
         if (shown.alive !== a) {
           shown.alive = a;
-          $("vsAlive").innerHTML = kind === "daily" ? a : a + "<small>FLYING</small>";
+          $("vsAlive").innerHTML = kind === "daily" ? a : a + "<small>" + esc(t("FLYING")) + "</small>";
         }
         const tl = kind === "daily" ? t("BEST {time}", { time: fmt(r.bestBefore || 0) }) : fmt(secs);
         if (shown.secs !== tl) {
@@ -7076,7 +7145,7 @@
           const dot = document.createElement("i");
           dot.style.background = COLORS[rc.slot];
           const name = document.createElement("span");
-          name.textContent = rc.slot === me ? "You" : rc.name;
+          name.textContent = rc.slot === me ? t("You") : rc.name;
           row.append(dot, name);
           el.appendChild(row);
         }
@@ -7254,7 +7323,7 @@
             // never started (a broken or tampered game): skip that spot for a while, look again.
             if (joinedSpot) badSpots.set(joinedSpot, now + 5 * 60 * 1000);
             quickMatch();
-            note("That match never started, so looking for another…", 8000);
+            note(t("That match never started, so looking for another…"), 8000);
             return;
           }
         } else if (kind === "host") {
