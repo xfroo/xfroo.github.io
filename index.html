@@ -1442,7 +1442,7 @@
     // ---------- Config ----------
     // Shown on the menu and the pause screen. Bump it with every release, together with
     // version.json (the website compares the two to offer a one-tap update).
-    const GAME_VERSION = "3.1";
+    const GAME_VERSION = "3.2";
     // A link that opens an ad in a new tab, for the rewards on the game's own website.
     // Empty for now: Monetag's link (removed in 2.9.1) sent players to adult and scam pages.
     // Without a link the reward buttons are hidden on the website; CrazyGames uses its own ads.
@@ -1458,6 +1458,9 @@
       if (v) out = out.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m));
       return out;
     }
+
+    // A copy running on this computer (localhost or a test page): test-only switches work there
+    const LOCAL_TEST = /^(localhost|127\.|\[::1\]|0\.0\.0\.0)$/.test(location.hostname) || !location.hostname;
 
     const CONTINUE_SECONDS = 5;
     const FREE_COINS = 40;                  // the free-coins ad's pay at the very start; it grows with progress
@@ -3132,6 +3135,25 @@
     // it finishes. Elsewhere the ad opens in a new tab and the reward is granted when
     // the player comes back to the game (or after a short wait if the browser never
     // left the page).
+    // ---------- Google ads (H5 Games Ads, on the game's own website) ----------
+    // When Google approves xfroo.github.io for H5 Games Ads, set GOOGLE_ADS to true. The reward
+    // buttons then play Google's rewarded ads, and a short ad can play between sectors (never
+    // during play). The AdSense script itself is in <head>. On this computer, localStorage
+    // meteorAdTest = true runs the same flow with Google's test ads (the page must load the
+    // script with data-adbreak-test="on"; test ads aren't real ads and earn nothing).
+    const GOOGLE_ADS = false;
+    const googleTest = LOCAL_TEST && store.get("meteorAdTest", false, true) === true;
+    const googleWanted = () => (GOOGLE_ADS || googleTest) && !crazy;
+    let googleSet = false;
+    function googleSetup() {
+      if (googleSet || !googleWanted()) return;
+      googleSet = true;
+      window.adsbygoogle = window.adsbygoogle || [];
+      window.adBreak = window.adConfig = o => { window.adsbygoogle.push(o); };
+      window.adConfig({ preloadAdBreaks: "on", sound: Sound.muted ? "off" : "on" });
+    }
+    const googleOn = () => googleSet && typeof window.adBreak === "function";
+
     let adPending = null;
     const adSpinner = $("adSpinner"), adTitle = $("adTitle"), adSub = $("adSub");
 
@@ -3173,6 +3195,31 @@
         } catch (e) { failAd(null); }
         return;
       }
+      if (googleOn() && !adsOff) {
+        // The player opted in with the button; Google plays the ad if it has one ready
+        showAdWait(t("Loading ad…"), "", true);
+        let viewed = false, ended = false;
+        try {
+          window.adBreak({
+            type: "reward",
+            name: "reward-" + ad.kind,
+            beforeAd: () => Sound.setAdMuted(true),
+            afterAd: () => Sound.setAdMuted(false),
+            beforeReward: showAdFn => showAdFn(),
+            adViewed: () => { viewed = true; },
+            adDismissed: () => {},
+            adBreakDone: info => {
+              if (ended) return;
+              ended = true;
+              Sound.setAdMuted(false);
+              const s = info && info.breakStatus;
+              if (viewed || s === "viewed") finishAd();
+              else failAd({ code: s === "dismissed" ? "dismissed" : "" });
+            }
+          });
+        } catch (e) { failAd(null); }
+        return;
+      }
       if (!AD_DIRECT_LINK || adsOff) { failAd(adsOff ? { code: "adsDisabled" } : null); return; }
       showAdWait("Opening ad…", "Come back to the game when you're done<br>to get your reward.", true);
       ad.opened = true;
@@ -3202,6 +3249,7 @@
         switchAdsOff();
         showAdWait("Ads are off for now", "This bonus isn't available yet.", false);
       } else if (code === "adblock") showAdWait("Ad blocked", "Turn off your ad blocker to earn rewards.", false);
+      else if (code === "dismissed") showAdWait(t("Ad closed early"), esc(t("Watch the whole ad to get the reward.")), false);
       else showAdWait("No ad available", "Please try again later.", false);
       setTimeout(() => {
         if (adPending !== ad) return;
@@ -3259,11 +3307,13 @@
       }
     }
 
-    // A short CrazyGames ad between sectors (the SDK allows one every 3 minutes at
-    // most). Skipped after a run where the player already watched a rewarded ad.
+    // A short ad between sectors: CrazyGames' (the SDK allows one every 3 minutes at most)
+    // or, on the website, Google's (Google decides how often). Skipped after a run where the
+    // player already watched a rewarded ad.
     function playAfterBreak(start) {
       if (midgameBusy) return;
-      if (!crazy || adsOff || run.rewarded || plays < MIDGAME_AFTER_RUNS) { start(); return; }
+      const viaGoogle = !crazy && googleOn();
+      if ((!crazy && !viaGoogle) || adsOff || run.rewarded || plays < MIDGAME_AFTER_RUNS) { start(); return; }
       midgameBusy = true;
       let done = false;
       const go = () => {
@@ -3273,6 +3323,13 @@
         Sound.setAdMuted(false);
         start();
       };
+      if (viaGoogle) {
+        try {
+          window.adBreak({ type: "next", name: "sector-break", beforeAd: () => Sound.setAdMuted(true), afterAd: () => Sound.setAdMuted(false), adBreakDone: go });
+        } catch (e) { go(); }
+        setTimeout(go, 60000);      // in case Google never reports back
+        return;
+      }
       try {
         crazy.ad.requestAd("midgame", {
           adStarted: () => Sound.setAdMuted(true),
@@ -3551,7 +3608,6 @@
     // On this computer, localStorage meteorWinterTest = true turns the event on for testing.
     const WINTER_GOAL = 100;
     const FROST_TRAIL = TRAILS.findIndex(tr => tr.event === "winter");
-    const LOCAL_TEST = /^(localhost|127\.|\[::1\]|0\.0\.0\.0)$/.test(location.hostname) || !location.hostname;
     const winterTest = LOCAL_TEST && store.get("meteorWinterTest", false, true) === true;
     const winterOn = () => winterTest || new Date().getMonth() === 11;
     const flakes = [];
@@ -4278,6 +4334,7 @@
       Sound.toggle();
       updateMuteButtons();
       Sound.click();
+      if (googleOn()) window.adConfig({ sound: Sound.muted ? "off" : "on" });   // Google's ads follow the game's sound
     }));
     document.querySelectorAll(".music-btn").forEach(b => b.addEventListener("click", () => {
       Sound.unlock();
@@ -8141,7 +8198,8 @@
       $("siteLinks").hidden = false;
       let foreign = false;
       if (window.top !== window.self) { try { void window.top.location.href; } catch (e) { foreign = true; } }
-      if (!AD_DIRECT_LINK || foreign) switchAdsOff();
+      if (!foreign) googleSetup();
+      if (foreign || (!AD_DIRECT_LINK && !googleOn())) switchAdsOff();
     }
 
     async function initCrazyGames() {
