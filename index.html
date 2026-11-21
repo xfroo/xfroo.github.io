@@ -1231,8 +1231,11 @@
     // ---------- Config ----------
     // Shown on the menu and the pause screen. Bump it with every release, together with
     // version.json (the website compares the two to offer a one-tap update).
-    const GAME_VERSION = "2.9";
-    const AD_DIRECT_LINK = "https://uplcm.com/4/12131180";
+    const GAME_VERSION = "2.9.1";
+    // A link that opens an ad in a new tab, for the rewards on the game's own website.
+    // Empty for now: Monetag's link (removed in 2.9.1) sent players to adult and scam pages.
+    // Without a link the reward buttons are hidden on the website; CrazyGames uses its own ads.
+    const AD_DIRECT_LINK = "";
     const CONTINUE_SECONDS = 5;
     const FREE_COINS = 40;                  // the free-coins ad's pay at the very start; it grows with progress
     const FREE_COINS_COOLDOWN = 3 * 60 * 1000;
@@ -7249,6 +7252,15 @@
     resize();
     meteorSpritesFor(palette);
 
+    // Off CrazyGames, the ad rewards need AD_DIRECT_LINK. Without one they're switched off,
+    // and inside another website's page too, so nobody can pass off taps on their page as
+    // ad visits (that could get the ad account banned).
+    function websiteAds() {
+      let foreign = false;
+      if (window.top !== window.self) { try { void window.top.location.href; } catch (e) { foreign = true; } }
+      if (!AD_DIRECT_LINK || foreign) switchAdsOff();
+    }
+
     async function initCrazyGames() {
       const sdk = window.CrazyGames && window.CrazyGames.SDK;
       // CrazyGames runs games inside its own page (an iframe) or on its own domain.
@@ -7257,6 +7269,7 @@
       const host = location.hostname;
       const local = host === "localhost" || host === "127.0.0.1";
       if (window.top === window.self && !local && !/crazygames/i.test(host)) {
+        websiteAds();
         loadAnalytics();
         return;
       }
@@ -7265,13 +7278,7 @@
       } catch (e) {}
       const env = sdk && sdk.environment;
       if (env !== "crazygames" && env !== "local") {
-        // Another website showing this game inside its own page: no ads there, so nobody can
-        // pass off taps on their page as ad visits (that could get the ad account banned)
-        if (AD_DIRECT_LINK && window.top !== window.self) {
-          let foreign = false;
-          try { void window.top.location.href; } catch (e) { foreign = true; }
-          if (foreign) switchAdsOff();
-        }
+        websiteAds();
         loadAnalytics();
         return;
       }
