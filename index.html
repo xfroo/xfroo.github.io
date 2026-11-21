@@ -1026,6 +1026,12 @@
       #upgradeList { gap: 6px; }
       .upg { padding: 5px 10px; }
     }
+    /* Short phones: a smaller ship and one line per upgrade (longer languages included) */
+    @media (max-height: 690px) {
+      #hangar #shipPreview { width: 70px; height: 70px; }
+      .upg-txt { min-width: 0; }
+      .upg-txt b, .upg-txt small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    }
 
     @media (max-height: 640px) {
       .panel { gap: 10px; }
@@ -1086,6 +1092,9 @@
       .star-slot:nth-child(2) svg { width: 34px; height: 34px; }
       #shipPreview { width: 52px; height: 52px; }
       .pill.mini { height: 36px; }
+      #upgradeList { gap: 4px; }
+      .upg { padding-top: 3px; padding-bottom: 3px; }
+      .upg-ico { width: 32px; height: 32px; }
     }
     /* Phones on their side: the title on one line leaves room for every menu button */
     @media (orientation: landscape) and (max-height: 480px) {
@@ -1453,7 +1462,7 @@
     // ---------- Config ----------
     // Shown on the menu and the pause screen. Bump it with every release, together with
     // version.json (the website compares the two to offer a one-tap update).
-    const GAME_VERSION = "3.3";
+    const GAME_VERSION = "3.4";
     // A link that opens an ad in a new tab, for the rewards on the game's own website.
     // Empty for now: Monetag's link (removed in 2.9.1) sent players to adult and scam pages.
     // Without a link the reward buttons are hidden on the website; CrazyGames uses its own ads.
