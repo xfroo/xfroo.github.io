@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://xfroo.github.io/sitemap.xml

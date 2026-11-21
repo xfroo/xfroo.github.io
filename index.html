@@ -465,6 +465,7 @@
     .hint { font-size: 13px; color: var(--muted); font-weight: 600; }
     .tip { font-size: 13px; font-weight: 700; color: #ffe08a; max-width: 300px; line-height: 1.35; }
     .ver { font-size: 11px; font-weight: 700; color: var(--muted); opacity: .6; }
+    .ver a { color: inherit; padding: 8px 3px; -webkit-touch-callout: default; }
 
     /* ---------- Daily bonus ---------- */
     #daily { z-index: 25; background: rgba(7,10,20,.94); }
@@ -986,7 +987,7 @@
       <button class="pill" id="freeCoinsBtn"></button>
     </div>
     <p class="hint" id="menuHint">Drag anywhere to steer · grab coins · beat the bosses</p>
-    <p class="ver" id="menuVer"></p>
+    <p class="ver"><span id="menuVer"></span><span id="siteLinks" hidden> · <a href="about.html" target="_blank" rel="noopener">About</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy</a></span></p>
   </div></div>
 
   <div id="skills" class="overlay"><div class="panel skills-panel">
@@ -1234,7 +1235,7 @@
     // ---------- Config ----------
     // Shown on the menu and the pause screen. Bump it with every release, together with
     // version.json (the website compares the two to offer a one-tap update).
-    const GAME_VERSION = "2.9.1";
+    const GAME_VERSION = "2.9.2";
     // A link that opens an ad in a new tab, for the rewards on the game's own website.
     // Empty for now: Monetag's link (removed in 2.9.1) sent players to adult and scam pages.
     // Without a link the reward buttons are hidden on the website; CrazyGames uses its own ads.
@@ -7255,10 +7256,13 @@
     resize();
     meteorSpritesFor(palette);
 
-    // Off CrazyGames, the ad rewards need AD_DIRECT_LINK. Without one they're switched off,
-    // and inside another website's page too, so nobody can pass off taps on their page as
-    // ad visits (that could get the ad account banned).
+    // Off CrazyGames (on the game's own website): the menu links to the About and Privacy
+    // pages (CrazyGames allows no links out of a game), and the ad rewards, which need
+    // AD_DIRECT_LINK. Without one they're switched off, and inside another website's page
+    // too, so nobody can pass off taps on their page as ad visits (that could get the ad
+    // account banned).
     function websiteAds() {
+      $("siteLinks").hidden = false;
       let foreign = false;
       if (window.top !== window.self) { try { void window.top.location.href; } catch (e) { foreign = true; } }
       if (!AD_DIRECT_LINK || foreign) switchAdsOff();
