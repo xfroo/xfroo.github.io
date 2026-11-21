@@ -277,6 +277,53 @@
     }
     .pill:disabled { background: rgba(255,255,255,.08); color: var(--muted); cursor: default; }
     .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .row.minirow { gap: 8px; }
+    .pill.mini { height: 40px; padding: 0 14px; background: rgba(255,255,255,.09); box-shadow: inset 0 0 0 1px rgba(255,255,255,.13); }
+    .pill.mini[hidden] { display: none; }
+    .pill.mini svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; flex: none; }
+    .pill.mini .badge { padding: 2px 6px; }
+    @media (max-height: 760px) { #menuHint { display: none; } }
+
+    /* ---------- Toasts and missions ---------- */
+    #toast {
+      position: fixed;
+      left: 50%;
+      top: calc(env(safe-area-inset-top) + 92px);
+      transform: translate(-50%, -12px);
+      z-index: 40;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .25s, transform .25s;
+      background: linear-gradient(180deg, rgba(28,64,36,.96), rgba(17,40,23,.96));
+      border: 1px solid rgba(126,231,135,.5);
+      color: #d6ffd9;
+      font-size: 14px;
+      font-weight: 800;
+      padding: 9px 16px;
+      border-radius: 999px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.45);
+      white-space: nowrap;
+      max-width: calc(100vw - 32px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .mlist { display: flex; flex-direction: column; gap: 10px; width: min(360px, calc(100vw - 32px)); }
+    .mcard { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 14px; padding: 12px 14px; text-align: left; }
+    .mcard.done { border-color: rgba(126,231,135,.55); background: rgba(63,191,90,.12); }
+    .mcard.claimed { opacity: .55; }
+    .mtop { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .mtop b { font-size: 15px; font-weight: 800; line-height: 1.3; }
+    .mrew { display: inline-flex; align-items: center; gap: 4px; font-weight: 900; color: var(--gold); white-space: nowrap; }
+    .mprog { display: flex; align-items: center; gap: 10px; margin-top: 9px; min-height: 34px; }
+    .mbar2 { flex: 1; height: 8px; border-radius: 8px; background: rgba(255,255,255,.1); overflow: hidden; }
+    .mbar2 i { display: block; height: 100%; border-radius: 8px; background: linear-gradient(90deg, #3fbf5a, #9dff5c); }
+    .mprog em { font-style: normal; font-size: 13px; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 44px; text-align: right; }
+    .pill.mclaim { height: 34px; padding: 0 14px; font-size: 13px; }
+    .mclaimed { font-size: 13px; font-weight: 800; color: #7ee787; }
+    .mbonus { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--muted); }
+    .mbonus svg { width: 18px; height: 18px; fill: var(--gold); flex: none; }
+    .mbonus.got { color: var(--gold); }
 
     .title {
       font-weight: 900;
@@ -843,6 +890,62 @@
     #vsList i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
     #vsList span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     #vsList .out { opacity: .4; }
+
+    /* ---------- Side panels (wide screens) ----------
+       On a computer the play area is a phone-shaped column; the space beside it shows where
+       the player is and their goals (left), and their ship (right). The HUD's top row moves
+       in to the play area's edges. */
+    .side { display: none; }
+    body.wide .side {
+      position: fixed;
+      top: calc(env(safe-area-inset-top) + 76px);
+      bottom: 18px;
+      width: var(--side-w, 240px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 10px;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    body.wide #sideL { left: var(--side-x, 24px); }
+    body.wide #sideR { right: var(--side-x, 24px); }
+    body.wide #hud { left: var(--field-x, 0px); right: var(--field-x, 0px); }
+    body.wide #hud.vs #vsList { display: none; }
+    .sbox {
+      background: rgba(9,14,28,.66);
+      border: 1px solid rgba(120,170,255,.16);
+      border-radius: 14px;
+      padding: 10px 14px 11px;
+      box-shadow: 0 8px 26px rgba(0,0,0,.28);
+    }
+    .sbox[hidden] { display: none; }
+    .sbox small { display: block; font-size: 10px; font-weight: 900; letter-spacing: .16em; color: var(--muted); }
+    .sbox b { display: block; font-size: 21px; font-weight: 900; line-height: 1.2; margin-top: 2px; }
+    .sbox b.num { font-size: 34px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+    .sbox .sub { display: block; font-size: 13px; font-weight: 700; color: #cfe6ff; margin-top: 3px; font-variant-numeric: tabular-nums; }
+    .sbar { height: 8px; border-radius: 8px; background: rgba(255,255,255,.1); overflow: hidden; margin-top: 7px; }
+    .sbar i { display: block; height: 100%; width: 0; border-radius: 8px; background: linear-gradient(90deg, #58a6ff, #7ee0ff); }
+    .sbar.boss i { background: linear-gradient(90deg, #ff7b54, #f85149); }
+    .sbar.combo i { background: linear-gradient(90deg, #ffd34d, #ff6bd6); }
+    .srow { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #dbe7f5; margin-top: 6px; }
+    .srow > span:first-of-type { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .srow em { font-style: normal; font-size: 12px; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .srow em.ok { color: #7ee787; }
+    .srow em.no { color: #ff8a6a; }
+    .srow svg { width: 15px; height: 15px; flex: none; fill: rgba(255,255,255,.22); }
+    .srow svg.got { fill: var(--gold); filter: drop-shadow(0 0 4px rgba(255,211,77,.6)); }
+    .srow .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+    .srow.out { opacity: .4; }
+    .srow .mbar { flex: 0 0 52px; height: 6px; border-radius: 6px; background: rgba(255,255,255,.1); overflow: hidden; }
+    .srow .mbar i { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, #3fbf5a, #9dff5c); }
+    .scells { display: flex; gap: 4px; margin-top: 7px; flex-wrap: wrap; }
+    .scells .cell { width: 22px; height: 10px; border-radius: 3px; background: rgba(255,255,255,.14); }
+    .scells .cell.on { background: linear-gradient(180deg, #8ff0ff, #3fb8ff); box-shadow: 0 0 8px rgba(88,200,255,.6); }
+    .scells .cell.guard { background: linear-gradient(180deg, #fff3b0, #ffc93d); box-shadow: 0 0 8px rgba(255,211,77,.7); margin-left: 4px; }
+    .scells .cell.atk { width: 18px; }
+    .scells .cell.atk.on { background: linear-gradient(180deg, #ffd08a, #ff7b3d); box-shadow: 0 0 6px rgba(255,140,60,.6); }
+    .skeys { font-size: 11px; font-weight: 700; color: #aab4c0; text-align: center; line-height: 1.5; text-shadow: 0 1px 4px #000, 0 0 10px #000; }
     #vsList .out span { text-decoration: line-through; }
 
     /* Landscape screens: the room's pilots sit beside the room details */
@@ -934,6 +1037,12 @@
       .star-slot svg { width: 28px; height: 28px; }
       .star-slot:nth-child(2) svg { width: 34px; height: 34px; }
       #shipPreview { width: 52px; height: 52px; }
+      .pill.mini { height: 36px; }
+    }
+    /* Phones on their side: the title on one line leaves room for every menu button */
+    @media (orientation: landscape) and (max-height: 480px) {
+      .title span { display: inline; }
+      .title .t1 { margin-right: .28em; }
     }
   </style>
 </head>
@@ -961,9 +1070,25 @@
     </div>
     <div id="coinBox"><i class="coin"></i><span id="coinCount">0</span></div>
     <div id="vsList"></div>
+    <div class="side" id="sideL">
+      <div class="sbox"><small id="sMode"></small><b id="sWorld"></b><span class="sub" id="sWhere"></span></div>
+      <div class="sbox" id="sProgBox"><small id="sProgLabel"></small><div class="sbar" id="sProgBar"><i id="sProg"></i></div><span class="sub" id="sProgTxt"></span></div>
+      <div class="sbox" id="sStarsBox"><small id="sStarsLabel"></small><div id="sStars"></div></div>
+      <div class="sbox" id="sRivalsBox"><small id="sRivalsLabel"></small><div id="sRivals"></div></div>
+      <div class="sbox" id="sMissionsBox" hidden><small id="sMissionsLabel"></small><div id="sMissions"></div></div>
+      <div class="skeys" id="sKeys"></div>
+    </div>
+    <div class="side" id="sideR">
+      <div class="sbox"><small id="sMainLabel"></small><b class="num" id="sMain">0</b><span class="sub" id="sMainSub"></span></div>
+      <div class="sbox"><small id="sComboLabel"></small><b id="sCombo"></b><div class="sbar combo"><i id="sComboBar"></i></div></div>
+      <div class="sbox"><small id="sHullLabel"></small><div class="scells" id="sHull"></div></div>
+      <div class="sbox" id="sAtkBox"><small id="sAtkLabel"></small><div class="scells" id="sAtk"></div></div>
+      <div class="sbox"><small id="sPowerLabel"></small><div id="sPowers"></div></div>
+    </div>
   </div>
 
   <div id="countdown"></div>
+  <div id="toast"></div>
 
   <div id="menu" class="overlay menu"><div class="panel">
     <button class="pill update" id="updateBtn" hidden></button>
@@ -975,6 +1100,10 @@
     <canvas id="menuShip"></canvas>
     <button class="btn big" id="playBtn">PLAY</button>
     <button class="btn vs" id="onlineBtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>Online race <span class="badge new" id="onlineNew" hidden>NEW</span></button>
+    <div class="row minirow">
+      <button class="pill mini" id="dailyRunBtn" hidden><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg><span data-t="Daily challenge">Daily challenge</span><span class="badge new" id="dailyRunNew" hidden>!</span></button>
+      <button class="pill mini" id="missionsBtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span data-t="Missions">Missions</span><span class="badge pts" id="missionsBadge" hidden></span></button>
+    </div>
     <div class="row">
       <button class="btn sec" id="hangarBtn">Hangar <span class="badge new" id="hangarNew" hidden>NEW</span></button>
       <button class="btn sec" id="skillsBtn">Skills <span class="badge pts" id="skillsPts" hidden></span></button>
@@ -1019,6 +1148,14 @@
     <button class="btn sec" id="restoreBtn">Restore this code</button>
     <p class="tip" id="backupMsg" hidden></p>
     <button class="btn ghost" id="backupBack">‹ Menu</button>
+  </div></div>
+
+  <div id="missions" class="overlay menu"><div class="panel">
+    <div class="h1" data-t="Missions">Missions</div>
+    <div class="sub" id="msSub"></div>
+    <div class="mlist" id="msList"></div>
+    <div class="mbonus" id="msBonus"></div>
+    <button class="btn ghost" id="msBack"><span data-t="‹ Menu">‹ Menu</span></button>
   </div></div>
 
   <div id="daily" class="overlay"><div class="panel">
@@ -1235,11 +1372,23 @@
     // ---------- Config ----------
     // Shown on the menu and the pause screen. Bump it with every release, together with
     // version.json (the website compares the two to offer a one-tap update).
-    const GAME_VERSION = "2.9.2";
+    const GAME_VERSION = "3.0";
     // A link that opens an ad in a new tab, for the rewards on the game's own website.
     // Empty for now: Monetag's link (removed in 2.9.1) sent players to adult and scam pages.
     // Without a link the reward buttons are hidden on the website; CrazyGames uses its own ads.
     const AD_DIRECT_LINK = "";
+    // ---------- Text ----------
+    // Text the player reads goes through t(): the English text is the key, {name} marks a
+    // value to fill in, and LANGS (further down) holds the other languages.
+    const LANGS = {};
+    let lang = "en";
+    function t(s, v) {
+      const d = LANGS[lang];
+      let out = (d && d[s]) || s;
+      if (v) out = out.replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m));
+      return out;
+    }
+
     const CONTINUE_SECONDS = 5;
     const FREE_COINS = 40;                  // the free-coins ad's pay at the very start; it grows with progress
     const FREE_COINS_COOLDOWN = 3 * 60 * 1000;
@@ -2034,6 +2183,76 @@
       previewCanvas.width = previewCanvas.height = Math.round(130 * DPR);
       menuShipCanvas.width = menuShipCanvas.height = Math.round(130 * DPR);
       if (state === "skills") layoutTree();
+      layoutSides();
+    }
+
+    // ---------- World art beside the play area (wide screens) ----------
+    // A big planet low on the left and a moon high on the right, in the world's colours.
+    let sideArt = null;
+    function sideBody(r, kind) {
+      const pad = Math.ceil(r * 0.3), size = Math.ceil((r + pad) * 2), c = size / 2, a = palette.accent;
+      const cv = newCanvas(Math.ceil(size * DPR), Math.ceil(size * DPR));
+      const g = cv.getContext("2d");
+      g.setTransform(DPR, 0, 0, DPR, 0, 0);
+      const n = parseInt(a.slice(1), 16), rgba = al => "rgba(" + (n >> 16 & 255) + "," + (n >> 8 & 255) + "," + (n & 255) + "," + al + ")";
+      const halo = g.createRadialGradient(c, c, r * 0.85, c, c, r + pad);
+      halo.addColorStop(0, rgba(0.2));
+      halo.addColorStop(1, rgba(0));
+      g.fillStyle = halo;
+      g.fillRect(0, 0, size, size);
+      const body = g.createRadialGradient(c - r * 0.45, c - r * 0.5, r * 0.1, c, c, r);
+      body.addColorStop(0, mix(a, -0.18));
+      body.addColorStop(0.45, mix(a, -0.5));
+      body.addColorStop(1, mix(a, -0.86));
+      g.fillStyle = body;
+      g.beginPath();
+      g.arc(c, c, r, 0, TAU);
+      g.fill();
+      g.save();
+      g.clip();
+      // Surface detail from a fixed seed (not Math.random, so seeded runs stay repeatable)
+      let s = kind === "moon" ? 7 : 3;
+      const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+      if (kind === "planet") {
+        for (let i = 0; i < 8; i++) {
+          g.fillStyle = i % 2 ? "rgba(255,255,255,.05)" : "rgba(0,0,0,.1)";
+          g.fillRect(c - r, c - r + (i + rnd() * 0.5) * (2 * r / 8), 2 * r, r * (0.07 + rnd() * 0.12));
+        }
+      } else {
+        for (let i = 0; i < 9; i++) {
+          const ang = rnd() * TAU, d = rnd() * r * 0.8;
+          g.fillStyle = "rgba(0,0,0,.2)";
+          g.beginPath();
+          g.arc(c + Math.cos(ang) * d, c + Math.sin(ang) * d, r * (0.06 + rnd() * 0.12), 0, TAU);
+          g.fill();
+        }
+      }
+      const shade = g.createLinearGradient(c - r, c - r, c + r, c + r);
+      shade.addColorStop(0.35, "rgba(0,0,0,0)");
+      shade.addColorStop(1, "rgba(0,0,0,.7)");
+      g.fillStyle = shade;
+      g.fillRect(c - r, c - r, 2 * r, 2 * r);
+      g.restore();
+      g.strokeStyle = rgba(0.4);
+      g.lineWidth = 1.5;
+      g.beginPath();
+      g.arc(c, c, r - 0.75, Math.PI * 0.95, Math.PI * 1.7);
+      g.stroke();
+      return { cv, size };
+    }
+
+    function drawSideArt() {
+      if (!sidesOn) return;
+      const r1 = Math.min(fieldX * 0.7, H * 0.38), r2 = Math.min(fieldX * 0.18, H * 0.1);
+      const key = palette.name + "|" + Math.round(r1) + "|" + Math.round(r2) + "|" + DPR;
+      if (!sideArt || sideArt.key !== key) sideArt = { key, planet: sideBody(r1, "planet"), moon: sideBody(r2, "moon") };
+      const bob = Math.sin(T * 0.15) * 4, p = sideArt.planet, m = sideArt.moon;
+      // The planet peeks in from the bottom corner, mostly below the panels
+      ctx.globalAlpha = 0.6;
+      ctx.drawImage(p.cv, fieldX * 0.18 - p.size / 2, H * 1.04 - p.size / 2 + bob, p.size, p.size);
+      ctx.globalAlpha = 0.8;
+      ctx.drawImage(m.cv, fieldX + fieldW + (W - fieldX - fieldW) * 0.72 - m.size / 2, H * 0.16 - m.size / 2 - bob, m.size, m.size);
+      ctx.globalAlpha = 1;
     }
 
     // ---------- Pre-rendered sprites ----------
@@ -2322,7 +2541,7 @@
     let boss = null;
     let banner = null;
     let midgameBusy = false;
-    const AMBIENT = new Set(["menu", "map", "hangar", "ending", "boot", "daily", "online", "lobby", "backup", "skills"]);
+    const AMBIENT = new Set(["menu", "map", "hangar", "ending", "boot", "daily", "online", "lobby", "backup", "skills", "missions"]);
 
     function newRun(mode, lvl) {
       const hull = maxHull();
@@ -2365,7 +2584,7 @@
     document.querySelectorAll("[data-icon=star]").forEach(el => { el.innerHTML = ICON_STAR; });
 
     const screens = {};
-    ["menu", "map", "hangar", "continue", "adwait", "clear", "fail", "gameover", "ending", "pause", "daily", "online", "lobby", "vsResult", "backup", "skills"].forEach(n => { screens[n] = $(n); });
+    ["menu", "map", "hangar", "continue", "adwait", "clear", "fail", "gameover", "ending", "pause", "daily", "online", "lobby", "vsResult", "backup", "skills", "missions"].forEach(n => { screens[n] = $(n); });
 
     function showScreen(name, readyDelay) {
       const el = screens[name];
@@ -2636,6 +2855,9 @@
       state = "won";
       stateT = 0;
       setGameplay(false);
+      missionAdd("clear");
+      if (!run.damaged) missionAdd("nohit");
+      if (run.lvl && run.lvl.boss) missionAdd("boss");
       run.pu.slow = 0;
       for (const m of meteors) sparks(m.x, m.y, "rgba(" + m.pal.tail + ",1)", 3, 90);
       meteors.length = beams.length = ufos.length = 0;
@@ -3012,6 +3234,9 @@
       const [fw, fi] = frontier();
       $("playBtn").textContent = totalStars() && levelUnlocked(fw, fi) && !cleared(fw + "-" + fi) ? "PLAY " + fw + "-" + fi : "PLAY";
       $("endlessBtn").innerHTML = "Endless" + (best ? " <small>" + best + "</small>" : "");
+      const ready = missionsReady(), mb = $("missionsBadge");
+      mb.hidden = !ready;
+      mb.textContent = ready;
       freeKey = "";
       updateFreeCoins();
     }
@@ -3090,6 +3315,148 @@
       refreshMenu();
       Sound.power();
       coinBurst();
+    }
+
+    // ---------- Toasts ----------
+    // A short note at the top of the screen (a finished mission, an event item...), one at a time
+    const toastEl = $("toast"), toastQueue = [];
+    let toastBusy = false;
+    function toast(text) {
+      toastQueue.push(text);
+      if (!toastBusy) nextToast();
+    }
+    function nextToast() {
+      const text = toastQueue.shift();
+      if (text === undefined) { toastBusy = false; return; }
+      toastBusy = true;
+      toastEl.textContent = text;
+      toastEl.classList.add("show");
+      setTimeout(() => {
+        toastEl.classList.remove("show");
+        setTimeout(nextToast, 300);
+      }, 2600);
+    }
+
+    // ---------- Missions ----------
+    // Three small goals a day that pay coins. They're picked from the date (so everyone gets
+    // the same kinds of goals on the same day), sized to how far the player has got, and
+    // refresh at midnight on the player's own clock. Finishing all three adds a star guard.
+    const MISSIONS = [
+      { id: "close", text: "Make {n} close calls", n: [15, 25, 40] },
+      { id: "combo", text: "Reach a x{n} combo", n: [4, 6, 8], best: true },
+      { id: "coins", text: "Pick up {n} coins", n: [60, 120, 200] },
+      { id: "clear", text: "Clear {n} sectors", n: [2, 3, 4] },
+      { id: "nohit", text: "Clear a sector without a hit", n: [1, 1, 1] },
+      { id: "power", text: "Pick up {n} power-ups", n: [3, 5, 8] },
+      { id: "blast", text: "Clear the screen with a Blast", n: [1, 1, 1] },
+      { id: "endless", text: "Last {n} seconds in one Endless run", n: [45, 75, 110], best: true },
+      { id: "race", text: "Finish {n} races (online or bots)", n: [1, 2, 3] },
+      { id: "win", text: "Win a race", n: [1, 1, 1] },
+      { id: "boss", text: "Beat a boss", n: [1, 1, 1], need: () => bossBeaten(1) },
+      { id: "daily", text: "Play today's daily challenge", n: [1, 1, 1], need: () => dailyChallengeOn }
+    ];
+    let dailyChallengeOn = false;      // set once the daily challenge is set up
+    const MISSION_BY_ID = {};
+    MISSIONS.forEach(m => { MISSION_BY_ID[m.id] = m; });
+    let missions = null, missionSaveT = 0;
+
+    const clearedSectors = () => { let n = 0; for (const id in levelStars) if (levelStars[id] & 1) n++; return n; };
+    const missionText = m => t(MISSION_BY_ID[m.id].text, { n: m.n });
+
+    function pickMissions(day) {
+      const R = mulberry32(parseInt(hash36("missions-" + day), 36) >>> 0);
+      const cleared = clearedSectors(), tier = cleared < 8 ? 0 : cleared < 24 ? 1 : 2;
+      const coins = Math.round((20 + 4 * cleared + totalStars()) / 10) * 10;
+      const pool = MISSIONS.filter(m => !m.need || m.need());
+      const list = [];
+      while (list.length < 3 && pool.length) {
+        const m = pool.splice(Math.floor(R() * pool.length), 1)[0];
+        list.push({ id: m.id, n: m.n[tier], p: 0, coins, claimed: false });
+      }
+      return list;
+    }
+
+    // Today's missions, made fresh after midnight
+    function missionsNow() {
+      const today = dayKey(new Date());
+      if (missions && missions.day === today) return missions;
+      const s = store.get("meteorMissions", null);
+      const ok = s && s.day === today && Array.isArray(s.list) && s.list.length === 3 &&
+        s.list.every(m => m && MISSION_BY_ID[m.id] && Number.isFinite(m.n) && m.n > 0);
+      if (ok) {
+        missions = { day: today, bonus: !!s.bonus, list: s.list.map(m => ({ id: m.id, n: Math.floor(m.n), p: clamp(Math.floor(Number(m.p) || 0), 0, Math.floor(m.n)),
+          coins: clamp(Math.floor(Number(m.coins) || 0), 0, 5000), claimed: !!m.claimed })) };
+      } else {
+        missions = { day: today, bonus: false, list: pickMissions(today) };
+        store.set("meteorMissions", missions);
+      }
+      return missions;
+    }
+
+    function saveMissionsSoon() {
+      if (missionSaveT) return;
+      missionSaveT = setTimeout(() => { missionSaveT = 0; store.set("meteorMissions", missions); }, 1500);
+    }
+
+    // Progress: add counts up, best keeps the highest value reached
+    function missionAdd(id, k) { missionStep(id, m => m.p + (k || 1)); }
+    function missionBest(id, v) { missionStep(id, m => Math.max(m.p, v)); }
+    function missionStep(id, f) {
+      const ms = missionsNow();
+      for (const m of ms.list) {
+        if (m.id !== id || m.claimed || m.p >= m.n) continue;
+        const p = Math.min(m.n, Math.floor(f(m)));
+        if (p === m.p) continue;
+        m.p = p;
+        saveMissionsSoon();
+        if (p >= m.n) {
+          toast(t("Mission complete: {text}", { text: missionText(m) }));
+          Sound.power();
+        }
+      }
+    }
+
+    const missionsReady = () => missionsNow().list.filter(m => m.p >= m.n && !m.claimed).length;
+
+    function showMissions() {
+      enterBreak("missions");
+      renderMissions();
+      showScreen("missions", 200);
+    }
+
+    function renderMissions() {
+      const ms = missionsNow();
+      const now = new Date(), next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      const mins = Math.max(1, Math.ceil((next - now) / 60000));
+      $("msSub").textContent = t("New missions in {h} h {m} min", { h: Math.floor(mins / 60), m: mins % 60 });
+      $("msList").innerHTML = ms.list.map((m, i) => {
+        const done = m.p >= m.n;
+        return '<div class="mcard' + (m.claimed ? " claimed" : done ? " done" : "") + '"><div class="mtop"><b>' + esc(missionText(m)) +
+          '</b><span class="mrew"><i class="coin"></i>' + m.coins + '</span></div><div class="mprog"><div class="mbar2"><i style="width:' +
+          Math.round(m.p / m.n * 100) + '%"></i></div><em>' + m.p + "/" + m.n + "</em>" +
+          (m.claimed ? '<span class="mclaimed">' + esc(t("Claimed")) + "</span>" : '<button class="pill mclaim" data-claim="' + i + '"' + (done ? "" : " disabled") + ">" + esc(t("Claim")) + "</button>") +
+          "</div></div>";
+      }).join("");
+      const all = ms.list.every(m => m.claimed);
+      $("msBonus").innerHTML = ICON_GUARD + "<span>" + esc(ms.bonus ? t("All done! Star guard added.") : all ? "" : t("Finish all three for a free star guard")) + "</span>";
+      $("msBonus").classList.toggle("got", ms.bonus);
+    }
+
+    function claimMission(i) {
+      const ms = missionsNow(), m = ms.list[i];
+      if (!m || m.claimed || m.p < m.n) return;
+      m.claimed = true;
+      wallet += m.coins;
+      if (!ms.bonus && ms.list.every(x => x.claimed)) {
+        ms.bonus = true;
+        if (guards < GUARD_MAX) { guards++; saveGuards(); }
+        else wallet += m.coins;
+      }
+      saveWallet();
+      store.set("meteorMissions", ms);
+      Sound.power();
+      coinBurst();
+      renderMissions();
     }
 
     // ---------- Version and updates ----------
@@ -3567,6 +3934,12 @@
     // A fresh address skips any cached copy of the old page; the progress stays where it is
     on("updateBtn", () => { location.replace(location.pathname + "?v=" + encodeURIComponent(newVersion)); });
     on("backupBtn", () => { Sound.click(); showBackup(); });
+    on("missionsBtn", () => { Sound.click(); showMissions(); });
+    on("msBack", () => { Sound.click(); showMenu(); });
+    $("msList").addEventListener("click", e => {
+      const b = e.target.closest("[data-claim]");
+      if (b && !b.disabled && state === "missions") claimMission(Number(b.dataset.claim));
+    });
     on("skillsBtn", () => { Sound.click(); showSkills("menu"); });
     on("mapSkills", () => { Sound.click(); showSkills("map"); });
     on("skillsBack", () => { Sound.click(); if (skillsFrom === "map") showMap(viewWorld); else showMenu(); });
@@ -4100,6 +4473,7 @@
 
     function collectCoin(c) {
       run.coinsPicked++;
+      missionAdd("coins");
       if (run.mode === "endless") run.score += 5;
       else if (run.mode === "versus") Vs.charge(0.2);
       addPickupCoins(1);
@@ -4140,7 +4514,8 @@
 
     function collectPower(p) {
       const def = POWERUPS[p.type];
-      if (p.type === "blast") { blast(); return; }
+      missionAdd("power");
+      if (p.type === "blast") { missionAdd("blast"); blast(); return; }
       run.pu[p.type] = def.duration * powerMult();
       if (p.type === "shield") run.shieldHits = skill("a3") ? 2 : 1;   // Double Shield
       Sound.power();
@@ -4228,6 +4603,8 @@
       run.combo = T - run.comboAt < chainTime ? Math.min(run.combo + 1, cap) : 1;
       run.comboAt = T;
       const c = run.combo;
+      missionAdd("close");
+      missionBest("combo", c);
       Sound.nearMiss(c);
       const color = c >= 11 ? "#ff8a5c" : c >= 6 ? "#ff6bd6" : c >= 3 ? "#ffd34d" : "#7ee0ff";
       const x = player.x + (m.x < player.x ? 36 : -36), size = 16 + Math.min(c - 1, 8) * 1.5;
@@ -4304,6 +4681,7 @@
       } else {
         run.time += dt;
         run.score += dt * 10;
+        if (Math.floor(run.time) !== Math.floor(run.time - dt)) missionBest("endless", Math.floor(run.time));
         // Endless mode tours the worlds as it gets harder
         const stage = clamp(1 + Math.floor(run.time / 50), 1, WORLDS.length);
         if (WORLDS[stage - 1] !== palette) {
@@ -4567,6 +4945,124 @@
         if (s !== shownScore) { shownScore = s; scoreEl.textContent = s; }
       }
     }
+
+    // ---------- Side panels (wide screens) ----------
+    // Beside the play area on a computer: where the player is and their goals on the left,
+    // their ship on the right. Gameplay is the same with or without them.
+    const sideEl = {};
+    ["sMode", "sWorld", "sWhere", "sProgBox", "sProgLabel", "sProgBar", "sProg", "sProgTxt", "sStarsBox", "sStarsLabel", "sStars",
+      "sRivalsBox", "sRivalsLabel", "sRivals", "sMissionsBox", "sMissionsLabel", "sMissions", "sKeys",
+      "sMainLabel", "sMain", "sMainSub", "sComboLabel", "sCombo", "sComboBar", "sHullLabel", "sHull", "sAtkBox", "sAtkLabel", "sAtk",
+      "sPowerLabel", "sPowers"].forEach(id => { sideEl[id] = $(id); });
+    let sidesOn = false, sideT = 0;
+    const sideHtml = {};
+    function setText(el, v) { if (el.textContent !== v) el.textContent = v; }
+    function setHtml(key, el, html) { if (sideHtml[key] !== html) { sideHtml[key] = html; el.innerHTML = html; } }
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const mmss = s => { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+
+    function layoutSides() {
+      sidesOn = fieldX >= 210;
+      document.body.classList.toggle("wide", sidesOn);
+      if (!sidesOn) return;
+      const w = Math.round(clamp(fieldX - 56, 200, 290));
+      const st = document.documentElement.style;
+      st.setProperty("--side-w", w + "px");
+      st.setProperty("--side-x", Math.round((fieldX - w) / 2) + "px");
+      st.setProperty("--field-x", Math.round(fieldX) + "px");
+      sideT = 0;
+    }
+
+    function updateSides(dt) {
+      if (!sidesOn || !hud.classList.contains("show")) return;
+      sideT -= dt;
+      if (sideT > 0) return;
+      sideT = 0.1;
+      const e = sideEl, mode = run.mode, lvl = run.lvl;
+      const race = mode === "versus" ? Vs.sideInfo() : null;
+      // Left: where the player is
+      const world = mode === "level" ? WORLDS[lvl.w - 1] : palette;
+      setText(e.sMode, mode === "level" ? t("WORLD {n}", { n: lvl.w }) : race ? race.title : t("ENDLESS"));
+      setText(e.sWorld, t(world.name));
+      e.sWorld.style.color = world.accent;
+      setText(e.sWhere, mode === "level" ? (lvl.boss ? t("Boss: {name}", { name: t(world.boss) }) : t("Sector {id}", { id: lvl.id }))
+        : race ? race.where : t("Time {t}", { t: mmss(run.time) }));
+      // Progress through the sector, or the boss's time left
+      e.sProgBox.hidden = mode !== "level";
+      if (mode === "level") {
+        const p = clamp(run.elapsed / lvl.duration, 0, 1);
+        setText(e.sProgLabel, lvl.boss ? t("BOSS") : t("PROGRESS"));
+        e.sProgBar.classList.toggle("boss", !!lvl.boss);
+        e.sProg.style.width = Math.round((lvl.boss ? 1 - p : p) * 100) + "%";
+        setText(e.sProgTxt, lvl.boss ? t("Hold on for {s} s", { s: Math.ceil(lvl.duration * (1 - p)) }) : t("{p}% of the way", { p: Math.floor(p * 100) }));
+      }
+      // The sector's three stars: earned before (gold), or how this run is going
+      e.sStarsBox.hidden = mode !== "level";
+      if (mode === "level") {
+        setText(e.sStarsLabel, t("STARS"));
+        const had = starsOf(lvl.id);
+        const ratio = run.coinsSpawned ? run.coinsPicked / run.coinsSpawned : 0;
+        const row = (got, label, note, cls) => '<div class="srow">' + ICON_STAR.replace("<svg", '<svg class="' + (got ? "got" : "") + '"') +
+          "<span>" + esc(label) + "</span><em" + (cls ? ' class="' + cls + '"' : "") + ">" + esc(note) + "</em></div>";
+        setHtml("stars", e.sStars,
+          row(had & 1, t("Clear the sector"), had & 1 ? t("got") : "") +
+          row(had & 2, t("Collect {p}% of the coins", { p: Math.round(COIN_STAR_SHARE * 100) }), had & 2 ? t("got") : Math.floor(ratio * 100) + "%", had & 2 ? "" : ratio >= COIN_STAR_SHARE ? "ok" : "") +
+          row(had & 4, t("No hits"), had & 4 ? t("got") : run.damaged ? t("hit") : t("so far"), had & 4 ? "" : run.damaged ? "no" : "ok"));
+      }
+      // Pilots in a race
+      e.sRivalsBox.hidden = !race || race.racers.length < 2;
+      if (race && race.racers.length >= 2) {
+        setText(e.sRivalsLabel, t("PILOTS"));
+        setHtml("rivals", e.sRivals, race.racers.map(r => '<div class="srow' + (r.alive ? "" : " out") + '"><i class="dot" style="background:' + r.color + '"></i><span>' +
+          esc(r.me ? t("You") : r.name) + "</span><em>" + esc(r.alive ? t("flying") : t("out")) + "</em></div>").join(""));
+      }
+      // Today's missions
+      const ms = missionsNow();
+      e.sMissionsBox.hidden = false;
+      setText(e.sMissionsLabel, t("MISSIONS"));
+      setHtml("missions", e.sMissions, ms.list.map(m => {
+        const done = m.p >= m.n;
+        return '<div class="srow' + (m.claimed ? " out" : "") + '"><span>' + esc(missionText(m)) + '</span><span class="mbar"><i style="width:' +
+          Math.round(m.p / m.n * 100) + '%"></i></span><em' + (done ? ' class="ok"' : "") + ">" + (done ? "✓" : m.p + "/" + m.n) + "</em></div>";
+      }).join(""));
+      setText(e.sKeys, isCoarse ? t("Drag to steer") : t("Mouse, arrow keys or A / D to steer · P to pause"));
+      // Right: the ship
+      if (mode === "endless") {
+        setText(e.sMainLabel, t("SCORE"));
+        setText(e.sMain, String(Math.floor(run.score)));
+        setText(e.sMainSub, t("Best {n}", { n: Math.max(best, Math.floor(run.score)) }));
+      } else if (race) {
+        setText(e.sMainLabel, t("TIME"));
+        setText(e.sMain, mmss(race.time));
+        setText(e.sMainSub, race.sub);
+      } else {
+        setText(e.sMainLabel, t("COINS THIS RUN"));
+        setText(e.sMain, String(run.coins));
+        setText(e.sMainSub, t("Wallet {n}", { n: wallet }));
+      }
+      const chain = COMBO_WINDOW + (skill("r2") ? 1 : 0), since = T - run.comboAt;
+      const live = run.combo >= 2 && since < chain;
+      setText(e.sComboLabel, t("COMBO"));
+      setText(e.sCombo, live ? "x" + run.combo : "–");
+      e.sCombo.style.color = !live ? "var(--muted)" : run.combo >= 11 ? "#ff8a5c" : run.combo >= 6 ? "#ff6bd6" : run.combo >= 3 ? "#ffd34d" : "#7ee0ff";
+      e.sComboBar.style.width = live ? Math.round((1 - since / chain) * 100) + "%" : "0%";
+      setText(e.sHullLabel, t("HULL"));
+      setHtml("hull", e.sHull, Array.from({ length: run.maxHull }, (_, i) => '<i class="cell' + (i < run.hull ? " on" : "") + '"></i>').join("") +
+        (run.guard ? '<i class="cell guard"></i>' : ""));
+      e.sAtkBox.hidden = !race || !race.attacks;
+      if (race && race.attacks) {
+        setText(e.sAtkLabel, t("ATTACK"));
+        setHtml("atk", e.sAtk, Array.from({ length: race.chargeMax }, (_, i) => '<i class="cell atk' + (i < race.charge ? " on" : "") + '"></i>').join(""));
+      }
+      setText(e.sPowerLabel, t("POWER-UPS"));
+      const active = Object.keys(POWERUPS).filter(k => run.pu[k] > 0);
+      setHtml("powers", e.sPowers, active.length ? active.map(k => {
+        const f = clamp(run.pu[k] / (POWERUPS[k].duration * powerMult()), 0, 1);
+        return '<div class="srow"><i class="dot" style="background:' + POWERUPS[k].color + '"></i><span>' + esc(t(POWER_NAMES[k])) +
+          '</span><span class="mbar"><i style="width:' + Math.round(f * 100) + "%;background:" + POWERUPS[k].color + '"></i></span></div>';
+      }).join("") : '<div class="srow"><span>' + esc(t("None right now")) + "</span></div>");
+    }
+    const POWER_NAMES = { shield: "Shield", magnet: "Magnet", slow: "Slow-mo", blast: "Blast" };
 
     function update(dt) {
       T += dt;
@@ -5947,6 +6443,10 @@
         // Coins for the podium, more in a bigger race
         const bonus = n < 2 ? 0 : place === 1 ? 15 + 15 * (n - 1) : place === 2 && n >= 3 ? 20 : place === 3 && n >= 4 ? 10 : 0;
         grantCoins(bonus);
+        if (n > 1) {
+          missionAdd("race");
+          if (place === 1) missionAdd("win");
+        }
         const st = stats();
         if (kind === "bots") { if (place === 1) st.botWins++; }
         else { st.races++; if (place === 1) st.wins++; }
@@ -6139,6 +6639,22 @@
           listDirty = false;
           renderList();
         }
+      }
+
+      // What the side panels show during a race
+      function sideInfo() {
+        const r = race;
+        const alive = r ? r.racers.filter(x => x.alive).length : 0, total = r ? r.racers.length : 0;
+        return {
+          title: kind === "bots" ? t("BOT RACE") : kind === "daily" ? t("DAILY CHALLENGE") : t("ONLINE RACE"),
+          where: total > 1 ? t("{n} of {total} still flying", { n: alive, total }) : t("Today's storm"),
+          time: r ? Math.max(0, r.ended ? r.endT : r.simT) : 0,
+          sub: r && r.overtime ? t("Overtime: the storm keeps growing") : "",
+          racers: r ? r.racers.map(x => ({ name: x.name, color: COLORS[x.slot], alive: x.alive, me: x.slot === me })) : [],
+          attacks: total > 1,
+          charge: Math.min(CHARGE, Math.floor(run.charge || 0)),
+          chargeMax: CHARGE
+        };
       }
 
       function renderList() {
@@ -6402,7 +6918,7 @@
         racing: () => !!race && run.mode === "versus" && (state === "vsStart" || state === "playing" || state === "dying" || state === "vsSpec"),
         duel: () => !!race && !race.ended && run.mode === "versus" && race.racers.length > 2 && race.racers.filter(r => r.alive).length === 2,
         me: () => me,
-        update: tick, draw, hud: hudTick, eliminated, afterDeath: watch, blast: raceBlast, charge: addCharge,
+        update: tick, draw, hud: hudTick, sideInfo, eliminated, afterDeath: watch, blast: raceBlast, charge: addCharge,
         raceMenu, leave, enterKey, onVisibility, inviteCode, joinInvite, instant, setCrazyUser,
         open: () => showOnline(), create: createRoom
       };
@@ -7210,6 +7726,7 @@
         ctx.fillRect(fieldX - 1, 0, 1, H);
         ctx.fillRect(fieldX + fieldW, 0, 1, H);
       }
+      drawSideArt();
     }
 
     function renderShipPreview(g, cv, sk, isOwned, tr) {
@@ -7248,6 +7765,7 @@
       if (dt > 0.05) dt = 0.05;      // time-based, so 60Hz and 120Hz screens play at the same speed
       update(dt);
       render();
+      updateSides(dt);
       if (state === "hangar") renderShipPreview(pctx, previewCanvas, SHIPS[viewSkin], owned.includes(viewSkin), TRAILS[viewTrail]);
       else if (state === "menu") renderShipPreview(mctx, menuShipCanvas, skin(), true, trail());
     }
