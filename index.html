@@ -325,6 +325,50 @@
     .mbonus svg { width: 18px; height: 18px; fill: var(--gold); flex: none; }
     .mbonus.got { color: var(--gold); }
 
+    /* ---------- Daily challenge results ---------- */
+    #dailyResult { background: rgba(7,10,20,.88); }
+    .kicker { font-size: 12px; font-weight: 900; letter-spacing: .18em; color: #c8a6ff; }
+    #drTitle.gold { color: var(--gold); text-shadow: 0 6px 28px rgba(255,211,77,.45); }
+    .drtime { font-size: 64px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; text-shadow: 0 6px 28px rgba(0,0,0,.6); }
+    .drstats { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .drstats span { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 800; padding: 5px 11px; border-radius: 999px;
+      background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1); }
+    #hud.daily #atkRow { display: none !important; }
+
+    /* ---------- Winter event ---------- */
+    .ico-flake { display: inline-flex; }
+    .ico-flake svg { width: 17px; height: 17px; }
+    .pill.mini .short { display: none; }
+    @media (max-width: 420px) {
+      .pill.mini .long { display: none; }
+      .pill.mini .short { display: inline; }
+      .row.minirow { gap: 6px; }
+      .pill.mini { padding: 0 11px; gap: 6px; }
+    }
+    .pill.mini.winter { color: #eaf7ff; background: linear-gradient(180deg, rgba(120,190,255,.3), rgba(80,140,230,.22)); box-shadow: inset 0 0 0 1px rgba(190,230,255,.38); }
+    #flakeBox {
+      position: absolute;
+      right: 14px;
+      top: calc(env(safe-area-inset-top) + 50px);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 15px;
+      font-weight: 900;
+      color: #dff3ff;
+      text-shadow: 0 2px 8px rgba(0,0,0,.7);
+      font-variant-numeric: tabular-nums;
+    }
+    #flakeBox[hidden] { display: none; }
+    #flakeBox svg { width: 16px; height: 16px; }
+    .kicker.frosty { color: #a9dcff; }
+    #winterShip { width: 110px; height: 110px; }
+    .wprog { display: flex; align-items: center; gap: 12px; width: min(300px, calc(100vw - 48px)); }
+    .wprog .mbar2 i { background: linear-gradient(90deg, #8fd3ff, #e8f7ff); }
+    .wprog b { font-size: 15px; font-weight: 900; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    @media (max-height: 480px) { #winterShip { display: none; } }
+    @media (max-height: 480px) { .drtime { font-size: 44px; } }
+
     .title {
       font-weight: 900;
       font-size: clamp(46px, 14vw, 68px);
@@ -1069,6 +1113,7 @@
       <div id="atkRow"></div>
     </div>
     <div id="coinBox"><i class="coin"></i><span id="coinCount">0</span></div>
+    <div id="flakeBox" hidden><span class="ico-flake" id="flakeIco"></span><span id="flakeCount">0</span></div>
     <div id="vsList"></div>
     <div class="side" id="sideL">
       <div class="sbox"><small id="sMode"></small><b id="sWorld"></b><span class="sub" id="sWhere"></span></div>
@@ -1101,7 +1146,8 @@
     <button class="btn big" id="playBtn">PLAY</button>
     <button class="btn vs" id="onlineBtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>Online race <span class="badge new" id="onlineNew" hidden>NEW</span></button>
     <div class="row minirow">
-      <button class="pill mini" id="dailyRunBtn" hidden><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg><span data-t="Daily challenge">Daily challenge</span><span class="badge new" id="dailyRunNew" hidden>!</span></button>
+      <button class="pill mini" id="dailyRunBtn" hidden><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg><span class="long" data-t="Daily challenge">Daily challenge</span><span class="short" data-t="Daily">Daily</span><span class="badge new" id="dailyRunNew" hidden>!</span></button>
+      <button class="pill mini winter" id="winterBtn" hidden><span class="ico-flake" id="winterIco"></span><span id="winterTxt"></span></button>
       <button class="pill mini" id="missionsBtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span data-t="Missions">Missions</span><span class="badge pts" id="missionsBadge" hidden></span></button>
     </div>
     <div class="row">
@@ -1156,6 +1202,30 @@
     <div class="mlist" id="msList"></div>
     <div class="mbonus" id="msBonus"></div>
     <button class="btn ghost" id="msBack"><span data-t="‹ Menu">‹ Menu</span></button>
+  </div></div>
+
+  <div id="winter" class="overlay menu"><div class="panel">
+    <small class="kicker frosty" data-t="WINTER EVENT · DECEMBER ONLY">WINTER EVENT · DECEMBER ONLY</small>
+    <div class="h1" data-t="Frost trail">Frost trail</div>
+    <canvas id="winterShip"></canvas>
+    <div class="sub" id="wSub"></div>
+    <div class="wprog"><div class="mbar2"><i id="wBar"></i></div><b id="wCount"></b></div>
+    <button class="btn big" id="wPlay"><span data-t="Play">Play</span></button>
+    <button class="btn ghost" id="wBack"><span data-t="‹ Menu">‹ Menu</span></button>
+  </div></div>
+
+  <div id="dailyResult" class="overlay"><div class="panel">
+    <small class="kicker" id="drKicker"></small>
+    <div class="h1" id="drTitle"></div>
+    <div class="drtime" id="drTime"></div>
+    <div class="sub" id="drSub"></div>
+    <div class="drstats" id="drStats"></div>
+    <button class="btn big gold" id="drAgain"><span data-t="Try again">Try again</span></button>
+    <div class="row">
+      <button class="btn sec" id="drShare"><span data-t="Share">Share</span></button>
+      <button class="btn ghost" id="drMenu"><span data-t="Menu">Menu</span></button>
+    </div>
+    <p class="tip" id="drMsg" hidden></p>
   </div></div>
 
   <div id="daily" class="overlay"><div class="panel">
@@ -1372,7 +1442,7 @@
     // ---------- Config ----------
     // Shown on the menu and the pause screen. Bump it with every release, together with
     // version.json (the website compares the two to offer a one-tap update).
-    const GAME_VERSION = "3.0";
+    const GAME_VERSION = "3.1";
     // A link that opens an ad in a new tab, for the rewards on the game's own website.
     // Empty for now: Monetag's link (removed in 2.9.1) sent players to adult and scam pages.
     // Without a link the reward buttons are hidden on the website; CrazyGames uses its own ads.
@@ -1416,6 +1486,7 @@
     const ICON_MAGNET = '<svg viewBox="0 0 24 24"><path d="M5 3h5v8a2 2 0 0 0 4 0V3h5v8a7 7 0 0 1-14 0z"/></svg>';
     const ICON_POWER = '<svg viewBox="0 0 24 24"><path d="M13.5 2L4 14h6.5l-1 8L19 10h-6.5z"/></svg>';
     const ICON_SHIELD = '<svg viewBox="0 0 24 24"><path d="M12 2l8 3.5v6c0 5-3.4 8.6-8 10.5-4.6-1.9-8-5.5-8-10.5v-6z"/></svg>';
+    const ICON_FLAKE = '<svg viewBox="0 0 24 24"><path d="M12 2.5v19M3.8 7.25l16.4 9.5M3.8 16.75l16.4-9.5M12 2.5 9.6 4.9M12 2.5l2.4 2.4M12 21.5l-2.4-2.4M12 21.5l2.4-2.4M3.8 7.25l3.3.9M3.8 7.25l.9-3.3M20.2 16.75l-3.3-.9M20.2 16.75l-.9 3.3M3.8 16.75l.9 3.3M3.8 16.75l3.3-.9M20.2 7.25l-.9-3.3M20.2 7.25l-3.3.9" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
     const ICON_GUARD = '<svg viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2l8 3.5v6c0 5-3.4 8.6-8 10.5-4.6-1.9-8-5.5-8-10.5v-6zM12 7l1.29 3.22 3.47.23-2.67 2.23.85 3.37L12 14.2l-2.94 1.85.85-3.37-2.67-2.23 3.47-.23z"/></svg>';
 
     const SHIPS = [
@@ -1438,7 +1509,9 @@
       { name: "Neon",     price: 6000,  colors: ["#ff5ad1", "#a46bff", "#4fd6ff"] },
       { name: "Rainbow",  price: 9000,  rainbow: true },
       { name: "Gold",     price: 15000, colors: ["#fff6c2", "#ffd34d", "#e0a210"], sparkle: true },
-      { name: "Stardust", price: 0, stars: 144, colors: ["#ffffff", "#ffd3f0", "#a8d8ff", "#ffe9a6"], sparkle: true }
+      { name: "Stardust", price: 0, stars: 144, colors: ["#ffffff", "#ffd3f0", "#a8d8ff", "#ffe9a6"], sparkle: true },
+      // Earned in the December winter event (snowflakes), never sold
+      { name: "Frost", price: 0, event: "winter", colors: ["#ffffff", "#e3f5ff", "#a9e1ff", "#c9c2ff"], sparkle: true }
     ];
 
     const POWERUPS = {
@@ -2085,6 +2158,8 @@
     const pctx = previewCanvas.getContext("2d");
     const menuShipCanvas = $("menuShip");
     const mctx = menuShipCanvas.getContext("2d");
+    const winterCanvas = $("winterShip");
+    const wctx = winterCanvas.getContext("2d");
     const safeProbe = $("safeProbe");
 
     // Cached drawings (background, meteors, coins, glows) live in canvases kept in
@@ -2182,6 +2257,7 @@
       buildBackground();
       previewCanvas.width = previewCanvas.height = Math.round(130 * DPR);
       menuShipCanvas.width = menuShipCanvas.height = Math.round(130 * DPR);
+      winterCanvas.width = winterCanvas.height = Math.round(130 * DPR);
       if (state === "skills") layoutTree();
       layoutSides();
     }
@@ -2541,7 +2617,7 @@
     let boss = null;
     let banner = null;
     let midgameBusy = false;
-    const AMBIENT = new Set(["menu", "map", "hangar", "ending", "boot", "daily", "online", "lobby", "backup", "skills", "missions"]);
+    const AMBIENT = new Set(["menu", "map", "hangar", "ending", "boot", "daily", "online", "lobby", "backup", "skills", "missions", "winter"]);
 
     function newRun(mode, lvl) {
       const hull = maxHull();
@@ -2584,7 +2660,7 @@
     document.querySelectorAll("[data-icon=star]").forEach(el => { el.innerHTML = ICON_STAR; });
 
     const screens = {};
-    ["menu", "map", "hangar", "continue", "adwait", "clear", "fail", "gameover", "ending", "pause", "daily", "online", "lobby", "vsResult", "backup", "skills", "missions"].forEach(n => { screens[n] = $(n); });
+    ["menu", "map", "hangar", "continue", "adwait", "clear", "fail", "gameover", "ending", "pause", "daily", "online", "lobby", "vsResult", "backup", "skills", "missions", "dailyResult", "winter"].forEach(n => { screens[n] = $(n); });
 
     function showScreen(name, readyDelay) {
       const el = screens[name];
@@ -2612,6 +2688,7 @@
     function clearWorld() {
       meteors.length = coins.length = powerups.length = texts.length = 0;
       beams.length = wells.length = ufos.length = 0;
+      flakes.length = 0;
       boss = null;
     }
 
@@ -2643,9 +2720,10 @@
       state = "playing";
       setGameplay(true);
       hud.classList.add("show");
-      hud.classList.remove("dead", "vs");
+      hud.classList.remove("dead", "vs", "daily");
       hud.classList.toggle("level", mode === "level");
       renderHull();
+      updateFlakeHud();
       plays++;
       store.set("meteorPlays", plays);
       Sound.beep(true);
@@ -2946,6 +3024,8 @@
 
     // CrazyGames wants no gameplayStop when the player merely switches tabs.
     function pauseGame(fromTabSwitch) {
+      // The daily challenge is solo, so its clock can wait
+      if (Vs.pauseDaily()) return;
       // Online races can't stop: the button only offers a way out, and a tab switch does nothing
       if (Vs.racing()) {
         if (!fromTabSwitch) Vs.raceMenu();
@@ -2966,6 +3046,7 @@
 
     function resumeGame() {
       if (run.mode === "versus") {
+        if (Vs.resumeDaily()) return;
         hideScreen("pause");
         blurFocus();
         return;
@@ -3237,6 +3318,10 @@
       const ready = missionsReady(), mb = $("missionsBadge");
       mb.hidden = !ready;
       mb.textContent = ready;
+      $("dailyRunNew").hidden = Vs.dailyPlayed();
+      const wOn = winterOn();
+      $("winterBtn").hidden = !wOn;
+      if (wOn) $("winterTxt").textContent = frostOwned() ? t("Winter") : winterNow().flakes + "/" + WINTER_GOAL;
       freeKey = "";
       updateFreeCoins();
     }
@@ -3457,6 +3542,115 @@
       Sound.power();
       coinBurst();
       renderMissions();
+    }
+
+    // ---------- Winter event (December) ----------
+    // In December the menus get snow, and snowflakes drift through campaign and endless runs:
+    // WINTER_GOAL of them unlock the Frost trail for good (after that each one pays coins).
+    // Races and the daily challenge stay as they are, so everyone flies the same storm.
+    // On this computer, localStorage meteorWinterTest = true turns the event on for testing.
+    const WINTER_GOAL = 100;
+    const FROST_TRAIL = TRAILS.findIndex(tr => tr.event === "winter");
+    const LOCAL_TEST = /^(localhost|127\.|\[::1\]|0\.0\.0\.0)$/.test(location.hostname) || !location.hostname;
+    const winterTest = LOCAL_TEST && store.get("meteorWinterTest", false, true) === true;
+    const winterOn = () => winterTest || new Date().getMonth() === 11;
+    const flakes = [];
+    let winter = null;
+
+    function winterNow() {
+      const y = new Date().getFullYear();
+      if (winter && winter.year === y) return winter;
+      const s = store.get("meteorWinter", null);
+      winter = { year: y, flakes: s && s.year === y ? clamp(Math.floor(Number(s.flakes) || 0), 0, 99999) : 0 };
+      return winter;
+    }
+    const frostOwned = () => trailsOwned.includes(FROST_TRAIL);
+    const flakesActive = () => winterOn() && run.mode !== "versus";
+
+    // Called from updateRun (campaign and endless) on the coin clock
+    function updateFlakes(dt) {
+      if (!flakesActive()) return;
+      if (run.flakeT === undefined) run.flakeT = rand(3, 6);
+      run.flakeT -= dt;
+      if (run.flakeT <= 0) {
+        run.flakeT = rand(6, 11);
+        flakes.push({ x: fieldX + rand(36, fieldW - 36), y: -24, vy: H * rand(0.15, 0.21), ph: rand(0, TAU), f: rand(1.2, 2), dx: 0 });
+      }
+      for (let i = flakes.length - 1; i >= 0; i--) {
+        const k = flakes[i];
+        k.y += k.vy * dt;
+        k.dx = Math.sin(T * k.f + k.ph) * 14;
+        if (Math.hypot(player.x - (k.x + k.dx), player.y - k.y) < pHit + 24) { flakes.splice(i, 1); catchFlake(k); }
+        else if (k.y > H + 24) flakes.splice(i, 1);
+      }
+    }
+
+    function catchFlake(k) {
+      const x = k.x + k.dx;
+      sparks(x, k.y, "#e6f4ff", 12, 160);
+      rings.push({ x, y: k.y, r: 8, vr: 180, life: 0.4, max: 0.4, color: "#cfe9ff", w: 2 });
+      Sound.coin(5);
+      if (frostOwned()) {
+        addPickupCoins(5);
+        addText(x, k.y - 16, "+5", "#ffd34d", 16);
+        return;
+      }
+      const w = winterNow();
+      w.flakes++;
+      store.set("meteorWinter", w);
+      addText(x, k.y - 16, w.flakes + "/" + WINTER_GOAL, "#cfe9ff", 15);
+      if (w.flakes >= WINTER_GOAL) {
+        trailsOwned.push(FROST_TRAIL);
+        store.set("meteorTrails", trailsOwned);
+        toast(t("Frost trail unlocked! Pick it in the hangar."));
+        Sound.best();
+        confetti();
+      }
+      updateFlakeHud();
+    }
+
+    function drawFlakes() {
+      if (!flakes.length) return;
+      for (const k of flakes) {
+        const x = k.x + k.dx, y = k.y, a = T * 0.8 + k.ph;
+        ctx.globalCompositeOperation = "lighter";
+        ctx.globalAlpha = 0.55;
+        ctx.drawImage(glow("#a9dcff"), x - 28, y - 28, 56, 56);
+        ctx.globalCompositeOperation = "source-over";
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = "#f4fbff";
+        ctx.lineCap = "round";
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const c = Math.cos(a + i * Math.PI / 3), s = Math.sin(a + i * Math.PI / 3);
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + c * 12, y + s * 12);
+          // a little V on each arm
+          const bx = x + c * 7.5, by = y + s * 7.5;
+          ctx.moveTo(bx, by);
+          ctx.lineTo(bx + Math.cos(a + i * Math.PI / 3 + 0.8) * 4, by + Math.sin(a + i * Math.PI / 3 + 0.8) * 4);
+          ctx.moveTo(bx, by);
+          ctx.lineTo(bx + Math.cos(a + i * Math.PI / 3 - 0.8) * 4, by + Math.sin(a + i * Math.PI / 3 - 0.8) * 4);
+        }
+        ctx.stroke();
+      }
+    }
+
+    function updateFlakeHud() {
+      const show = flakesActive() && !frostOwned();
+      $("flakeBox").hidden = !show;
+      if (show) $("flakeCount").textContent = winterNow().flakes + "/" + WINTER_GOAL;
+    }
+
+    function showWinter() {
+      enterBreak("winter");
+      const n = winterNow().flakes, got = frostOwned();
+      $("wSub").textContent = got ? t("The Frost trail is yours! Every snowflake now pays 5 coins.")
+        : t("Catch snowflakes in campaign and endless runs this December. {n} of them unlock the Frost trail, yours to keep.", { n: WINTER_GOAL });
+      $("wBar").style.width = (got ? 100 : Math.round(Math.min(n, WINTER_GOAL) / WINTER_GOAL * 100)) + "%";
+      $("wCount").textContent = got ? t("Unlocked") : n + " / " + WINTER_GOAL;
+      showScreen("winter", 200);
     }
 
     // ---------- Version and updates ----------
@@ -3829,8 +4023,8 @@
       $("trailSwatch").style.background = trailSwatch(tr, isOwned ? s : skin());
       const ts = $("trailStatus");
       ts.className = trOwned ? "owned" : "";
-      ts.innerHTML = trOwned ? "✓" : ICON_LOCK + (tr.stars ? tr.stars + " ★" : tr.price);
-      trailBtn.hidden = !isOwned || trOwned || !!tr.stars;
+      ts.innerHTML = trOwned ? "✓" : ICON_LOCK + (tr.stars ? tr.stars + " ★" : tr.event ? esc(t("Winter event")) : tr.price);
+      trailBtn.hidden = !isOwned || trOwned || !!tr.stars || !!tr.event;
       if (!trailBtn.hidden) {
         trailBtn.disabled = wallet < tr.price;
         trailBtn.innerHTML = 'Unlock trail <i class="coin"></i> ' + tr.price;
@@ -3865,13 +4059,15 @@
 
     function changeTrail(dir) {
       Sound.click();
-      viewTrail = (viewTrail + dir + TRAILS.length) % TRAILS.length;
+      // An event trail shows only while its event is on, or once it's owned
+      do viewTrail = (viewTrail + dir + TRAILS.length) % TRAILS.length;
+      while (TRAILS[viewTrail].event && !trailsOwned.includes(viewTrail) && !winterOn());
       refreshHangar();
     }
 
     function unlockTrail() {
       const tr = TRAILS[viewTrail];
-      if (tr.stars || trailsOwned.includes(viewTrail) || wallet < tr.price) return;
+      if (tr.stars || tr.event || trailsOwned.includes(viewTrail) || wallet < tr.price) return;
       wallet -= tr.price;
       trailsOwned.push(viewTrail);
       saveWallet();
@@ -3935,6 +4131,13 @@
     on("updateBtn", () => { location.replace(location.pathname + "?v=" + encodeURIComponent(newVersion)); });
     on("backupBtn", () => { Sound.click(); showBackup(); });
     on("missionsBtn", () => { Sound.click(); showMissions(); });
+    on("dailyRunBtn", () => { Sound.click(); Vs.daily(); });
+    dailyChallengeOn = true;
+    $("dailyRunBtn").hidden = false;
+    on("winterBtn", () => { Sound.click(); showWinter(); });
+    on("wPlay", () => { Sound.click(); showMap(); });
+    on("wBack", () => { Sound.click(); showMenu(); });
+    $("flakeIco").innerHTML = $("winterIco").innerHTML = ICON_FLAKE;
     on("msBack", () => { Sound.click(); showMenu(); });
     $("msList").addEventListener("click", e => {
       const b = e.target.closest("[data-claim]");
@@ -4158,7 +4361,7 @@
         else if (state === "ending" && ready("ending")) showMap(WORLDS.length);
         else if (state === "daily" && ready("daily")) claimDaily(1);
         else if (state === "paused") resumeGame();
-        else if ((state === "lobby" && ready("lobby")) || (state === "vsOver" && ready("vsResult"))) Vs.enterKey();
+        else if ((state === "lobby" && ready("lobby")) || (state === "vsOver" && ready("vsResult")) || (state === "dailyOver" && ready("dailyResult"))) Vs.enterKey();
       } else if (e.code === "KeyP") {
         if (state === "playing" || state === "countdown") pauseGame();
         else if (state === "paused") resumeGame();
@@ -4640,7 +4843,7 @@
       player.tilt += (clamp(vx * 0.0008, -0.45, 0.45) - player.tilt) * (1 - Math.exp(-dt * 12));
 
       // Engine trail. Bought trails are denser, longer and bolder, and the finest ones throw sparkles.
-      const sk = skin(), tr = trail(), fancy = tr.price || tr.stars;
+      const sk = skin(), tr = trail(), fancy = tr.price || tr.stars || tr.event;
       engineAcc += dt * (fancy ? 110 : 70);
       while (engineAcc >= 1) {
         engineAcc--;
@@ -5024,7 +5227,9 @@
         const done = m.p >= m.n;
         return '<div class="srow' + (m.claimed ? " out" : "") + '"><span>' + esc(missionText(m)) + '</span><span class="mbar"><i style="width:' +
           Math.round(m.p / m.n * 100) + '%"></i></span><em' + (done ? ' class="ok"' : "") + ">" + (done ? "✓" : m.p + "/" + m.n) + "</em></div>";
-      }).join(""));
+      }).join("") + (flakesActive() && !frostOwned() ? '<div class="srow"><span>' + esc(t("Snowflakes for the Frost trail")) +
+        '</span><span class="mbar"><i style="width:' + Math.round(Math.min(winterNow().flakes, WINTER_GOAL) / WINTER_GOAL * 100) +
+        '%;background:linear-gradient(90deg,#8fd3ff,#e8f7ff)"></i></span><em>' + winterNow().flakes + "/" + WINTER_GOAL + "</em></div>" : ""));
       setText(e.sKeys, isCoarse ? t("Drag to steer") : t("Mouse, arrow keys or A / D to steer · P to pause"));
       // Right: the ship
       if (mode === "endless") {
@@ -5071,7 +5276,7 @@
         if (banner.t > banner.life) banner = null;
       }
       // The current world's song: calm on menus, livelier in flight, fiercest against a boss
-      const flying = !AMBIENT.has(state) && state !== "clear" && state !== "fail" && state !== "over" && state !== "vsOver";
+      const flying = !AMBIENT.has(state) && state !== "clear" && state !== "fail" && state !== "over" && state !== "vsOver" && state !== "dailyOver";
       // The last two pilots of an online race get the boss-fight beat
       Sound.setMusic(Math.max(0, WORLDS.indexOf(palette)), flying ? (boss || Vs.duel() ? 2 : 1) : 0);
       if (state === "paused" || state === "adwait") return;
@@ -5099,7 +5304,7 @@
       } else if (state === "countdown") {
         updateCountdown(dt);
       } else {
-        if (state === "playing") updateRun(dt, wdt);
+        if (state === "playing") { updateRun(dt, wdt); updateFlakes(dt); }
         else if (AMBIENT.has(state)) {
           ambientT -= wdt;
           if (ambientT <= 0) { spawnMeteor(true); ambientT = rand(0.7, 1.4); }
@@ -6039,11 +6244,13 @@
       }
 
       function leave() {
+        if (kind === "daily") { leaveSession(); showMenu(); return; }
         showOnline();
       }
 
       function enterKey() {
-        if (state === "lobby" && kind === "host" && !$("startBtn").disabled) { Sound.click(); hostStart(); }
+        if (state === "dailyOver") { Sound.click(); startDaily(); }
+        else if (state === "lobby" && kind === "host" && !$("startBtn").disabled) { Sound.click(); hostStart(); }
         else if (state === "vsOver" && !$("rematchBtn").hidden && !$("rematchBtn").disabled) { Sound.click(); rematch(); }
       }
 
@@ -6073,6 +6280,144 @@
       function rematch() {
         if (kind === "bots") practice(true);
         else if (kind === "host") hostStart();
+      }
+
+      // ----- Daily challenge -----
+      // One storm a day for everyone (by the UTC date), flown solo on the equal race ship for
+      // as long as the player lasts. Today's best time is kept and can be shared. Being solo,
+      // it can pause: the race clock is held while the pause menu is open.
+      let pausedAt = 0, prevState = "";
+      const utcKey = d => d.toISOString().slice(0, 10);
+      const fmtT = s => { s = Math.max(0, s); const m = Math.floor(s / 60), r = s - m * 60; return m + ":" + (r < 10 ? "0" : "") + r.toFixed(1); };
+      function dailyStats() {
+        const s = store.get("meteorDailyRun", null) || {};
+        const key = v => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : "";
+        return { day: key(s.day), best: clamp(Number(s.best) || 0, 0, 36000), tries: clamp(Math.floor(Number(s.tries) || 0), 0, 1e6),
+          streak: clamp(Math.floor(Number(s.streak) || 0), 0, 1e5), last: key(s.last) };
+      }
+      const dailyPlayed = () => dailyStats().last === utcKey(new Date());
+
+      function startDaily() {
+        leaveSession();
+        kind = "daily";
+        me = 0;
+        const now = new Date(), key = utcKey(now), st = dailyStats();
+        if (st.day !== key) { st.day = key; st.best = 0; st.tries = 0; }
+        st.tries++;
+        if (st.last !== key) {
+          st.streak = st.last === utcKey(new Date(now.getTime() - 86400000)) ? st.streak + 1 : 1;
+          st.last = key;
+        }
+        store.set("meteorDailyRun", st);
+        players = [{ slot: 0, name: myName(), ship: selectedSkin, trail: selectedTrail, bot: false }];
+        const dayNo = Math.floor(Date.parse(key + "T00:00:00Z") / 86400000);
+        beginRace({ id: ++raceNo, seed: parseInt(hash36("daily-" + key), 36) >>> 0, world: 1 + dayNo % WORLDS.length,
+          start: performance.now() + (LEAD_IN - 0.8) * 1000, roster: [0] });
+        if (race) { race.dayKey = key; race.bestBefore = st.best; race.tries = st.tries; race.streak = st.streak; }
+        track("daily-start");
+      }
+
+      function dailyBanner(secs) {
+        showBanner(t("STORM OVER"), t("You lasted {time}", { time: fmtT(secs) }), "#ffd34d");
+      }
+
+      function dailyEnd() {
+        if (!race || race.ended) return;
+        const time = Math.max(0, race.simT);
+        race.ended = true;
+        race.endT = time;
+        racing = false;
+        const st = dailyStats();
+        const isBest = time > race.bestBefore + 1e-6;
+        if (st.day === race.dayKey && time > st.best) { st.best = time; store.set("meteorDailyRun", st); }
+        race.daily = { time, best: Math.max(race.bestBefore, time), isBest, key: race.dayKey, tries: race.tries, streak: race.streak, coins: run.coins };
+        race.resultsAt = performance.now() + 1600;
+        setGameplay(false);
+        missionAdd("daily");
+        track("daily-done");
+      }
+
+      function showDailyResult() {
+        const d = race.daily;
+        state = "dailyOver";
+        blurFocus();
+        hideAllScreens("dailyResult");
+        hud.classList.remove("show");
+        banner = null;
+        texts.length = 0;
+        let date = d.key;
+        try { date = new Date(d.key + "T12:00:00Z").toLocaleDateString(lang, { month: "short", day: "numeric", timeZone: "UTC" }); } catch (e) {}
+        $("drKicker").textContent = t("DAILY CHALLENGE · {date}", { date: date.toUpperCase() });
+        $("drTitle").textContent = d.isBest ? t("New best!") : t("Out of the storm");
+        $("drTitle").classList.toggle("gold", d.isBest);
+        $("drTime").textContent = fmtT(d.time);
+        $("drSub").textContent = t("Today's best: {time}", { time: fmtT(d.best) });
+        $("drStats").innerHTML = [t("Try {n}", { n: d.tries }), d.streak === 1 ? t("Streak: 1 day") : t("Streak: {n} days", { n: d.streak }), "+" + d.coins + ' <i class="coin"></i>']
+          .map((s, i) => "<span>" + (i < 2 ? esc(s) : s) + "</span>").join("");
+        $("drMsg").hidden = true;
+        showScreen("dailyResult", 600);
+        if (d.isBest && d.tries > 1) { confetti(); Sound.best(); }
+      }
+
+      // The share text: the time and the date, plus a link that opens today's storm (on the
+      // game's own website only: CrazyGames allows no links out of a game)
+      async function shareDaily() {
+        const d = race && race.daily;
+        if (!d) return;
+        let date = d.key;
+        try { date = new Date(d.key + "T12:00:00Z").toLocaleDateString(lang, { month: "short", day: "numeric", timeZone: "UTC" }); } catch (e) {}
+        const text = t("I lasted {time} in today's Meteor Swerve storm ({date}). Can you beat it?", { time: fmtT(d.best), date });
+        const url = crazy ? "" : (/^https?:$/.test(location.protocol) ? location.origin + location.pathname : "https://xfroo.github.io/") + "?daily";
+        if (navigator.share && isCoarse) {
+          try { await navigator.share(url ? { text, url } : { text }); return; }
+          catch (e) { if (e && e.name === "AbortError") return; }
+        }
+        const ok = await copyText(url ? text + " " + url : text);
+        const m = $("drMsg");
+        m.textContent = ok ? t("Copied! Paste it to a friend.") : (url ? text + " " + url : text);
+        m.style.wordBreak = ok ? "" : "break-all";
+        m.hidden = false;
+        track("daily-share");
+      }
+
+      function pauseDaily() {
+        if (kind !== "daily" || !race || race.ended || (state !== "playing" && state !== "vsStart")) return false;
+        prevState = state;
+        pausedAt = performance.now();
+        state = "paused";
+        setGameplay(false);
+        drag = null;
+        keys = {};
+        $("pauseTitle").textContent = t("Paused");
+        $("resumeBtn").textContent = t("Resume");
+        $("quitBtn").textContent = t("Quit");
+        $("restartBtn").hidden = true;
+        $("pauseNote").textContent = t("The daily storm waits for you.");
+        $("pauseNote").hidden = false;
+        showScreen("pause", 150);
+        return true;
+      }
+
+      function resumeDaily() {
+        if (kind !== "daily" || state !== "paused" || !pausedAt || !race) return false;
+        race.start += performance.now() - pausedAt;
+        pausedAt = 0;
+        state = prevState || "playing";
+        hideScreen("pause");
+        blurFocus();
+        setGameplay(true);
+        return true;
+      }
+
+      // ?daily in the address (from a shared link) opens today's storm
+      function dailyLink() {
+        try {
+          const url = new URL(location.href);
+          if (!url.searchParams.has("daily")) return false;
+          url.searchParams.delete("daily");
+          history.replaceState(null, "", url.pathname + url.search + url.hash);
+          return true;
+        } catch (e) { return false; }
       }
 
       // ----- The race -----
@@ -6126,6 +6471,8 @@
         lobbyCdAt = autoAt = rematchAt = 0;
         hud.classList.add("show", "vs");
         hud.classList.remove("dead", "level");
+        hud.classList.toggle("daily", kind === "daily");
+        updateFlakeHud();
         renderHull();
         shown = {};
         listDirty = true;
@@ -6301,7 +6648,7 @@
 
       // ----- Attacks -----
       function addCharge(n) {
-        if (!race || race.ended || state !== "playing") return;
+        if (!race || race.ended || state !== "playing" || kind === "daily") return;
         run.charge = Math.min(CHARGE, (run.charge || 0) + n);
         if (run.charge >= CHARGE && performance.now() - race.lastAtk > 1000) {
           run.charge = 0;
@@ -6384,13 +6731,15 @@
         rc.deadAt = t;
         listDirty = true;
         const left = race.racers.filter(r => r.alive).length;
-        showBanner("ELIMINATED", ordinal(left + 1) + " place", "#ff6b6b");
+        if (kind === "daily") dailyBanner(t);
+        else showBanner("ELIMINATED", ordinal(left + 1) + " place", "#ff6b6b");
         if (kind === "guest") { if (!forced) send({ t: "de", r: race.id, m: t }); }
         else if (kind === "host") {
           sendAll({ t: "de", r: race.id, p: me, m: t });
           hostCheckEnd();
           lobbyChanged();
         } else if (kind === "bots") botsCheckEnd();
+        else if (kind === "daily") dailyEnd();
         forced = false;
       }
 
@@ -6467,6 +6816,7 @@
 
       function showResults() {
         const r = race;
+        if (kind === "daily" && r && r.daily) { r.resultsAt = 0; showDailyResult(); return; }
         if (!r || !r.results) return;
         r.resultsAt = 0;
         state = "vsOver";
@@ -6617,16 +6967,17 @@
       function hudTick() {
         const r = race;
         if (!r) return;
-        const alive = r.racers.filter(x => x.alive).length;
-        const a = alive + "/" + r.racers.length;
+        const secs = Math.floor(Math.max(0, r.ended ? r.endT : r.simT));
+        // The daily challenge shows the clock big and today's best under it
+        const a = kind === "daily" ? fmt(secs) : r.racers.filter(x => x.alive).length + "/" + r.racers.length;
         if (shown.alive !== a) {
           shown.alive = a;
-          $("vsAlive").innerHTML = a + "<small>FLYING</small>";
+          $("vsAlive").innerHTML = kind === "daily" ? a : a + "<small>FLYING</small>";
         }
-        const secs = Math.floor(Math.max(0, r.ended ? r.endT : r.simT));
-        if (shown.secs !== secs) {
-          shown.secs = secs;
-          $("vsTime").textContent = fmt(secs);
+        const tl = kind === "daily" ? t("BEST {time}", { time: fmt(r.bestBefore || 0) }) : fmt(secs);
+        if (shown.secs !== tl) {
+          shown.secs = tl;
+          $("vsTime").textContent = tl;
         }
         const ch = Math.min(CHARGE, Math.floor(run.charge || 0));
         if (shown.charge !== ch) {
@@ -6649,7 +7000,7 @@
           title: kind === "bots" ? t("BOT RACE") : kind === "daily" ? t("DAILY CHALLENGE") : t("ONLINE RACE"),
           where: total > 1 ? t("{n} of {total} still flying", { n: alive, total }) : t("Today's storm"),
           time: r ? Math.max(0, r.ended ? r.endT : r.simT) : 0,
-          sub: r && r.overtime ? t("Overtime: the storm keeps growing") : "",
+          sub: r && r.overtime ? t("Overtime: the storm keeps growing") : kind === "daily" && r ? t("Today's best: {time}", { time: fmt(r.bestBefore || 0) }) : "",
           racers: r ? r.racers.map(x => ({ name: x.name, color: COLORS[x.slot], alive: x.alive, me: x.slot === me })) : [],
           attacks: total > 1,
           charge: Math.min(CHARGE, Math.floor(run.charge || 0)),
@@ -6870,7 +7221,7 @@
         }
         if (lobbyDirty) flushLobby();
         // A page in the background can't steer: a few seconds away drops the pilot out of an online race
-        if (kind !== "bots" && race && !race.ended && hiddenAt && now - hiddenAt > 5000 && (state === "playing" || state === "vsStart")) die();
+        if (kind !== "bots" && kind !== "daily" && race && !race.ended && hiddenAt && now - hiddenAt > 5000 && (state === "playing" || state === "vsStart")) die();
         if (state === "lobby") lobbyStatus();
         else if (state === "vsOver") resultStatus();
       }, 250);
@@ -6912,6 +7263,9 @@
       $("lobbyLeave").addEventListener("click", () => { Sound.click(); showOnline(); });
       $("rematchBtn").addEventListener("click", () => { if (state === "vsOver") { Sound.click(); rematch(); } });
       $("vsLeave").addEventListener("click", () => { Sound.click(); showOnline(); });
+      $("drAgain").addEventListener("click", () => { if (state === "dailyOver") { Sound.click(); startDaily(); } });
+      $("drShare").addEventListener("click", () => { if (state === "dailyOver") { Sound.click(); shareDaily(); } });
+      $("drMenu").addEventListener("click", () => { if (state === "dailyOver") { Sound.click(); leaveSession(); showMenu(); } });
       window.addEventListener("pagehide", () => { if (kind === "host" || kind === "guest") leaveSession(); });
 
       return {
@@ -6920,6 +7274,7 @@
         me: () => me,
         update: tick, draw, hud: hudTick, sideInfo, eliminated, afterDeath: watch, blast: raceBlast, charge: addCharge,
         raceMenu, leave, enterKey, onVisibility, inviteCode, joinInvite, instant, setCrazyUser,
+        daily: startDaily, dailyPlayed, pauseDaily, resumeDaily, dailyLink,
         open: () => showOnline(), create: createRoom
       };
     })();
@@ -6942,7 +7297,8 @@
     }
 
     function updateAmbience(dt) {
-      const kind = palette.fx;
+      // December: snow on the menus
+      const kind = winterOn() && AMBIENT.has(state) ? "snow" : palette.fx;
       if (kind !== ambKind) {
         ambKind = kind;
         amb = [];
@@ -7696,6 +8052,7 @@
       drawBeams();
       drawCoins();
       drawPowerups();
+      drawFlakes();
       drawBoss();
       drawUfos();
       drawMeteors();
@@ -7768,6 +8125,7 @@
       updateSides(dt);
       if (state === "hangar") renderShipPreview(pctx, previewCanvas, SHIPS[viewSkin], owned.includes(viewSkin), TRAILS[viewTrail]);
       else if (state === "menu") renderShipPreview(mctx, menuShipCanvas, skin(), true, trail());
+      else if (state === "winter") renderShipPreview(wctx, winterCanvas, skin(), true, TRAILS[FROST_TRAIL]);
     }
 
     window.addEventListener("resize", resize);
@@ -7848,6 +8206,7 @@
       const invite = Vs.inviteCode();
       if (invite) Vs.joinInvite(invite);
       else if (Vs.instant()) Vs.create();
+      else if (Vs.dailyLink()) Vs.daily();
       else if (plays === 0) startLevel(1, 1);
       else showMenu();
     });
